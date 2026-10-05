@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from functools import lru_cache
+from functools import cache, lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -51,7 +51,7 @@ def settings() -> dict[str, Any]:
         return yaml.safe_load(fh)
 
 
-@lru_cache(maxsize=None)
+@cache
 def yaml_config(name: str) -> Any:
     """Load ``config/<name>.yaml`` (cached)."""
     with open(CONFIG_DIR / f"{name}.yaml", encoding="utf-8") as fh:

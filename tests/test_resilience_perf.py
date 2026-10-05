@@ -1,6 +1,4 @@
 """Resilience (network loss -> degraded mode -> recovery, offline end to end) and performance budgets (Section 11.5)."""
-import os
-import tempfile
 import time
 from pathlib import Path
 
@@ -95,3 +93,24 @@ def test_report_compute_is_fast_enough_for_a_live_demo(monkeypatch):
     t0 = time.time()
     rep = reports.ReportEngine.compute(p, as_of)
     assert rep["fingerprint"] and time.time() - t0 < 60
+
+
+def test_presenter_incident_injection_changes_engine_inputs_and_feed(tmp_path, monkeypatch):
+    """Injected incidents are real engine inputs: conditions change, an incident row and a feed event are written, and a duplicate burst creates duplicates."""
+    from nsw_sim.sim.conditions import Incident
+    monkeypatch.setenv("NSW_OFFLINE", "1")
+    conn = db.connect()
+    db.init_db(conn)
+    llm = StubLLM(offline=True)
+    llm.concurrency = 2
+    eng = backfill.run_backfill(conn, llm, clock.engine_start().timestamp() + 9 * 86400)
+    t = eng.t
+    base = eng.cond.scanner_mult("NGAPP", t)
+    eng.inject(Incident("INC-TEST-1", "scanner_outage", t, t + 8 * 3600, port="NGAPP", params={"scanners_offline": 2}, label="Scanner outage at Apapa"))
+    eng.inject(Incident("INC-TEST-2", "duplicate_burst", t, t + 3600, params={"count": 5}, label="Duplicate payments burst"))
+    assert eng.cond.scanner_mult("NGAPP", t + 60) >= base * 1.9 and eng.cond.scanners_offline("NGAPP", t + 60) == 2
+    eng.advance(t + 3 * 3600)
+    eng.flush(t + 3 * 3600)
+    assert conn.execute("SELECT COUNT(*) FROM incidents WHERE incident_id='INC-TEST-1'").fetchone()[0] == 1
+    assert conn.execute("SELECT COUNT(*) FROM live_events WHERE type='ops.scanner.offline' AND subject='INC-TEST-1'").fetchone()[0] == 1
+    assert conn.execute("SELECT COUNT(*) FROM payments WHERE is_duplicate=1 AND occurred_at>?", (clock.iso(t),)).fetchone()[0] >= 4

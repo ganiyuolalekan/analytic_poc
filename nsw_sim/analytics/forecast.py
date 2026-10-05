@@ -1,7 +1,7 @@
 """Deterministic trend projection for the dwell target tracker (no model, no randomness)."""
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 import numpy as np
 import pandas as pd

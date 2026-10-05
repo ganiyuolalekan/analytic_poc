@@ -108,7 +108,7 @@ def main() -> int:
         r["kind"] = kind
         return r
     with ThreadPoolExecutor(max_workers=a.workers) as ex:
-        for i, r in enumerate(ex.map(work, jobs)):
+        for _i, r in enumerate(ex.map(work, jobs)):
             results.append(r)
             print(f"{'PASS' if r['passed'] else 'FAIL'} {r['id']} [{r['kind']}] {r['latency_s']}s status={r['status']} tools={r['tools_called']}" + ("" if r["passed"] else f" missing={r['missing']} unmatched={r['unmatched'][:3]}"), flush=True)
     base = [r for r in results if r["kind"] == "base"]
@@ -119,7 +119,7 @@ def main() -> int:
     summary = {"as_of": a.as_of, "questions": len(base), "pass_rate": rate, "variant_pass_rate": vrate, "variants": len(var), "median_latency_s": sorted(r["latency_s"] for r in base)[len(base) // 2] if base else None,
                "slow_over_20s": [r["id"] for r in base if r["latency_s"] > 20], "passing_with_unverified_numbers": unverified_pass, "model": llm.cfg.model_chat}
     REPORTS_DIR.mkdir(exist_ok=True)
-    md = [f"# Assistant evaluation\n", f"As of `{a.as_of}` · model `{summary['model']}` · {len(base)} base questions" + (f" + {len(var)} paraphrases" if var else "") + "\n",
+    md = ["# Assistant evaluation\n", f"As of `{a.as_of}` · model `{summary['model']}` · {len(base)} base questions" + (f" + {len(var)} paraphrases" if var else "") + "\n",
           f"**Pass rate: {rate:.1%}** (target ≥ 95%)" + (f" · paraphrase robustness: {vrate:.1%}" if vrate is not None else "") + f" · median latency {summary['median_latency_s']} s\n",
           "\n| id | question | expected | tools used (expected) | status | verdict |\n|---|---|---|---|---|---|"]
     for r in results:

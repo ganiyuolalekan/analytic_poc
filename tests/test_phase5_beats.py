@@ -1,9 +1,7 @@
 """Story beats B1-B10 (Section 7.7): present in the data AND detected, with effect sizes in tolerance.
 Runs against the real seeded database (data/nsw.db); skipped if it has not been seeded."""
-import os
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 from nsw_sim import clock, db
@@ -124,7 +122,8 @@ def test_B9_faan_data_gap_detected_and_score_drops():
 
 def test_B10_holiday_has_low_arrivals():
     c = db.reader()
-    d = lambda off: c.execute("SELECT COUNT(*) FROM v_consignments WHERE manifested_at>=? AND manifested_at<?", (day(off), day(off + 1))).fetchone()[0]
+    def d(off):
+        return c.execute("SELECT COUNT(*) FROM v_consignments WHERE manifested_at>=? AND manifested_at<?", (day(off), day(off + 1))).fetchone()[0]
     assert d(92) < 0.6 * (d(91) + d(94)) / 2          # 1 Oct (Independence Day) vs neighbouring weekdays
 
 

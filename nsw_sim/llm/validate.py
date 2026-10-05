@@ -4,8 +4,9 @@ Never returns unvalidated LLM output; every result says whether it came from ``l
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
 

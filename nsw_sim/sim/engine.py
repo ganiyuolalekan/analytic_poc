@@ -12,10 +12,10 @@ import random
 import sqlite3
 import zlib
 from collections import deque
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from nsw_sim import clock, db
-from nsw_sim.config import settings, yaml_config
+from nsw_sim.config import settings
 from nsw_sim.llm.schemas import EntityProfile, FlowPlan, OpsPlan
 from nsw_sim.sim import fallback as fb
 from nsw_sim.sim import fees
@@ -25,7 +25,7 @@ from nsw_sim.sim.expenses import OpsMixin
 from nsw_sim.sim.ids import IdFactory
 from nsw_sim.sim.ledger import Ledger
 from nsw_sim.sim.payments import PaymentMixin
-from nsw_sim.sim.reference import entity_cards, ref
+from nsw_sim.sim.reference import entity_cards
 from nsw_sim.sim.remittance import RemittanceMixin
 from nsw_sim.sim.settlement import SettlementMixin
 
@@ -127,7 +127,7 @@ class Engine(PaymentMixin, SettlementMixin, RemittanceMixin, OpsMixin):
 
     def _load_state(self) -> None:
         """Resume: rebuild the heap and in-flight consignments from the ``inflight`` table."""
-        for ref_, nxt, nat, sj in self.conn.execute("SELECT nsw_ref,next_stage,next_event_at,state_json FROM inflight"):
+        for ref_, _nxt, _nat, sj in self.conn.execute("SELECT nsw_ref,next_stage,next_event_at,state_json FROM inflight"):
             d = json.loads(sj)
             events = d.pop("events", [])
             if not ref_.startswith(PSEUDO):
@@ -363,7 +363,7 @@ class Engine(PaymentMixin, SettlementMixin, RemittanceMixin, OpsMixin):
     def h_arrive(self, t: float, ref_: str, _p) -> None:
         cn = self.cns[ref_]
         cn.arrived_at, cn.status = t, "arrived"
-        rnd = self.rng(cn, 2)
+        self.rng(cn, 2)
         self.emit("nsw.arrival.recorded", t, "NPA" if cn.mode == "sea" else "FAAN", cn.ref, "Arrival recorded",
                   f"{cn.ref} {'berthed at' if cn.mode == 'sea' else 'landed at'} {cn.port}.", {"port": cn.port})
         if not cn.permits:

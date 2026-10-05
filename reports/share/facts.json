@@ -1,0 +1,720 @@
+{
+ "as_of": "2026-10-05T17:00:00Z",
+ "insights": [
+  {
+   "id": "S01",
+   "need": "speed",
+   "headline_fact": "Weekly median dwell fell from 14.2 days to 11.0 days between the first and last complete weeks.",
+   "numbers": {
+    "first_week_median_days": "14.2",
+    "last_week_median_days": "11.0",
+    "change_percent": "-22.5%"
+   },
+   "evidence_query": "clearance.weekly_dwell (consignments by gate-out week)",
+   "trace_ref": "",
+   "chart": "C1",
+   "score": 0.95
+  },
+  {
+   "id": "S02",
+   "need": "speed",
+   "headline_fact": "The digital share of total time fell from 42.2% to 36.8%.",
+   "numbers": {
+    "digital_share_first_week": "42.2%",
+    "digital_share_last_week": "36.8%"
+   },
+   "evidence_query": "clearance.digital_physical",
+   "trace_ref": "",
+   "chart": "C2",
+   "score": 0.9
+  },
+  {
+   "id": "S03",
+   "need": "speed",
+   "headline_fact": "Counter-intuitive: digital time per consignment fell 4% (from 145 to 139 hours) while physical time fell only -20% (from 198 to 238 hours), so physical stages now dominate.",
+   "numbers": {
+    "digital_hours_first": "145 hours",
+    "digital_hours_last": "139 hours",
+    "digital_fall_percent": "4%",
+    "physical_hours_first": "198 hours",
+    "physical_hours_last": "238 hours",
+    "physical_fall_percent": "-20%"
+   },
+   "evidence_query": "clearance.digital_physical per-consignment hours",
+   "trace_ref": "",
+   "chart": "C2",
+   "score": 0.95
+  },
+  {
+   "id": "S04",
+   "need": "speed",
+   "headline_fact": "Truck call-up & evacuation is the largest source of delay: 104 hours per consignment, 39% of total time, and it is outside the NSW's control.",
+   "numbers": {
+    "stage": "Truck call-up & evacuation",
+    "mean_hours_per_consignment": "104 hours",
+    "share_of_total_time": "39%"
+   },
+   "evidence_query": "clearance.bottlenecks (last four weeks)",
+   "trace_ref": "",
+   "chart": "C3",
+   "score": 0.85
+  },
+  {
+   "id": "S05",
+   "need": "speed",
+   "headline_fact": "Stage medians: Truck call-up & evacuation 99 hours; Terminal charges & gate pass 57 hours; Examination 51 hours.",
+   "numbers": {
+    "S09_median_hours": "99 hours",
+    "S08_median_hours": "57 hours",
+    "S06_median_hours": "51 hours"
+   },
+   "evidence_query": "clearance.stage_summary",
+   "trace_ref": "",
+   "chart": "C3",
+   "score": 0.6
+  },
+  {
+   "id": "S06",
+   "need": "speed",
+   "headline_fact": "During the Apapa scanner outage the planned exam wait rose from 72 to 170 hours (2.4 times), detected at 12 Aug 06:00 WAT by alert ALT-20260812-00001; about 1378 consignment-days of extra waiting accrued.",
+   "numbers": {
+    "exam_wait_before_hours": "72 hours",
+    "exam_wait_during_hours": "170 hours",
+    "ratio": "2.4 times",
+    "detected_at": "12 Aug 06:00",
+    "alert": "ALT-20260812-00001",
+    "excess_consignment_days": "1378 days"
+   },
+   "evidence_query": "stage_events S06 queued rows at NGAPP; alerts R-PHYS-01",
+   "trace_ref": "ALT-20260812-00001",
+   "chart": "C4",
+   "score": 0.9
+  },
+  {
+   "id": "S07",
+   "need": "speed",
+   "headline_fact": "On the current trend median dwell reaches 7 days around 2026-12-18 (status: on track); the trend slope is -0.33 days per week.",
+   "numbers": {
+    "projected_date": "2026-12-18",
+    "status": "on track",
+    "slope_days_per_week": "-0.33",
+    "target_days": "7"
+   },
+   "evidence_query": "forecast.project_to_target",
+   "trace_ref": "",
+   "chart": "C1",
+   "score": 0.85
+  },
+  {
+   "id": "S08",
+   "need": "speed",
+   "headline_fact": "Illustrative cost of dwell beyond 7 days over the last four weeks: ₦8.69bn (assumptions editable; illustrative).",
+   "numbers": {
+    "illustrative_cost_of_excess_dwell": "₦8.69bn",
+    "mean_excess_days": "4.9 days"
+   },
+   "evidence_query": "clearance.cost_of_delay",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.7
+  },
+  {
+   "id": "S09",
+   "need": "speed",
+   "headline_fact": "Predictability: over the last four weeks median dwell was 11.2 days and p90 18.0 days.",
+   "numbers": {
+    "p50_days": "11.2",
+    "p90_days": "18.0"
+   },
+   "evidence_query": "clearance.dwell_table",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.6
+  },
+  {
+   "id": "S10",
+   "need": "speed",
+   "headline_fact": "Against published benchmarks (verify before quoting): current median dwell 11.0 days vs target under 7 days and a global benchmark of about 4 days.",
+   "numbers": {
+    "current_median_days": "11.0",
+    "target_days": "7",
+    "global_benchmark_days": "4"
+   },
+   "evidence_query": "published figures + clearance.weekly_dwell",
+   "trace_ref": "",
+   "chart": "C1",
+   "score": 0.55
+  },
+  {
+   "id": "S11",
+   "need": "speed",
+   "headline_fact": "During the NAFDAC permit backlog, planned approval time rose from 32 to 57 hours and the SLA alert ALT-20260824-00001 was raised on 24 Aug.",
+   "numbers": {
+    "approval_hours_before": "32 hours",
+    "approval_hours_during": "57 hours",
+    "alert": "ALT-20260824-00001"
+   },
+   "evidence_query": "stage_events S02 queued rows (NAFDAC); alerts R-SLA-01",
+   "trace_ref": "ALT-20260824-00001",
+   "chart": null,
+   "score": 0.7
+  },
+  {
+   "id": "S12",
+   "need": "speed",
+   "headline_fact": "Independence Day (1 October) saw 84 manifests against 358 on the neighbouring weekdays.",
+   "numbers": {
+    "manifests_1_oct": "84",
+    "manifests_neighbouring_weekday_average": "358"
+   },
+   "evidence_query": "consignments by manifest day",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.4
+  },
+  {
+   "id": "T01",
+   "need": "trust",
+   "headline_fact": "Since 1 July the NSW channel assessed ₦287.05bn, collected ₦285.51bn, settled ₦283.06bn to agencies and recorded ₦140.80bn remitted to the Treasury.",
+   "numbers": {
+    "assessed": "₦287.05bn",
+    "paid": "₦285.51bn",
+    "settled_gross": "₦283.06bn",
+    "remitted": "₦140.80bn"
+   },
+   "evidence_query": "reconcile.four_way",
+   "trace_ref": "",
+   "chart": "C5",
+   "score": 0.95
+  },
+  {
+   "id": "T02",
+   "need": "trust",
+   "headline_fact": "Collection efficiency was 98.6% and the cost of collection 0.68 naira per ₦100 collected.",
+   "numbers": {
+    "collection_efficiency": "98.6%",
+    "cost_per_100": "₦0.68"
+   },
+   "evidence_query": "reconcile.four_way",
+   "trace_ref": "",
+   "chart": "C5",
+   "score": 0.7
+  },
+  {
+   "id": "T03",
+   "need": "trust",
+   "headline_fact": "₦2.45bn is in transit (paid, not yet settled) across 6 banks; this is timing, not error.",
+   "numbers": {
+    "in_transit_total": "₦2.45bn",
+    "banks": "6"
+   },
+   "evidence_query": "reconcile.in_transit_by_bank",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.6
+  },
+  {
+   "id": "T04",
+   "need": "trust",
+   "headline_fact": "Revenue assurance caught an under-assessment cluster: NCS duty on Electronics from CN was assessed 12.1% below expectation (about ₦24.2m over 6 days); alert ALT-20260910-00001 fired on 10 Sep.",
+   "numbers": {
+    "shortfall_percent": "12.1%",
+    "shortfall": "₦24.2m",
+    "alert": "ALT-20260910-00001",
+    "assessments": "114"
+   },
+   "evidence_query": "reconcile.leakage_heatmap (NCS-DUTY, 8-13 Sep); alerts R-FEE-01",
+   "trace_ref": "ALT-20260910-00001",
+   "chart": "C6",
+   "score": 0.95
+  },
+  {
+   "id": "T05",
+   "need": "supervision",
+   "headline_fact": "A burst of 14 duplicate payments worth ₦63.2m on 2 October was flagged by alert ALT-20261002-00001 at 12:00 WAT.",
+   "numbers": {
+    "duplicates": "14",
+    "value": "₦63.2m",
+    "alert": "ALT-20261002-00001"
+   },
+   "evidence_query": "payments is_duplicate; alerts R-DUP-01",
+   "trace_ref": "ALT-20261002-00001",
+   "chart": null,
+   "score": 0.8
+  },
+  {
+   "id": "T06",
+   "need": "supervision",
+   "headline_fact": "Bank C settlement lag rose from 24 to 74 hours (T+3); alert ALT-20260919-00002 was raised on 19 Sep 18:00 WAT.",
+   "numbers": {
+    "lag_before_hours": "24 hours",
+    "lag_during_hours": "74 hours",
+    "alert": "ALT-20260919-00002"
+   },
+   "evidence_query": "settlement_batches Bank C; alerts R-SET-01",
+   "trace_ref": "ALT-20260919-00002",
+   "chart": "C7",
+   "score": 0.85
+  },
+  {
+   "id": "T07",
+   "need": "supervision",
+   "headline_fact": "One regulator remitted 9 days late (₦418.4m); alert ALT-20260913-00001 was raised on 13 Sep, three days after the due date.",
+   "numbers": {
+    "days_late": "9",
+    "amount": "₦418.4m",
+    "alert": "ALT-20260913-00001"
+   },
+   "evidence_query": "remittances; alerts R-REM-01",
+   "trace_ref": "ALT-20260913-00001",
+   "chart": null,
+   "score": 0.8
+  },
+  {
+   "id": "T08",
+   "need": "trust",
+   "headline_fact": "A two-day data gap at one operator cut record completeness from 98% to 55% and was flagged the same day (alert R-DQ-01).",
+   "numbers": {
+    "completeness_normal": "98%",
+    "completeness_gap": "55%"
+   },
+   "evidence_query": "quality.completeness_trend (FAAN); alerts R-DQ-01",
+   "trace_ref": "",
+   "chart": "C8",
+   "score": 0.85
+  },
+  {
+   "id": "T09",
+   "need": "trust",
+   "headline_fact": "All 990,826 journal entries balance (0 unbalanced) and the consolidated balance sheet balances at ₦433.04bn of assets.",
+   "numbers": {
+    "journal_entries": "990,826",
+    "unbalanced_entries": "0",
+    "consolidated_assets": "₦433.04bn"
+   },
+   "evidence_query": "journal_lines integrity query; statements.position('ALL')",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.9
+  },
+  {
+   "id": "T10",
+   "need": "trust",
+   "headline_fact": "Trace in seconds: consignment NSW-202609-NGONN-0000880 was charged by 6 agencies (NCS, NIMASA, NPA, NRS, NSW, SON) totalling ₦5.7m; a statement line traces to journal entries and source documents with totals tying out at every level (L1 = L2: True).",
+   "numbers": {
+    "consignment": "NSW-202609-NGONN-0000880",
+    "agencies": "6",
+    "total_assessed": "₦5.7m",
+    "ties_out_l1_l2": "True",
+    "entries_checked": "206"
+   },
+   "evidence_query": "trace.consignment_trace, trace.tie_out",
+   "trace_ref": "NSW-202609-NGONN-0000880",
+   "chart": null,
+   "score": 0.9
+  },
+  {
+   "id": "T11",
+   "need": "trust",
+   "headline_fact": "NCS accounts for 52% of collections; the top origin country, CN, supplies 28% of fees.",
+   "numbers": {
+    "ncs_share_of_collections": "52%",
+    "top_origin": "CN",
+    "top_origin_share": "28%"
+   },
+   "evidence_query": "queries.entity_mix; queries.aggregate by origin",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.5
+  },
+  {
+   "id": "T12",
+   "need": "trust",
+   "headline_fact": "Data confidence scores range from 83 to 99 across agencies.",
+   "numbers": {
+    "lowest_score": "83",
+    "highest_score": "99"
+   },
+   "evidence_query": "quality.scorecard",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.6
+  },
+  {
+   "id": "T13",
+   "need": "supervision",
+   "headline_fact": "16 alerts across 11 rules were raised and each scripted incident was detected.",
+   "numbers": {
+    "alerts": "16",
+    "rules": "11"
+   },
+   "evidence_query": "alerts table",
+   "trace_ref": "",
+   "chart": "C9",
+   "score": 0.7
+  },
+  {
+   "id": "T14",
+   "need": "trust",
+   "headline_fact": "The assistant passed 100% of 62 golden questions against an independent oracle and 93% of 174 paraphrases, with every passing answer's numbers verified against tool outputs.",
+   "numbers": {
+    "pass_rate": "100%",
+    "questions": "62",
+    "paraphrase_pass_rate": "93%",
+    "paraphrases": "174"
+   },
+   "evidence_query": "scripts/run_assistant_eval.py",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.85
+  },
+  {
+   "id": "T15",
+   "need": "trust",
+   "headline_fact": "203 of 243 generated profiles and plans came from the language model; the rest are deterministic fallbacks (warm-up weeks).",
+   "numbers": {
+    "model_generated": "203",
+    "total_generated": "243"
+   },
+   "evidence_query": "generation_runs",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.5
+  },
+  {
+   "id": "T16",
+   "need": "supervision",
+   "headline_fact": "Exception classes: mismatch 9339; duplicate 15; unpaid 357; settled_late 50; orphan_payment 14.",
+   "numbers": {
+    "exceptions_mismatch": "9339",
+    "exceptions_duplicate": "15",
+    "exceptions_unpaid": "357",
+    "exceptions_settled_late": "50",
+    "exceptions_orphan_payment": "14"
+   },
+   "evidence_query": "reconcile.exception_summary",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.5
+  },
+  {
+   "id": "T17",
+   "need": "trust",
+   "headline_fact": "The naira weakened 6.2% over five days in early September, raising the naira value of USD fees; alert R-FX-01 recorded it.",
+   "numbers": {
+    "fx_move_percent": "6.2%"
+   },
+   "evidence_query": "fx_rates; alerts R-FX-01",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.55
+  },
+  {
+   "id": "T18",
+   "need": "trust",
+   "headline_fact": "The database holds 54,012 consignments and 2,726,006 ledger lines from the warm-up start to now.",
+   "numbers": {
+    "consignments": "54,012",
+    "stage_events": "525,720",
+    "fee_assessments": "693,915",
+    "payments": "54,259",
+    "payment_allocations": "689,951",
+    "settlements": "301,940",
+    "journal_entries": "990,826",
+    "journal_lines": "2,726,006",
+    "live_events": "80,998",
+    "alerts": "16"
+   },
+   "evidence_query": "row counts",
+   "trace_ref": "",
+   "chart": null,
+   "score": 0.4
+  }
+ ],
+ "charts": {
+  "C1": "figures/C1_dwell_trend.png",
+  "C2": "figures/C2_digital_physical.png",
+  "C3": "figures/C3_stage_waterfall.png",
+  "C4": "figures/C4_apapa_outage.png",
+  "C5": "figures/C5_four_way_funnel.png",
+  "C6": "figures/C6_leakage_heatmap.png",
+  "C7": "figures/C7_bank_lag.png",
+  "C8": "figures/C8_completeness_gap.png",
+  "C9": "figures/C9_alert_timeline.png"
+ },
+ "tables": {
+  "entity_collections": "tables/entity_collections.csv",
+  "weekly_dwell": "tables/weekly_dwell.csv",
+  "digital_physical": "tables/digital_physical.csv",
+  "stage_summary": "tables/stage_summary.csv",
+  "alerts": "tables/alerts.csv",
+  "exceptions_summary": "tables/exceptions_summary.csv",
+  "inventory": "tables/inventory.csv",
+  "scorecard": "tables/scorecard.csv",
+  "insights": "tables/insights.csv"
+ },
+ "verification": {
+  "unmatched_numbers_after_cleaning": [],
+  "sentences_removed": [],
+  "passed": true
+ },
+ "storylines": {
+  "A": {
+   "title": "Where the time really goes: proof of progress and the last mile",
+   "source": "llm",
+   "slides": [
+    {
+     "title": "The target and why it matters",
+     "key_message": "The current median dwell is moving toward the 7 days target, but the remaining gap still carries operational and illustrative cost consequences.",
+     "bullets": [
+      "Current median dwell is 11.0 days versus the target of 7 days.",
+      "Published benchmark context is about 4 days, to be verified before external quoting.",
+      "Over the last four weeks, median dwell was 11.2 days and p90 was 18.0 days.",
+      "Illustrative cost of dwell beyond 7 days over the last four weeks is ₦8.69bn, with mean excess days of 4.9 days."
+     ],
+     "speaker_notes": "This pack uses synthetic operational data and should be read as a decision-support view. The target is clear: move current median dwell from 11.0 days toward 7 days. The cost figure is illustrative and assumption-based, so it is useful for prioritisation rather than external reporting.",
+     "chart_ref": "C1",
+     "evidence_ids": [
+      "S08",
+      "S09",
+      "S10"
+     ]
+    },
+    {
+     "title": "The trend: weekly median dwell July to now",
+     "key_message": "Weekly median dwell has improved materially, falling from 14.2 days to 11.0 days between the first and last complete weeks.",
+     "bullets": [
+      "Weekly median dwell fell from 14.2 days to 11.0 days.",
+      "The change between the first and last complete weeks was -22.5%.",
+      "The current trend slope is -0.33 days per week.",
+      "On the current trend, median dwell reaches 7 days around 2026-12-18, with status: on track."
+     ],
+     "speaker_notes": "The trend shows real progress rather than a static problem. The weekly median has fallen by -22.5% from the first complete week to the last complete week. On the current trajectory, the 7 days target is projected around 2026-12-18.",
+     "chart_ref": "C1",
+     "evidence_ids": [
+      "S01",
+      "S07"
+     ]
+    },
+    {
+     "title": "Anatomy of delay: stage waterfall, digital vs physical, hand-off waits",
+     "key_message": "The largest remaining delays sit in physical flow and hand-off stages, especially truck call-up and evacuation.",
+     "bullets": [
+      "Truck call-up & evacuation is 104 hours per consignment and 39% of total time.",
+      "Truck call-up & evacuation is outside the NSW's control.",
+      "Stage medians are 99 hours for Truck call-up & evacuation, 57 hours for Terminal charges & gate pass, and 51 hours for Examination.",
+      "Digital time per consignment moved from 145 hours to 139 hours, while physical time moved from 198 hours to 238 hours."
+     ],
+     "speaker_notes": "The process finding is neutral: the main remaining delays are concentrated in physical movement and hand-off steps. Truck call-up & evacuation is the largest measured source of delay, at 104 hours per consignment and 39% of total time. Digital time has reduced, but physical stages now dominate the end-to-end dwell picture.",
+     "chart_ref": "C3",
+     "evidence_ids": [
+      "S03",
+      "S04",
+      "S05"
+     ]
+    },
+    {
+     "title": "The shift: digital share falling while physical dominates",
+     "key_message": "Digital share of total time has fallen from 42.2% to 36.8%, leaving physical stages as the dominant share of dwell.",
+     "bullets": [
+      "Digital share of total time fell from 42.2% to 36.8%.",
+      "Digital time per consignment fell 4%, from 145 hours to 139 hours.",
+      "Physical time moved from 198 hours to 238 hours, with reported physical_fall_percent of -20%.",
+      "The headline finding is counter-intuitive: digital time improved, while physical stages now dominate."
+     ],
+     "speaker_notes": "The synthetic data points to a shift in where the constraint sits. Digital time is improving, but that improvement is no longer enough to drive the whole dwell outcome by itself. The last mile is increasingly physical and operational.",
+     "chart_ref": "C2",
+     "evidence_ids": [
+      "S02",
+      "S03"
+     ]
+    },
+    {
+     "title": "Case study: the Apapa scanner outage",
+     "key_message": "The Apapa scanner outage shows how a single operational disruption can rapidly add waiting time to the system.",
+     "bullets": [
+      "During the outage, planned exam wait rose from 72 hours to 170 hours.",
+      "The increase was 2.4 times.",
+      "The alert was detected at 12 Aug 06:00 WAT.",
+      "Alert ALT-20260812-00001 was raised, and about 1378 days of extra waiting accrued."
+     ],
+     "speaker_notes": "This case study is a concrete example of how disruption appears in the dwell data. The planned exam wait rose from 72 hours to 170 hours during the outage. The alerting point matters because it shows the system can detect shocks early enough for coordinated response.",
+     "chart_ref": "C4",
+     "evidence_ids": [
+      "S06"
+     ]
+    },
+    {
+     "title": "Projection and cost of delay",
+     "key_message": "The trend is on track for 7 days around 2026-12-18, but delay beyond the target still has a large illustrative cost.",
+     "bullets": [
+      "Projected date to reach 7 days is around 2026-12-18.",
+      "Status is on track.",
+      "Trend slope is -0.33 days per week.",
+      "Illustrative cost of dwell beyond 7 days over the last four weeks is ₦8.69bn.",
+      "Mean excess days over the last four weeks were 4.9 days."
+     ],
+     "speaker_notes": "The projection is positive, but the cost of delay remains material while dwell is above the 7 days target. The ₦8.69bn figure is illustrative and based on editable assumptions. It should be used to focus attention on the highest-value interventions.",
+     "chart_ref": "C1",
+     "evidence_ids": [
+      "S07",
+      "S08"
+     ]
+    },
+    {
+     "title": "What we need to make it real",
+     "key_message": "To make the 7 days trajectory real, action should focus on the physical last mile, disruption alerts, and sustained weekly performance management.",
+     "bullets": [
+      "Focus the last-mile agenda on Truck call-up & evacuation, which is 104 hours per consignment and 39% of total time.",
+      "Maintain attention on high-wait hand-offs: 99 hours for Truck call-up & evacuation, 57 hours for Terminal charges & gate pass, and 51 hours for Examination.",
+      "Use alerts like ALT-20260812-00001 and ALT-20260824-00001 to trigger coordinated response to operational shocks.",
+      "Track the digital-to-physical shift weekly, with digital share moving from 42.2% to 36.8%.",
+      "Keep the 7 days target tied to the projected 2026-12-18 milestone and the -0.33 days per week trend slope."
+     ],
+     "speaker_notes": "The evidence shows progress, but also shows that the remaining work is concentrated in the physical last mile and operational hand-offs. The recommended posture is not to assign blame, but to manage the few stages that now determine the end-to-end result. Weekly review should connect the 7 days target, the trend slope, and alert-based response.",
+     "chart_ref": "C3",
+     "evidence_ids": [
+      "S02",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S11"
+     ]
+    }
+   ]
+  },
+  "B": {
+   "title": "One window, one truth: every naira traceable and supervised",
+   "source": "llm",
+   "slides": [
+    {
+     "title": "The trust gap: many agencies, many ledgers, one question",
+     "key_message": "The synthetic verified data shows one traceable view from assessment to Treasury remittance, supported by balanced journals.",
+     "bullets": [
+      "Since 1 July, the NSW channel assessed ₦287.05bn, collected ₦285.51bn, settled ₦283.06bn to agencies, and recorded ₦140.80bn remitted to the Treasury.",
+      "Collection efficiency was 98.6%, with cost of collection at ₦0.68 per ₦100 collected.",
+      "₦2.45bn is in transit across 6 banks, classified as timing and not error.",
+      "All 990,826 journal entries balance, with 0 unbalanced entries and consolidated assets of ₦433.04bn.",
+      "NCS accounts for 52% of collections, while CN supplies 28% of fees."
+     ],
+     "speaker_notes": "This slide frames the trust gap as a reconciliation problem across the revenue chain, not as an agency performance issue. The data is synthetic and verified, and it shows that the same view can connect assessment, payment, settlement, remittance, and accounting balance.",
+     "chart_ref": "C5",
+     "evidence_ids": [
+      "T01",
+      "T02",
+      "T03",
+      "T09",
+      "T11"
+     ]
+    },
+    {
+     "title": "The four-way match funnel and exception classes",
+     "key_message": "The four-way match funnel turns the revenue journey into a supervised exception queue.",
+     "bullets": [
+      "The funnel links assessed ₦287.05bn, paid ₦285.51bn, settled gross ₦283.06bn, and remitted ₦140.80bn.",
+      "Exception classes are mismatch 9339, duplicate 15, unpaid 357, settled_late 50, and orphan_payment 14.",
+      "16 alerts across 11 rules were raised.",
+      "Each scripted incident was detected."
+     ],
+     "speaker_notes": "The funnel provides a common operating language for what has been assessed, what has been paid, what has settled, and what has reached Treasury. The exception classes make the reconciliation workload visible and actionable without assigning blame to any institution.",
+     "chart_ref": "C9",
+     "evidence_ids": [
+      "T01",
+      "T13",
+      "T16"
+     ]
+    },
+    {
+     "title": "Trace in 30 seconds: statement line to journal entries to consignment",
+     "key_message": "A statement line can be traced through journal entries and source documents to a specific consignment with totals tying out at every level.",
+     "bullets": [
+      "Consignment NSW-202609-NGONN-0000880 was charged by 6 agencies: NCS, NIMASA, NPA, NRS, NSW, and SON.",
+      "Total assessed value for the consignment was ₦5.7m.",
+      "The trace links the statement line to journal entries and source documents.",
+      "Totals tie out at every level, with L1 = L2: True.",
+      "206 entries were checked."
+     ],
+     "speaker_notes": "This is the practical meaning of one truth: a user can move from a bank statement line to the accounting entries and then to the underlying consignment. The control is evidenced by a tie-out result rather than by manual assertion.",
+     "chart_ref": "C1",
+     "evidence_ids": [
+      "T10"
+     ]
+    },
+    {
+     "title": "Leakage indicator: the under-assessment cluster",
+     "key_message": "Revenue assurance flagged a duty-line anomaly that can be investigated as a process signal.",
+     "bullets": [
+      "Electronics from CN was assessed 12.1% below expectation.",
+      "The estimated shortfall was about ₦24.2m over 6 days.",
+      "The cluster covered 114 assessments.",
+      "Alert ALT-20260910-00001 fired on 10 Sep.",
+      "CN supplies 28% of fees, making origin-level monitoring useful for supervision."
+     ],
+     "speaker_notes": "This slide treats the under-assessment cluster as an assurance indicator, not as a performance label for any agency. The value is that the platform detects a pattern quickly enough to support targeted review.",
+     "chart_ref": "C6",
+     "evidence_ids": [
+      "T04",
+      "T11"
+     ]
+    },
+    {
+     "title": "Supervision loop: late remittance, settlement lag, duplicate payments",
+     "key_message": "The supervision loop distinguishes timing items from exceptions that need follow-up.",
+     "bullets": [
+      "One regulator remitted 9 days late, involving ₦418.4m, with alert ALT-20260913-00001 raised on 13 Sep.",
+      "One settlement bank’s lag rose from 24 hours to 74 hours, with alert ALT-20260919-00002 raised on 19 Sep 18:00 WAT.",
+      "A burst of 14 duplicate payments worth ₦63.2m was flagged by alert ALT-20261002-00001 at 12:00 WAT.",
+      "₦2.45bn is in transit across 6 banks, and this is timing, not error."
+     ],
+     "speaker_notes": "The operating loop is simple: detect, classify, and route the item to the right follow-up path. Timing differences are separated from late remittance, settlement-lag, and duplicate-payment patterns so supervision remains neutral and evidence-based.",
+     "chart_ref": "C7",
+     "evidence_ids": [
+      "T03",
+      "T05",
+      "T06",
+      "T07"
+     ]
+    },
+    {
+     "title": "Confidence and onboarding: data confidence, data-quality gap, cost of collection",
+     "key_message": "Onboarding can be governed through confidence scores, completeness checks, verified answers, and collection-cost visibility.",
+     "bullets": [
+      "Data confidence scores range from 83 to 99 across agencies.",
+      "A two-day data gap at one operator cut record completeness from 98% to 55% and was flagged the same day by alert R-DQ-01.",
+      "The assistant passed 100% of 62 golden questions against an independent oracle.",
+      "The assistant passed 93% of 174 paraphrases, with every passing answer’s numbers verified against tool outputs.",
+      "Cost of collection was ₦0.68 per ₦100 collected."
+     ],
+     "speaker_notes": "This slide shows how onboarding quality can be monitored with measurable signals rather than narrative assurance. The same synthetic verified data supports confidence scoring, data-quality detection, answer validation, and cost-of-collection oversight.",
+     "chart_ref": "C8",
+     "evidence_ids": [
+      "T02",
+      "T08",
+      "T12",
+      "T14"
+     ]
+    },
+    {
+     "title": "How it plugs in and the ask",
+     "key_message": "The one-window trace should operate as the supervised control plane for assessment, collection, settlement, remittance, journals, and source documents.",
+     "bullets": [
+      "The plug-in points are assessment, collection, settlement, remittance, journal entries, and source documents.",
+      "The control fabric has 16 alerts across 11 rules, and each scripted incident was detected.",
+      "Assurance is supported by 990,826 balanced journal entries and consignment-level tie-out with L1 = L2: True.",
+      "The supervision queue uses the exception classes mismatch, duplicate, unpaid, settled_late, and orphan_payment.",
+      "The ask is to adopt the one-window supervision workflow as the common traceability and exception-management view."
+     ],
+     "speaker_notes": "This closing slide converts the evidence into an operating ask. The data is synthetic, but the control pattern is clear: plug the feeds into one trace, use verified tie-outs, and manage exceptions through a shared supervision queue.",
+     "chart_ref": "C9",
+     "evidence_ids": [
+      "T09",
+      "T10",
+      "T13",
+      "T16"
+     ]
+    }
+   ]
+  }
+ }
+}

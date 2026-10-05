@@ -14,8 +14,7 @@ import pandas as pd
 from nsw_sim import CHAT_FOOTER, DISCLAIMER, clock, db
 from nsw_sim.analytics import clearance, quality, queries, reconcile, statements
 from nsw_sim.analytics.queries import Filters, now_iso
-from nsw_sim.money import fmt_ngn
-from nsw_sim.sim.reference import consolidated_entities, entity_codes
+from nsw_sim.sim.reference import consolidated_entities
 
 SECTIONS = ["kpis", "statements", "consolidated", "reconciliation", "clearance", "alerts", "exceptions", "origin", "scorecards", "trace_links"]
 SECTION_LABELS = {"kpis": "Executive KPIs", "statements": "Per-entity statements", "consolidated": "Consolidated statement", "reconciliation": "Reconciliation summary",
@@ -139,7 +138,7 @@ def _flat_tables(rep: dict) -> dict[str, pd.DataFrame]:
     if "kpis" in rep:
         cur, prev = rep["kpis"]["current"], rep["kpis"]["previous"] or {}
         t["kpis"] = pd.DataFrame([{"kpi": k, "value": v, "previous_period": prev.get(k)} for k, v in cur.items()])
-    for scope, key in (("consolidated", "consolidated"),):
+    for _scope, key in (("consolidated", "consolidated"),):
         if key in rep:
             t["consolidated_performance"] = _lines_df(rep[key]["performance"]["revenue"] + rep[key]["performance"]["expenses"])
             t["consolidated_position"] = _lines_df(rep[key]["position"]["assets"] + rep[key]["position"]["liabilities"] + rep[key]["position"]["equity"])
@@ -216,7 +215,7 @@ def to_pdf(rep: dict, narrative: str | None = None) -> bytes:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import getSampleStyleSheet
-    from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
     def deco(canvas, doc):
         canvas.saveState()

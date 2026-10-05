@@ -5,10 +5,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import streamlit as st  # noqa: E402
 
-from app.components import cards, header, logos, state, tooltips  # noqa: E402
+from app.components import cards, header, state, tooltips  # noqa: E402
 from nsw_sim import clock  # noqa: E402
 from nsw_sim.assistant.agent import Agent  # noqa: E402
-from nsw_sim.llm.client import LLM  # noqa: E402
 
 SUGGESTED = ["What was total assessed vs paid vs settled across all entities in September 2026?", "How much did NCS collect month to date?",
              "Rank the entities by collections in Q3 2026.", "What was median dwell time in July vs September?", "Which stage contributes the most to delay in September?",

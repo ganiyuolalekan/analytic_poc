@@ -27,7 +27,7 @@ prev = queries.previous_period(f) if state.compare_on() else None
 k = state.cc(reports.kpis, f, compare=prev)
 cur, pv = k["current"], k["previous"] or {}
 r1 = st.columns(5)
-for c, (key, label) in zip(r1, [("assessed", None), ("paid", None), ("settled", None), ("remitted", None), ("outstanding", None)]):
+for c, (key, _label) in zip(r1, [("assessed", None), ("paid", None), ("settled", None), ("remitted", None), ("outstanding", None)]):
     cards.money_kpi(c, key, cur[key], pv.get(key))
 r2 = st.columns(5)
 cards.kpi(r2[0], "dwell_time", fmt_days(cur["median_dwell_days"]), cards.delta_str(cur["median_dwell_days"], pv.get("median_dwell_days")), delta_color="inverse", label="Median dwell (days)")

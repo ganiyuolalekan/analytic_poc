@@ -24,7 +24,7 @@ def render(desc: dict, key: str = "trace") -> None:
     ss = st.session_state
     ents, accts, start, end, kind = desc["entities"], desc["accounts"], desc.get("start"), desc["end"], desc.get("kind", "flow")
     sign = desc.get("sign", 1)
-    as_of = state.as_of()
+    state.as_of()
     crumbs = ["L0 line"]
     sel_acct = ss.get(f"{key}_acct")
     sel_entry = ss.get(f"{key}_entry")
@@ -40,7 +40,7 @@ def render(desc: dict, key: str = "trace") -> None:
     total = int(l1["net_debit_minor"].sum()) if not l1.empty else 0
     st.markdown(f"**L1 — accounts** · total {fmt_ngn(sign * total, exact=True)}", help=tooltips.tip("ties_out_check"))
     if not l1.empty:
-        names = {r.account_code: r.account_code for r in l1.itertuples()}
+        {r.account_code: r.account_code for r in l1.itertuples()}
         d = l1.assign(amount=[fmt_ngn(sign * v, exact=True) for v in l1["net_debit_minor"]])[["entity_id", "account_code", "amount", "n_lines"]]
         pick = st.dataframe(d, hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key=f"{key}_l1df")
         if pick.selection.rows:

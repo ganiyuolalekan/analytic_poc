@@ -4,7 +4,6 @@ from __future__ import annotations
 import random
 
 from nsw_sim import clock
-from nsw_sim.sim.consignments import Cn
 
 H = 3600.0
 

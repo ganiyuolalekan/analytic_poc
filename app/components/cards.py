@@ -4,7 +4,7 @@ from __future__ import annotations
 import streamlit as st
 
 from app.components import logos, tooltips
-from nsw_sim.money import fmt_ngn, fmt_pct
+from nsw_sim.money import fmt_ngn
 
 
 def kpi(container, key: str, value: str, delta: str | None = None, delta_color: str = "normal", label: str | None = None) -> None:

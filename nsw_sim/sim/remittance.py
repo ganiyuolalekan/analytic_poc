@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import math
 import random
-from datetime import date, timedelta
+from datetime import date
 
 from nsw_sim import clock, db
 from nsw_sim.sim import ids

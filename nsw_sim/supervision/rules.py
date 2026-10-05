@@ -115,7 +115,7 @@ def r_set(c, t: float, cfg: dict, live: bool) -> list[Firing]:
 def r_rem(c, t: float, cfg: dict, live: bool) -> list[Firing]:
     out = []
     now = clock.iso(t)
-    for rid, ent, period, due, paid, amt, status in c.execute("SELECT remittance_id, entity_id, period, due_date, paid_at, amount_ngn_minor, status FROM v_remittances"):
+    for rid, ent, period, due, paid, _amt, _status in c.execute("SELECT remittance_id, entity_id, period, due_date, paid_at, amount_ngn_minor, status FROM v_remittances"):
         ref_t = clock.to_epoch(paid) if paid else t
         late = (ref_t - clock.to_epoch(due)) / 86400
         if late > cfg["grace_days"] and (not paid or clock.to_epoch(paid) >= t - 3 * 86400 or True):

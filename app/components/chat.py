@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import streamlit as st
 
-from app.components import state, tooltips
-
 
 def drawer() -> None:
     with st.sidebar:

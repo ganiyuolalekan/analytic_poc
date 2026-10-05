@@ -14,9 +14,10 @@ import threading
 import time
 import uuid
 from collections import deque
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any
 from urllib.parse import urlparse
 
 from nsw_sim import clock, db

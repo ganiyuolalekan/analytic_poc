@@ -9,10 +9,8 @@ import streamlit as st  # noqa: E402
 
 from app.components import cards, header, state, tooltips  # noqa: E402
 from nsw_sim import clock, db  # noqa: E402
-from nsw_sim.analytics import queries  # noqa: E402
 from nsw_sim.config import db_path, yaml_config  # noqa: E402
 from nsw_sim.llm import ledger  # noqa: E402
-from nsw_sim.llm.client import STATUS  # noqa: E402
 
 header.page_header("Admin / Generation Control", "Presenter controls and the engine room: simulation status, language-model status and cost, how much generated content came from the model "
                    "versus the deterministic fallback, the scripted story beats and whether each detector fired.", ("All filters",))

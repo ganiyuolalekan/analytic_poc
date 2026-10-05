@@ -8,8 +8,8 @@ import re
 import pandas as pd
 
 from nsw_sim import db
-from nsw_sim.analytics.statements import ledger_sums, resolve_entities
 from nsw_sim.analytics.queries import now_iso
+from nsw_sim.analytics.statements import ledger_sums
 
 _PATTERNS = [
     ("consignment", re.compile(r"^NSW-\d{6}-[A-Z]{3,5}-\d{7}$", re.I)), ("declaration", re.compile(r"^C\d{6}/\d{2}$", re.I)),
@@ -238,7 +238,6 @@ def l3_sources(entry_id: str, as_of: str | None = None) -> dict:
         a = int(docs["amount_minor"].sum())
         derived = {k: (v[0] and a, v[1] and a) for k, v in actual.items()}
     elif rtype in ("refund", "unapplied_refund", "unapplied_receipt"):
-        key = rid if rtype != "refund" else rid
         docs = pd.read_sql_query("SELECT refund_id AS doc_id, 'refund' AS doc_type, fee_code, amount_ngn_minor AS amount_minor, memo AS nsw_ref FROM v_refunds WHERE refund_id IN (?,?)", c, params=(rid, f"RFU-{rid}"))
         if docs.empty:
             docs = pd.read_sql_query("SELECT payment_id AS doc_id, 'payment' AS doc_type, payment_ref AS fee_code, amount_ngn_minor AS amount_minor, nsw_ref FROM v_payments WHERE payment_id=?", c, params=(rid,))

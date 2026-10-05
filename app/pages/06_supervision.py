@@ -5,13 +5,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import pandas as pd  # noqa: E402
-import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
 from app.components import cards, charts, header, logos, state, tooltips  # noqa: E402
 from nsw_sim import clock, db  # noqa: E402
 from nsw_sim.analytics import quality, queries  # noqa: E402
-from nsw_sim.money import fmt_ngn, fmt_pct  # noqa: E402
+from nsw_sim.money import fmt_ngn  # noqa: E402
 from nsw_sim.supervision import audit, reviews  # noqa: E402
 
 header.page_header("Supervision", "Supervision: alerts raised by the rules engine with the evidence behind each one, a review queue with ages, role-based actions (analyst, supervisor, "

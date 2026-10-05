@@ -5,7 +5,7 @@ from __future__ import annotations
 from nsw_sim import clock, db
 from nsw_sim.config import yaml_config
 from nsw_sim.sim.ids import IdFactory
-from nsw_sim.supervision import audit, reviews, rules
+from nsw_sim.supervision import reviews, rules
 
 
 def run(conn, until: float, progress=None) -> dict:
@@ -34,7 +34,7 @@ def finalize_history(conn, now: float) -> int:
     rows = conn.execute("SELECT alert_id, cleared_at, entity_id FROM alerts WHERE status='open' AND cleared_at IS NOT NULL AND cleared_at<? ORDER BY detected_at", (cutoff,)).fetchall()
     n = 0
     conn.execute("BEGIN")
-    for aid, cleared, ent in rows:
+    for aid, cleared, _ent in rows:
         t = clock.to_epoch(cleared)
         for role, action, off, comment in (("Analyst", "acknowledge", 1.5, "Acknowledged; reviewing supporting records."), ("Supervisor", "under_review", 5, "Under review with the agency focal point."),
                                            ("Supervisor", "resolve", 26, "Condition cleared and confirmed in the data. (Simulated history.)")):

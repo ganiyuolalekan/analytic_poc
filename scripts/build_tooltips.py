@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """Generate config/tooltips.yaml from compact specs. Every entry carries all required fields (Section 12)."""
-import sys
 from pathlib import Path
 
 import yaml

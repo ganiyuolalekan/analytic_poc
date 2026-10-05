@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import sqlite3
 import time
-from datetime import date, datetime, timedelta
-from typing import Callable
+from collections.abc import Callable
+from datetime import date, timedelta
 
 from nsw_sim import clock, db
 from nsw_sim.config import db_path, get_logger

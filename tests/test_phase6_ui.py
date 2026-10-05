@@ -103,6 +103,7 @@ def test_page_renders_without_exception_against_real_data(page, monkeypatch):
     if not real.exists():
         pytest.skip("run `make seed` first")
     from streamlit.testing.v1 import AppTest
+
     from nsw_sim import db
     monkeypatch.setenv("NSW_DB_PATH", str(real))
     db.close_reader()
@@ -116,6 +117,7 @@ def test_filters_change_outputs_and_pages_work_without_logos(monkeypatch, tmp_pa
     if not real.exists():
         pytest.skip("run `make seed` first")
     from streamlit.testing.v1 import AppTest
+
     from nsw_sim import db, logos
     monkeypatch.setenv("NSW_DB_PATH", str(real))
     db.close_reader()

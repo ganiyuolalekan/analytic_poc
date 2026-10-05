@@ -97,7 +97,7 @@ class Ledger:
     def flush(conn: sqlite3.Connection, entries: list[tuple], lines: list[tuple]) -> None:
         roll: dict[tuple, list[int]] = {}
         day_cache: dict[str, str] = {}
-        for eid, ent, acct, dr, cr, ccy, origin, proc, ts in lines:
+        for _eid, ent, acct, dr, cr, _ccy, origin, proc, ts in lines:
             d = day_cache.get(ts)
             if d is None:
                 d = day_cache[ts] = clock.wat_day(ts)

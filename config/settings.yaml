@@ -28,7 +28,7 @@ llm:
   # multiplied by this factor (the visible JSON is still capped by the prompt, not the factor).
   reasoning_token_headroom: 3.0
   budget_tokens_per_run: 1200000     # hard stop for the data role (then fallback)
-  budget_tokens_per_day: 3000000
+  budget_tokens_per_day: 10000000
   chat_reserved_tokens: 150000
   max_tokens: {profile: 2500, flow_plan: 2500, ops_plan: 1500, director: 800, feed_items: 600, narrator: 900, chat: 700, storyline: 2500, paraphrase: 400}
   llm_prices_per_mtok: {}            # optional: {model_id: {in: x, out: y}} to show estimated cost

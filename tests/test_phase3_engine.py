@@ -1,7 +1,5 @@
 """Engine + ledger invariants on a short offline simulation (module-scoped fixture; ~15 s)."""
-import json
 import os
-import sqlite3
 import tempfile
 
 import pytest

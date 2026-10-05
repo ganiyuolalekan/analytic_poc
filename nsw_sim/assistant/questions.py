@@ -2,7 +2,7 @@
 ``tools`` is a list of alternative groups: at least one tool from every group must be called. ``{TRACE_REF}`` is resolved at run time."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)

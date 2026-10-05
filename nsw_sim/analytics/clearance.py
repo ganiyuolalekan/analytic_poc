@@ -3,10 +3,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-import numpy as np
 import pandas as pd
 
-from nsw_sim import clock, db
+from nsw_sim import db
 from nsw_sim.analytics.queries import Filters, now_iso
 
 H_PER_D = 24.0

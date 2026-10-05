@@ -7,8 +7,7 @@ import pandas as pd  # noqa: E402
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from app.components import cards, charts, header, logos, state, trace_panel, tooltips  # noqa: E402
-from nsw_sim import clock  # noqa: E402
+from app.components import cards, charts, header, logos, state, tooltips, trace_panel  # noqa: E402
 from nsw_sim.analytics import clearance, quality, queries, statements  # noqa: E402
 from nsw_sim.config import yaml_config  # noqa: E402
 from nsw_sim.money import fmt_ngn, fmt_pct  # noqa: E402

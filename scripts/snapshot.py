@@ -3,7 +3,6 @@
   make snapshot       -> data/demo_snapshot.db  (consistent online backup via SQLite's backup API)
   make restore-demo   -> restores the snapshot over data/nsw.db (stop the app first)"""
 import argparse
-import os
 import shutil
 import sqlite3
 import sys
@@ -30,7 +29,7 @@ def snapshot() -> None:
 def restore() -> None:
     if not SNAP.exists():
         sys.exit("no snapshot found: run `make snapshot` first")
-    lock = data_dir() / ".sim.lock"
+    data_dir() / ".sim.lock"
     for ext in ("", "-wal", "-shm"):
         p = Path(str(db_path()) + ext)
         if p.exists():

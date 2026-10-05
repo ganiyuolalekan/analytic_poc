@@ -1,0 +1,6 @@
+class,count,amount_minor,definition
+mismatch,9339,10357882179,Assessed differs from the fee-rule expectation by more than 1%
+duplicate,15,6901454443,Duplicate payment not yet refunded
+unpaid,357,4754839792,Assessed more than 72 hours ago and not paid
+settled_late,50,1224080336,Paid but not settled after 48 hours (T+2)
+orphan_payment,14,338064767,"Payment with no matching assessment, not yet refunded"

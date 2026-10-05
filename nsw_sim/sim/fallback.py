@@ -6,11 +6,24 @@ from __future__ import annotations
 
 import random
 from datetime import date, timedelta
-from functools import lru_cache
+from functools import cache
 
-from nsw_sim.config import settings, yaml_config
-from nsw_sim.llm.schemas import (CountrySens, DirectorOutput, Directives, EntityProfile, ExpenseCategory, ExpenseStructure,
-                                 FeedItem, FeeRule, FlowPlan, OpsPlan, Onboarding, PartnerFunding, RemittanceRule)
+from nsw_sim.config import settings
+from nsw_sim.llm.schemas import (
+    CountrySens,
+    Directives,
+    DirectorOutput,
+    EntityProfile,
+    ExpenseCategory,
+    ExpenseStructure,
+    FeedItem,
+    FeeRule,
+    FlowPlan,
+    Onboarding,
+    OpsPlan,
+    PartnerFunding,
+    RemittanceRule,
+)
 from nsw_sim.sim.reference import entity_cards, ref
 
 GROUPS = ["Food & agro", "Pharma & cosmetics", "Electronics", "Machinery & parts", "Vehicles & parts", "Chemicals",
@@ -168,7 +181,7 @@ def fallback_country_sensitivity(code: str) -> dict[str, CountrySens]:
     return out
 
 
-@lru_cache(maxsize=None)
+@cache
 def fallback_profile(code: str) -> EntityProfile:
     card = entity_cards()[code]
     s = settings()

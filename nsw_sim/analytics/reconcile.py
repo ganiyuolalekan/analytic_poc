@@ -52,7 +52,7 @@ def four_way(f: Filters, as_of: str | None = None) -> dict:
                         f"FROM v_settled a JOIN v_assessments f ON f.assessment_id=a.assessment_id{sw} GROUP BY 1,2,3", sp).fetchall()
     rem = pd.read_sql_query("SELECT entity_id, period, share FROM v_remittances WHERE paid_at IS NOT NULL", conn)
     share = {(r_.entity_id, r_.period): r_.share for r_ in rem.itertuples()}
-    remitted = retained_rule = 0.0
+    remitted = 0.0
     for ent, mo, q, v in rows:
         s = share.get((ent, mo), share.get((ent, q)))
         if s is not None:

@@ -2,18 +2,27 @@
 plus the live director check. Each goes through validate->clamp->repair->fallback and is cached in the database."""
 from __future__ import annotations
 
-import json
 import re
 import sqlite3
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, timedelta
-from typing import Callable
 
 from nsw_sim import clock
 from nsw_sim.config import get_logger, settings, yaml_config
 from nsw_sim.llm import prompts as P
-from nsw_sim.llm.schemas import (CountrySens, DirectorOutput, Directives, EntityProfile, ExpenseCategory, ExpenseStructure,
-                                 FeedItem, FlowPlan, OpsPlan, PartnerFunding)
+from nsw_sim.llm.schemas import (
+    CountrySens,
+    Directives,
+    DirectorOutput,
+    EntityProfile,
+    ExpenseCategory,
+    ExpenseStructure,
+    FeedItem,
+    FlowPlan,
+    OpsPlan,
+    PartnerFunding,
+)
 from nsw_sim.llm.validate import Clamp, RoleResult, normalise_shares, run_json_role
 from nsw_sim.sim import fallback as fb
 from nsw_sim.sim.reference import entity_cards, entity_codes, ref

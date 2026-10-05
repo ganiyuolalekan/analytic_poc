@@ -1,8 +1,6 @@
 """Global filters (sidebar): persisted in session_state and mirrored to the URL so a view is shareable (Section 11.3)."""
 from __future__ import annotations
 
-from datetime import timedelta
-
 import streamlit as st
 
 from app.components import logos, state, tooltips

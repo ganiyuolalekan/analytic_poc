@@ -7,10 +7,10 @@ import pandas as pd  # noqa: E402
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from app.components import cards, charts, header, logos, state, tooltips  # noqa: E402
-from nsw_sim import clock, db  # noqa: E402
+from app.components import cards, charts, header, state, tooltips  # noqa: E402
+from nsw_sim import db  # noqa: E402
 from nsw_sim.analytics import reconcile  # noqa: E402
-from nsw_sim.money import fmt_ngn, fmt_pct  # noqa: E402
+from nsw_sim.money import fmt_ngn  # noqa: E402
 from nsw_sim.supervision import reviews  # noqa: E402
 
 header.page_header("Reconciliation", "Trust: every fee is followed from assessment to payment to settlement to remittance. Gaps are classified as exceptions you can trace or raise for review; "

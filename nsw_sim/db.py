@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Iterable, Sequence
 
 from nsw_sim import clock
 from nsw_sim.config import db_path
@@ -141,6 +141,7 @@ def _views() -> list[tuple[str, str]]:
         ("v_consignments", f"""SELECT nsw_ref, mode, port, origin_country, commodity_group, hs_code, cif_value_ngn_minor,
               risk_lane, importer_id, agent_id, carrier, bank, rotation_no, form_m, paar, declaration_no, bl_no,
               container_no, vessel_imo, weight_kg, teu, source, manifested_at,
+              CASE WHEN gate_out_at <= {a} THEN 'completed' WHEN released_at <= {a} THEN 'released' WHEN declared_at <= {a} THEN 'declared' WHEN arrived_at <= {a} THEN 'arrived' ELSE 'manifested' END AS status,
               CASE WHEN arrived_at <= {a} THEN arrived_at END AS arrived_at,
               CASE WHEN declared_at <= {a} THEN declared_at END AS declared_at,
               CASE WHEN released_at <= {a} THEN released_at END AS released_at,

@@ -2,10 +2,9 @@
 reads the ``v_*`` views bound to ``as_of`` (facts with ``occurred_at <= as_of`` only)."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
-from datetime import date, timedelta
+from dataclasses import dataclass, replace
+from datetime import timedelta
 
-import numpy as np
 import pandas as pd
 
 from nsw_sim import clock, db
@@ -29,7 +28,7 @@ class Filters:
     statuses: tuple[str, ...] = ()
     severities: tuple[str, ...] = ()
 
-    def with_(self, **kw) -> "Filters":
+    def with_(self, **kw) -> Filters:
         return replace(self, **kw)
 
     def describe(self) -> str:

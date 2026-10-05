@@ -106,8 +106,8 @@ def test_director_feed_items_with_numbers_are_dropped_and_directives_clamped():
            "feed_items": [{"headline": "Collections hit ₦5bn today", "description": "x", "type": "nsw.payment.confirmed"},
                           {"headline": "Queue easing at Apapa", "description": "Examination waits are shortening.", "severity": "low",
                            "entity": "NCS", "type": "bogus.type"}]}
-    from nsw_sim.llm.validate import run_json_role
     from nsw_sim.llm import prompts as P
+    from nsw_sim.llm.validate import run_json_role
     res = run_json_role(StubLLM(handlers={"director": lambda s, u: json.dumps(out)}), "director", P.DIRECTOR_SYSTEM, "ctx",
                         DirectorOutput, pl.check_director({"NGAPP": 4}), lambda: fb.fallback_director("x"))
     d = res.obj

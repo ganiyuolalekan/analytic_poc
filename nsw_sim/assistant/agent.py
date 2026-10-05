@@ -5,15 +5,15 @@ from __future__ import annotations
 import json
 import re
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Iterator
 
 from nsw_sim import CHAT_FOOTER, clock
 from nsw_sim.analytics import queries
 from nsw_sim.assistant import guardrails, tools, verifier
 from nsw_sim.config import get_logger, redact
 from nsw_sim.llm import prompts as P
-from nsw_sim.llm.client import LLM, extract_json
+from nsw_sim.llm.client import LLM
 
 log = get_logger("nsw.assistant")
 MAX_ROUNDS = 6

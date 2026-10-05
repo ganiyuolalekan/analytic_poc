@@ -2,7 +2,6 @@
 prefetch buffer so the UI never waits on the model, and an adaptive interval (30-90 s)."""
 from __future__ import annotations
 
-import json
 import queue
 import sqlite3
 import threading

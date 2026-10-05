@@ -9,7 +9,6 @@ import streamlit as st  # noqa: E402
 
 from app.components import cards, charts, header, logos, state, tooltips  # noqa: E402
 from nsw_sim.analytics import quality  # noqa: E402
-from nsw_sim.money import fmt_pct  # noqa: E402
 
 header.page_header("Data Quality & Onboarding", "How complete, timely and consistent each agency's data is, how far onboarding has progressed (the share of activity arriving digitally), and where "
                    "gaps appeared. The FAAN timestamp gap at the end of September is visible here.", ("Origin", "Mode", "Port", "Commodity", "Process", "Currency"))

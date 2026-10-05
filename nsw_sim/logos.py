@@ -89,7 +89,7 @@ def logo_path(code: str) -> Path | None:
 
 
 def initials(code: str) -> str:
-    name = yaml_config("entities")["entities"].get(code, {}).get("name", code)
+    yaml_config("entities")["entities"].get(code, {}).get("name", code)
     if code in ("MOF-FA",):
         return "MF"
     return code[:3] if len(code) <= 3 else code[:2]

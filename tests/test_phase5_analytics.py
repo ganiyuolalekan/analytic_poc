@@ -178,6 +178,7 @@ def test_scorecard_and_confidence(simdb):
 
 def test_projection_is_deterministic():
     import pandas as pd
+
     from nsw_sim.analytics import forecast
     wk = pd.DataFrame({"week": [f"2026-0{m}-{d:02d}" for m, d in [(7, 6), (7, 13), (7, 20), (7, 27), (8, 3), (8, 10), (8, 17), (8, 24)]], "median_days": [15, 14.5, 14, 13.4, 13, 12.4, 12, 11.4]})
     a, b = forecast.project_to_target(wk), forecast.project_to_target(wk)

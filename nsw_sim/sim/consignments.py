@@ -83,7 +83,7 @@ class Cn:
         return json.dumps(d, separators=(",", ":"))
 
     @staticmethod
-    def from_state(s: str) -> "Cn":
+    def from_state(s: str) -> Cn:
         return Cn(**json.loads(s))
 
 

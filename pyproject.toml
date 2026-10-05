@@ -5,10 +5,13 @@ extend-exclude = [".venv", "data", "organization_logos"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
-ignore = ["E501", "B008", "UP038", "B905", "E741", "UP017"]
+ignore = ["E501", "E702", "B008", "UP038", "B905", "E741", "UP017"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["B011"]
+"tests/*" = ["B011", "B017"]
+"scripts/make_share_report.py" = ["E702", "E402", "B023"]
+"scripts/*" = ["E402"]
+"nsw_sim/money.py" = ["UP007"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

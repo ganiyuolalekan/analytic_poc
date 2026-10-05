@@ -14,7 +14,7 @@ from nsw_sim.llm import prompts as P
 from nsw_sim.llm.client import LLM
 from nsw_sim.llm.schemas import DigestOut, NarrativeFacts
 from nsw_sim.llm.validate import run_json_role
-from nsw_sim.money import fmt_days, fmt_ngn, fmt_pct
+from nsw_sim.money import fmt_ngn
 
 log = get_logger("nsw.narrator")
 

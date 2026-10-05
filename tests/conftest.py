@@ -1,7 +1,6 @@
 """Shared fixtures. Tests use a stub LLM and temporary databases by default (no network, no cost)."""
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 

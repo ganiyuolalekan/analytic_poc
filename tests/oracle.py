@@ -7,7 +7,6 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 AS_OF = "2026-10-05T12:00:00Z"
@@ -274,7 +273,6 @@ def o_live15(c):
 
 
 def o_today_vs_yesterday(c):
-    h = 12 + 1
     today = metric(c, "paid", wat(2026, 10, 5), AS_OF)
     yday = metric(c, "paid", wat(2026, 10, 4), (datetime.strptime(AS_OF, "%Y-%m-%dT%H:%M:%SZ") - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ"))
     return {"today": today, "yesterday_same_time": yday}
@@ -325,7 +323,7 @@ def o_nrs_sep(c):
 
 
 def o_expenses_aug(c):
-    ops = q1(c, "SELECT SUM(amount_ngn_minor) FROM expenses WHERE occurred_at>=? AND occurred_at<? AND occurred_at<=? AND entity_id IN (%s)" % ",".join("?" * len(CONSOLIDATED)), AUG[0], AUG[1], AS_OF, *CONSOLIDATED) / 100.0
+    ops = q1(c, "SELECT SUM(amount_ngn_minor) FROM expenses WHERE occurred_at>=? AND occurred_at<? AND occurred_at<=? AND entity_id IN ({})".format(",".join("?" * len(CONSOLIDATED))), AUG[0], AUG[1], AS_OF, *CONSOLIDATED) / 100.0
     return {"operating_expenses_aug": [ops, ledger(c, list(CONSOLIDATED), AUG[0], AUG[1], ("Expense",), "dr")]}
 
 

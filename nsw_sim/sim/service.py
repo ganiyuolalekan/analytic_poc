@@ -20,7 +20,6 @@ from nsw_sim.sim import backfill, planners
 from nsw_sim.sim.conditions import Incident
 from nsw_sim.sim.director import Prefetcher
 from nsw_sim.sim.engine import Engine
-from nsw_sim.sim.reference import ref
 
 log = get_logger("nsw.service")
 

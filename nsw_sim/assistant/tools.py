@@ -15,7 +15,8 @@ from decimal import Decimal, InvalidOperation, getcontext
 import pandas as pd
 
 from nsw_sim import clock, db
-from nsw_sim.analytics import clearance, quality, queries, reconcile, statements, trace as trace_mod
+from nsw_sim.analytics import clearance, queries, reconcile, statements
+from nsw_sim.analytics import trace as trace_mod
 from nsw_sim.analytics.queries import Filters
 from nsw_sim.assistant import guardrails
 from nsw_sim.money import fmt_ngn
@@ -39,7 +40,6 @@ def resolve_period(text: str, as_of: str | None = None) -> dict:
     today = clock.wat(now).date()
     year = today.year
     t = " ".join((text or "").lower().replace(",", " ").split())
-    note = None
 
     def res(a: str, b: str, label: str, assumption: str | None = None) -> dict:
         b = min(b, as_of) if b > as_of else b
