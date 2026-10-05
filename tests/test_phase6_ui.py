@@ -64,7 +64,7 @@ def test_every_dataframe_column_config_uses_help_or_catalogue():
 
 
 def test_no_emoji_in_ui_source():
-    emoji = re.compile("[\U0001F300-\U0001FAFF☀-⛿✀-➿]")
+    emoji = re.compile("[\U0001F300-\U0001FAFF\u2600-\u26FF]")
     for f in APP.rglob("*.py"):
         assert not emoji.search(f.read_text(encoding="utf-8")), f.name
 

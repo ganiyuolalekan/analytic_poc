@@ -12,12 +12,12 @@ Updated: 2026-10-05. Brief: `code.md`. Decisions: `ASSUMPTIONS.md`. Cost log: `r
 
 ## Also done since: Phase 6 UI (shell, components, 11 pages incl. tooltips.yaml 124 keys via scripts/build_tooltips.py), tests for phases 3/5 + beats (slow)
 
-## Next (in order)
-1. Phase 6 leftovers: `app/pages/08_assistant.py`, AppTest + tooltip coverage tests (`tests/test_phase6_ui.py`), replace deprecated `use_container_width`, perf check of page loads
-3. Phase 7 assistant: `nsw_sim/assistant/*`, golden questions (60+), `tests/oracle.py`, `scripts/run_assistant_eval.py`, `scripts/gen_question_variants.py`
-4. Phase 8: README, snapshot (`scripts/snapshot.py`), acceptance (`reports/acceptance.md`), perf checks
-5. Phase 9: `scripts/make_share_report.py` -> `reports/share/`
+## Done since: Phase 6 UI complete (all 12 pages, AppTest + tooltip coverage tests pass), Phase 7 assistant built
+(nsw_sim/assistant: tools, guardrails, verifier, agent, narrator/digest; live GPT-5.5 smoke questions verified).
+Live service verified headless (watermark advances, director writes llm feed items).
 
-## Useful commands
-- `make probe` · `make seed` (or `scripts/seed.py --rebuild`) · `make test` · `make run` · `make cost`
-- DB: `data/nsw.db` (~1.6 GB). Rebuild facts in ~160 s without spending model tokens: `.venv/bin/python scripts/seed.py --rebuild`
+## Next (in order)
+1. Golden questions + oracle + eval: `nsw_sim/assistant/questions.py`, `tests/oracle.py`, `scripts/run_assistant_eval.py`, `scripts/gen_question_variants.py`, `tests/test_assistant_golden.py` (stub-LLM fast subset), guardrail tests (SQL injection, prompt injection row id 'IGNORE PREVIOUS INSTRUCTIONS' expense memo)
+2. Phase 8: README.md (setup/run/demo flow), `scripts/snapshot.py` (+ `make snapshot`/`restore-demo`), `reports/acceptance.md` (checklist in code.md section 17), final `reports/test_summary.md`
+3. Phase 9: `scripts/make_share_report.py` -> `reports/share/` (insight miner, 2 storylines drafted by the model, verifier, figures, PDF, zip) and final summary message (section 18.6)
+4. Known gaps to revisit if time: page-load perf on cold cache (reconciliation ~7 s), Playwright screenshots for the share report
