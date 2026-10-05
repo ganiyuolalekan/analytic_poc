@@ -231,9 +231,9 @@ class Service:
         self.last_directive = res.obj.directives.model_dump()
         conn.execute("INSERT OR REPLACE INTO directives(directive_id,ts,params_json,source) VALUES(?,?,?,?)",
                      (f"DIR-{int(eng.t)}", clock.iso(eng.t), json.dumps(self.last_directive), res.source))
-        t = max(eng.t, ctx_t)
-        for i, it in enumerate(res.obj.feed_items):
-            eng.emit(it.type, t + i * 2.0, it.entity, "director", it.headline, it.description, {}, severity=it.severity,
+        n = len(res.obj.feed_items)
+        for i, it in enumerate(res.obj.feed_items):        # spread backwards from now: never future-dated
+            eng.emit(it.type, eng.t - (n - 1 - i) * 2.0, it.entity, "director", it.headline, it.description, {}, severity=it.severity,
                      kind="llm" if res.source == "llm" else "engine")
 
     def _status_feed(self, eng, t: float) -> None:
