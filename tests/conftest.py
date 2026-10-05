@@ -16,6 +16,7 @@ def _isolated_env(tmp_path, monkeypatch):
     monkeypatch.setenv("NSW_DB_PATH", str(tmp_path / "test.db"))
     monkeypatch.setenv("NSW_LLM_CACHE", str(tmp_path / "cache.sqlite"))
     monkeypatch.setenv("NSW_OFFLINE", "1")
+    monkeypatch.setenv("NSW_NO_SERVICE", "1")
     from nsw_sim import db
     from nsw_sim.llm import cache as llm_cache
     db.close_reader()

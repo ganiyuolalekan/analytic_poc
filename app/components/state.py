@@ -16,9 +16,11 @@ ROLES = ["Analyst", "Supervisor", "Director"]
 @st.cache_resource(show_spinner=False)
 def service():
     """Start the simulation service once per process (guarded by a file lock: other processes become read-only followers)."""
+    import os
     from nsw_sim.sim.service import get_service
     svc = get_service()
-    svc.start()
+    if os.environ.get("NSW_NO_SERVICE") != "1":          # tests set this so they never start a writer against a real database
+        svc.start()
     return svc
 
 

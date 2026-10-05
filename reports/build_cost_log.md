@@ -9,3 +9,6 @@ Two separate meters:
 | When | Phase finished | Claude Code 5-hour window | Weekly (all models) | Context used |
 |---|---|---|---|---|
 | 2026-10-05 ~17:20 WAT | Phase 0 + Phase 1 (core, LLM layer, DB, ids, logos) | 33% | 20% | 29% |
+| 2026-10-05 ~20:00 WAT | All phases (final) | 91% | 30% | 91% (context) |
+
+Product model usage at completion: about 3.6M tokens across ~1,750 calls (mostly the 62-question evaluation); `make cost` for the live ledger.

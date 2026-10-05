@@ -16,8 +16,7 @@ Updated: 2026-10-05. Brief: `code.md`. Decisions: `ASSUMPTIONS.md`. Cost log: `r
 (nsw_sim/assistant: tools, guardrails, verifier, agent, narrator/digest; live GPT-5.5 smoke questions verified).
 Live service verified headless (watermark advances, director writes llm feed items).
 
-## Next (in order)
-1. Golden questions + oracle + eval: `nsw_sim/assistant/questions.py`, `tests/oracle.py`, `scripts/run_assistant_eval.py`, `scripts/gen_question_variants.py`, `tests/test_assistant_golden.py` (stub-LLM fast subset), guardrail tests (SQL injection, prompt injection row id 'IGNORE PREVIOUS INSTRUCTIONS' expense memo)
-2. Phase 8: README.md (setup/run/demo flow), `scripts/snapshot.py` (+ `make snapshot`/`restore-demo`), `reports/acceptance.md` (checklist in code.md section 17), final `reports/test_summary.md`
-3. Phase 9: `scripts/make_share_report.py` -> `reports/share/` (insight miner, 2 storylines drafted by the model, verifier, figures, PDF, zip) and final summary message (section 18.6)
-4. Known gaps to revisit if time: page-load perf on cold cache (reconciliation ~7 s), Playwright screenshots for the share report
+## ALL PHASES DONE (0-9). Final state
+- Tests: see reports/test_summary.md (all passing); assistant eval 62/62 base, paraphrases ~92%; share report in reports/share/ (bundle + md + pdf); acceptance evidence in reports/acceptance.md.
+- Run the app: `make run` (http://localhost:8501) or `.venv/bin/streamlit run app/main.py --server.port 8599`; the service starts on first page load; `data/nsw.db` is ~1.6 GB (`make seed` / `scripts/seed.py --rebuild` rebuilds it).
+- Possible follow-ups: Playwright screenshots for the share report; browser-level URL-filter test; dark-mode check; an Admin button for DB snapshot.

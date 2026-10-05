@@ -1,4 +1,5 @@
 # Share bundle manifest
+- `.DS_Store`
 - `NSW_Demo_Share_Report.md`
 - `NSW_Demo_Share_Report.pdf`
 - `README_share.md`
@@ -24,4 +25,4 @@
 - `tables/weekly_dwell.csv`
 
 SYNTHETIC DATA · UNOFFICIAL CONCEPT DEMO · Not endorsed by any agency
-Data as of 2026-10-05T17:00:00Z. Fingerprint 1392d4a356a13869b672d1714ed4439fa65f17c391aacea17985428d21bd0c51.
+Data as of 2026-10-05T18:00:00Z. Fingerprint a06ef4f4812addaf85f04f938d35cd2f7719603968fc9215ae57c4414ee247eb.

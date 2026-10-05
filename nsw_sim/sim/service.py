@@ -14,7 +14,7 @@ from datetime import date, timedelta
 from filelock import FileLock, Timeout
 
 from nsw_sim import clock, db
-from nsw_sim.config import data_dir, get_logger, settings
+from nsw_sim.config import data_dir, db_path, get_logger, settings
 from nsw_sim.llm.client import LLM, STATUS
 from nsw_sim.sim import backfill, planners
 from nsw_sim.sim.conditions import Incident
@@ -58,7 +58,7 @@ class Service:
         """Start once. Returns 'writer' if this process owns the simulation, else 'follower' (read-only)."""
         if self.thread and self.thread.is_alive():
             return self.mode
-        self.lock = FileLock(str(data_dir() / ".sim.lock"))
+        self.lock = FileLock(str(db_path()) + ".sim.lock")      # one lock per database file: exactly one writer per DB, whatever the data dir
         try:
             self.lock.acquire(timeout=0.2)
         except Timeout:

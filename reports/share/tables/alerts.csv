@@ -14,3 +14,4 @@ ALT-20260919-00001,R-REC-01,medium,CBN,paid-not-settled:Bank C,2026-09-19T05:00:
 ALT-20260919-00002,R-SET-01,medium,CBN,settlement-lag:Bank C,2026-09-19T17:00:00Z,resolved
 ALT-20260928-00001,R-DQ-01,medium,FAAN,completeness:FAAN,2026-09-28T05:00:00Z,open
 ALT-20261002-00001,R-DUP-01,medium,NSW,duplicate-payments,2026-10-02T11:00:00Z,open
+ALT-20261005-00001,R-TGT-01,info,NSW,dwell-target,2026-10-05T17:38:25Z,open

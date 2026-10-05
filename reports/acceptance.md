@@ -1,6 +1,6 @@
 # Acceptance checklist (code.md section 17) with evidence
 
-Updated 2026-10-05 18:50. Evidence sources: `reports/test_summary.md` (133 passed, 0 failed on the last full run, fast + slow), `reports/assistant_eval.md`, `reports/share/`, README.
+Updated 2026-10-05 18:50. Evidence sources: `reports/test_summary.md` (134 passed, 0 failed on the last full run, fast + slow), `reports/assistant_eval.md`, `reports/share/`, README.
 `[x]` = met and evidenced; `[~]` = met with a stated limitation; `[ ]` = not met.
 
 ## Data and simulation
@@ -49,6 +49,7 @@ Updated 2026-10-05 18:50. Evidence sources: `reports/test_summary.md` (133 passe
 - [x] README with setup, run, demo flow; ASSUMPTIONS.md; final test and eval reports saved.
 
 ## Known limitations
+- A test process once started a second simulation writer against the real database (the lock file lived in a per-test data directory); fixed by keying the lock to the database file and disabling the service under tests (`NSW_NO_SERVICE=1`). The database was verified intact afterwards (trial balance zero, no duplicate IDs).
 - Admin has no "export DB snapshot" button (use `make snapshot`); reseed is by command line.
 - Dark-mode palette was not visually verified.
 - Cold (first) loads of heavy pages take several seconds; cached loads meet the 2 s budget.
