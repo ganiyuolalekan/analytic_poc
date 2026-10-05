@@ -81,22 +81,22 @@ if rep:
                 perf, pos = rep[key]["performance"], rep[key]["position"]
                 st.markdown(f"Revenue {fmt_ngn(perf['total_revenue'])} · expenses {fmt_ngn(perf['total_expenses'])} · surplus {fmt_ngn(perf['surplus'])} · assets {fmt_ngn(pos['total_assets'])} · "
                             + ("<span class='tie-ok'>✓ balance sheet balances</span>" if pos["balances"] else "<span class='tie-bad'>✗ does not balance</span>"), unsafe_allow_html=True)
-                st.dataframe(reports._lines_df(perf["revenue"] + perf["expenses"]), hide_index=True, use_container_width=True)
+                st.dataframe(reports._lines_df(perf["revenue"] + perf["expenses"]), hide_index=True, width="stretch")
             elif key == "statements":
                 for e, s in rep[key].items():
                     st.markdown(f"**{e}**: revenue {fmt_ngn(s['performance']['total_revenue'])}, surplus {fmt_ngn(s['performance']['surplus'])}, assets {fmt_ngn(s['position']['total_assets'])}, closing cash {fmt_ngn(s['cash_flow']['closing'])}")
             elif key == "reconciliation":
                 fw = rep[key]["four_way"]
                 st.markdown(f"Assessed {fmt_ngn(fw['assessed']['amount'])} → paid {fmt_ngn(fw['paid']['amount'])} → settled {fmt_ngn(fw['settled']['amount'])} → remitted {fmt_ngn(fw['remitted']['amount'])}")
-                st.dataframe(rep[key]["summary"], hide_index=True, use_container_width=True)
+                st.dataframe(rep[key]["summary"], hide_index=True, width="stretch")
             elif key == "clearance":
                 c = rep[key]
                 st.markdown(f"Digital share of time: {fmt_pct(c['digital_share'])}. Projection: {c['projection'].get('status')}" + (f" ({c['projection']['projected_date']})" if c["projection"].get("projected_date") else ""))
-                st.dataframe(c["bottlenecks"], hide_index=True, use_container_width=True)
+                st.dataframe(c["bottlenecks"], hide_index=True, width="stretch")
             elif key == "trace_links":
                 st.write(rep[key] or "No exceptions in this period.")
             elif isinstance(rep[key], pd.DataFrame):
-                st.dataframe(rep[key], hide_index=True, use_container_width=True)
+                st.dataframe(rep[key], hide_index=True, width="stretch")
     # exports + save + sign-off
     st.divider()
     tooltips.title("export_pdf", 5)
@@ -129,7 +129,7 @@ w.close()
 if saved.empty:
     st.caption("No saved reports yet.")
 else:
-    pick = st.dataframe(saved, hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row", key="saved_pick")
+    pick = st.dataframe(saved, hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key="saved_pick")
     if pick.selection.rows:
         rid = saved.iloc[pick.selection.rows[0]]["report_id"]
         cm = st.text_input("Sign-off comment", key="so_cm")

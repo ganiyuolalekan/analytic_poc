@@ -72,8 +72,8 @@ for i in range(0, len(ents), 5):
                 st.markdown(f"<span style='font-size:1.25em;font-weight:700'>{fmt_ngn(assessed)}</span>", unsafe_allow_html=True)
                 s = spark[spark["entity"] == e].sort_values("day")
                 if len(s) > 2:
-                    st.plotly_chart(charts.sparkline(list(s["value"]), logos.colour(e)), use_container_width=True, key=f"sp_{e}", config={"displayModeBar": False})
-                if st.button("Open", key=f"open_{e}", use_container_width=True):
+                    st.plotly_chart(charts.sparkline(list(s["value"]), logos.colour(e)), width="stretch", key=f"sp_{e}", config={"displayModeBar": False})
+                if st.button("Open", key=f"open_{e}", width="stretch"):
                     st.session_state["entity_sel"] = e
                     st.switch_page("pages/03_entities.py")
 
@@ -120,17 +120,17 @@ with c1:
         else:
             off, tot = 0, 2
         rows.append({"port": p, "working": f"{tot - off} of {tot}", "status": "▲ reduced" if off else "● normal"})
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
     ex = sb["exam_waits"]
     if not ex.empty:
         st.caption("Planned exam wait (h, last 12 h): " + ", ".join(f"{r.port} {r.avg_planned_wait_h}" for r in ex.itertuples()))
 with c2:
     st.markdown("**Permit queues (planned approval time, last 24 h)**")
     q = sb["permit_queues"]
-    st.dataframe(q.rename(columns={"avg_planned_h": "avg hours", "n": "permits"}), hide_index=True, use_container_width=True)
+    st.dataframe(q.rename(columns={"avg_planned_h": "avg hours", "n": "permits"}), hide_index=True, width="stretch")
 with c3:
     st.markdown("**Settlement lag per bank (last 3 days)**")
-    st.dataframe(sb["settlement_lag"].rename(columns={"avg_lag_h": "avg lag (h)"}), hide_index=True, use_container_width=True)
+    st.dataframe(sb["settlement_lag"].rename(columns={"avg_lag_h": "avg lag (h)"}), hide_index=True, width="stretch")
 if not sb["incidents"].empty:
     st.warning("Active incidents: " + "; ".join(f"{r.label or r.kind}" for r in sb["incidents"].itertuples()))
 

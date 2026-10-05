@@ -18,7 +18,7 @@ sc = state.cc(quality.scorecard)
 tooltips.title("data_confidence_score")
 st.dataframe(pd.DataFrame({"logo": [logos.uri(e, 32) for e in sc["entity"]], "entity": sc["entity"], "score": sc["score"], "status": sc["rag"].map(lambda r: f"{charts.GLYPH[r]} {r}"),
                            "completeness": sc["completeness"], "timeliness": sc["timeliness"], "consistency": sc["consistency"], "punctuality": sc["punctuality"], "stage records (7 d)": sc["events"],
-                           "basis": sc["completeness_basis"]}), hide_index=True, use_container_width=True, column_config={
+                           "basis": sc["completeness_basis"]}), hide_index=True, width="stretch", column_config={
     "logo": st.column_config.ImageColumn("", width="small"), "score": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.0f", help=tooltips.tip("data_confidence_score")),
     "completeness": st.column_config.ProgressColumn(min_value=0, max_value=1, format="%.0f%%", help=tooltips.tip("score_completeness")),
     "timeliness": st.column_config.ProgressColumn(min_value=0, max_value=1, format="%.0f%%", help=tooltips.tip("score_timeliness")),
@@ -50,7 +50,7 @@ ent = st.selectbox("Field-level completeness for", sorted(sc["entity"]), key="dq
 fc = state.cc(quality.field_completeness, ent, days=30)
 if not fc.empty:
     fc = fc.assign(share=fc["present"] / fc["total"])
-    st.dataframe(fc, hide_index=True, use_container_width=True, column_config={"share": st.column_config.ProgressColumn("completeness", min_value=0, max_value=1, format="%.1f%%")})
+    st.dataframe(fc, hide_index=True, width="stretch", column_config={"share": st.column_config.ProgressColumn("completeness", min_value=0, max_value=1, format="%.1f%%")})
 ld = state.cc(quality.late_data, days=14)
 if not ld.empty:
     st.markdown("**Records captured manually (late-arriving / not yet onboarded), last 14 days**")

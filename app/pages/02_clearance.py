@@ -62,7 +62,7 @@ tbl = state.cc(clearance.dwell_table, f, None if by == "none" else by)
 if not tbl.empty:
     show = pd.DataFrame({"group": tbl["group"], "n": tbl["dwell_n"], "dwell p50 (d)": tbl["dwell_p50"], "p75": tbl["dwell_p75"], "p90": tbl["dwell_p90"], "p95": tbl["dwell_p95"],
                          "clearance p50 (d)": tbl["clearance_p50"], "release-to-exit p50 (d)": tbl["exit_p50"], "share over 7 d": tbl["share_over_target"]})
-    st.dataframe(show, hide_index=True, use_container_width=True, column_config={
+    st.dataframe(show, hide_index=True, width="stretch", column_config={
         "dwell p50 (d)": st.column_config.NumberColumn(help=tooltips.tip("dwell_time"), format="%.1f"), "p75": st.column_config.NumberColumn(format="%.1f"),
         "p90": st.column_config.NumberColumn(help=tooltips.tip("p90"), format="%.1f"), "p95": st.column_config.NumberColumn(format="%.1f"),
         "clearance p50 (d)": st.column_config.NumberColumn(help=tooltips.tip("clearance_time"), format="%.1f"),
@@ -116,14 +116,14 @@ bn = state.cc(clearance.bottlenecks, f)
 if not bn.empty:
     st.dataframe(pd.DataFrame({"stage": bn["name"], "owner": bn["owner"], "type": bn["type"].map({"D": "Digital", "P": "Physical"}), "mean hours per consignment": bn["mean_h_per_consignment"],
                                "share of total delay": bn["share_of_total"], "controllable by NSW?": bn["controllable_by_nsw"].map({True: "Yes (digital)", False: "No (physical)"})}),
-                 hide_index=True, use_container_width=True, column_config={
+                 hide_index=True, width="stretch", column_config={
                      "share of total delay": st.column_config.ProgressColumn(format="%.0f%%", min_value=0, max_value=1, help=tooltips.tip("bottleneck_finder")),
                      "mean hours per consignment": st.column_config.NumberColumn(format="%.1f", help=tooltips.tip("stage_wait"))})
 hw = state.cc(clearance.handoff_waits, f)
 if not hw.empty:
     with st.expander("Hand-off waits between agencies"):
         st.caption(tooltips.tip("handoff_wait"))
-        st.dataframe(hw.rename(columns={"median_handoff_wait_h": "median wait (h)"}), hide_index=True, use_container_width=True)
+        st.dataframe(hw.rename(columns={"median_handoff_wait_h": "median wait (h)"}), hide_index=True, width="stretch")
 
 # ---- cost of delay
 st.divider()
@@ -150,7 +150,7 @@ if not done.empty:
     d = done if pick == "all in period" else done[done["port"] == pick]
     d = d.sort_values("dwell_h", ascending=False).head(200)
     view = pd.DataFrame({"reference": d["nsw_ref"], "port": d["port"], "origin": d["origin_country"], "commodity": d["commodity_group"], "lane": d["risk_lane"], "dwell (d)": d["dwell_h"] / 24})
-    sel = st.dataframe(view, hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row", key="clr_cons",
+    sel = st.dataframe(view, hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key="clr_cons",
                        column_config={"dwell (d)": st.column_config.NumberColumn(format="%.1f", help=tooltips.tip("dwell_time"))})
     if sel.selection.rows and st.button("Open in Trace Workbench", key="clr_trace"):
         state.goto_trace(view.iloc[sel.selection.rows[0]]["reference"])

@@ -39,6 +39,6 @@ def grid(selected: str | None, key: str = "ent_pick", per_row: int = 6) -> str |
         for c, code in zip(cols, codes[i:i + per_row]):
             with c:
                 st.markdown(f"<div style='text-align:center;{'outline:3px solid ' + colour(code) + ';border-radius:10px;padding:2px' if code == selected else ''}'>{img(code, 54)}</div>", unsafe_allow_html=True)
-                if st.button(code, key=f"{key}_{code}", use_container_width=True, type="primary" if code == selected else "secondary"):
+                if st.button(code, key=f"{key}_{code}", width="stretch", type="primary" if code == selected else "secondary"):
                     chosen = code
     return chosen

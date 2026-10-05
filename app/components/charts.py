@@ -22,7 +22,7 @@ def layout(fig: go.Figure, height: int = 340, legend: bool = True) -> go.Figure:
 
 
 def show(fig: go.Figure, key: str, height: int = 340, legend: bool = True) -> None:
-    st.plotly_chart(layout(fig, height, legend), use_container_width=True, key=key, config={"displaylogo": False, "toImageButtonOptions": {"filename": key}})
+    st.plotly_chart(layout(fig, height, legend), width="stretch", key=key, config={"displaylogo": False, "toImageButtonOptions": {"filename": key}})
 
 
 def naira_axis(values: pd.Series) -> tuple[float, str]:

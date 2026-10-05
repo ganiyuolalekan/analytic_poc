@@ -317,3 +317,9 @@ def alerts(f: Filters, as_of: str | None = None, statuses: tuple = (), severitie
 
 def trial_balance_accounts(as_of: str | None = None) -> pd.DataFrame:
     return pd.read_sql_query("SELECT entity_id, account_code, name, class FROM chart_of_accounts", db.reader(as_of))
+
+
+def entity_profile(code: str, as_of: str | None = None) -> dict | None:
+    import json as _json
+    row = db.reader(as_of).execute("SELECT profile_json FROM entity_profiles WHERE entity_id=?", (code,)).fetchone()
+    return _json.loads(row[0]) if row else None

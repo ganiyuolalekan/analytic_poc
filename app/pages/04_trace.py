@@ -43,7 +43,7 @@ if hit["kind"] == "journal":
     st.markdown(f"**{hit['label']}**")
     s = trace.l3_sources(hit["ref"], as_of)
     st.markdown(("<span class='tie-ok'>✓ ties out</span>" if s["ties"] else "<span class='tie-bad'>✗ mismatch</span>") + " · source documents behind this entry", unsafe_allow_html=True)
-    st.dataframe(s["docs"], hide_index=True, use_container_width=True)
+    st.dataframe(s["docs"], hide_index=True, width="stretch")
     if s.get("nsw_ref"):
         ss["trace_query"] = s["nsw_ref"]
         st.button("Open the consignment", on_click=lambda: None)
@@ -83,7 +83,7 @@ with tabs[0]:
     st.caption("Blue = digital stages (NSW-controlled), amber = physical stages. Hover for waits, processing time and SLA.")
     show = stg.assign(started=[clock.fmt_wat(x) if isinstance(x, str) else "–" for x in stg["started_at"]], completed=[clock.fmt_wat(x) for x in stg["occurred_at"]])[
         ["stage", "owner_entity", "system_type", "started", "completed", "wait_h", "dur_h", "sla_hours", "status", "doc_no"]]
-    st.dataframe(show, hide_index=True, use_container_width=True, column_config={"wait_h": st.column_config.NumberColumn("wait (h)", format="%.1f", help=tooltips.tip("stage_wait")),
+    st.dataframe(show, hide_index=True, width="stretch", column_config={"wait_h": st.column_config.NumberColumn("wait (h)", format="%.1f", help=tooltips.tip("stage_wait")),
                                                                                 "dur_h": st.column_config.NumberColumn("processing (h)", format="%.1f")})
 with tabs[1]:
     sk = t["sankey"]
@@ -97,16 +97,16 @@ with tabs[1]:
     rs = t["recon"]
     if not rs.empty:
         st.dataframe(rs.assign(assessed=[fmt_ngn(v) for v in rs["assessed"]], paid=[fmt_ngn(v) for v in rs["paid"]], settled=[fmt_ngn(v) for v in rs["settled"]], cost=[fmt_ngn(v) for v in rs["cost"]]),
-                     hide_index=True, use_container_width=True)
+                     hide_index=True, width="stretch")
     st.markdown("**Fees by agency**")
     fe = t["fees"]
     st.dataframe(fe.assign(assessed=[fmt_ngn(v, exact=True) for v in fe["assessed_ngn_minor"]], expected=[fmt_ngn(v, exact=True) for v in fe["expected_amount_ngn_minor"]],
                            paid=[fmt_ngn(v, exact=True) for v in fe["paid_ngn_minor"]], settled=[fmt_ngn(v, exact=True) for v in fe["settled_ngn_minor"]])[["entity_id", "fee_code", "assessed", "expected", "paid", "settled", "currency"]],
-                 hide_index=True, use_container_width=True)
+                 hide_index=True, width="stretch")
     st.markdown("**Payments and settlements**")
-    st.dataframe(t["payments"], hide_index=True, use_container_width=True)
+    st.dataframe(t["payments"], hide_index=True, width="stretch")
     if not t["settlements"].empty:
-        st.dataframe(t["settlements"], hide_index=True, use_container_width=True)
+        st.dataframe(t["settlements"], hide_index=True, width="stretch")
 with tabs[2]:
     je, jl = t["journal_entries"], t["journal_lines"]
     if je.empty:
@@ -118,14 +118,14 @@ with tabs[2]:
                 ls = jl[jl["entry_id"] == r.entry_id]
                 st.markdown(f"`{r.entry_id}` · {clock.fmt_wat(r.occurred_at)} · {r.ref_type}")
                 st.dataframe(ls.assign(debit=[fmt_ngn(v, exact=True) if v else "" for v in ls["debit_minor"]], credit=[fmt_ngn(v, exact=True) if v else "" for v in ls["credit_minor"]])[["account_code", "account_name", "debit", "credit"]],
-                             hide_index=True, use_container_width=True)
+                             hide_index=True, width="stretch")
 with tabs[3]:
     docs = t["stages"][t["stages"]["doc_no"].notna()][["stage", "owner_entity", "doc_no"]]
     st.markdown("**Permits and certificates issued**")
-    st.dataframe(docs, hide_index=True, use_container_width=True)
+    st.dataframe(docs, hide_index=True, width="stretch")
     al = t["alerts"]
     st.markdown("**Linked alerts**")
-    st.dataframe(al, hide_index=True, use_container_width=True) if not al.empty else st.caption("No alerts reference this consignment.")
+    st.dataframe(al, hide_index=True, width="stretch") if not al.empty else st.caption("No alerts reference this consignment.")
 
 # exports + link
 buf = io.StringIO()

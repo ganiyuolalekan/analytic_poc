@@ -37,7 +37,7 @@ def live_feed(height: int = 430, key: str = "feed") -> None:
         return
     d = pd.DataFrame({"logo": [logos.uri(e, 32) for e in df["entity_id"]], "when (WAT)": [clock.fmt_wat(t, "%d %b %H:%M:%S") for t in df["occurred_at"]],
                       "": [f"{SEV.get(s, '·')} {_icon(t)}" for s, t in zip(df["severity"], df["type"])], "event": df["headline"], "detail": df["description"], "reference": df["subject"]})
-    sel = st.dataframe(d, hide_index=True, use_container_width=True, height=height, on_select="rerun", selection_mode="single-row", key=f"{key}_df",
+    sel = st.dataframe(d, hide_index=True, width="stretch", height=height, on_select="rerun", selection_mode="single-row", key=f"{key}_df",
                        column_config={"logo": st.column_config.ImageColumn("Entity", width="small"), "event": st.column_config.TextColumn("Event", width="medium"),
                                       "detail": st.column_config.TextColumn("Detail", width="large"), "reference": st.column_config.TextColumn("Reference", help="Select the row and open it in the Trace Workbench.")})
     rows = sel.selection.rows if sel and sel.selection else []

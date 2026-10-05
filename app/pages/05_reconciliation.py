@@ -56,22 +56,22 @@ c1, c2, c3 = st.columns(3)
 with c1:
     tooltips.title("ageing", 5)
     ag = state.cc(reconcile.unpaid_ageing, f)
-    st.dataframe(ag.assign(amount=[fmt_ngn(v) for v in ag["amount_minor"]]).drop(columns=["amount_minor"]), hide_index=True, use_container_width=True)
+    st.dataframe(ag.assign(amount=[fmt_ngn(v) for v in ag["amount_minor"]]).drop(columns=["amount_minor"]), hide_index=True, width="stretch")
 with c2:
     tooltips.title("duplicate_payment", 5)
     dp = state.cc(reconcile.duplicate_payments, f)
     st.markdown(f"{len(dp)} duplicates · {fmt_ngn(dp['amount_ngn_minor'].sum()) if not dp.empty else '₦0'}")
-    st.dataframe(dp.assign(amount=[fmt_ngn(v) for v in dp["amount_ngn_minor"]]).drop(columns=["amount_ngn_minor"]).head(15), hide_index=True, use_container_width=True)
+    st.dataframe(dp.assign(amount=[fmt_ngn(v) for v in dp["amount_ngn_minor"]]).drop(columns=["amount_ngn_minor"]).head(15), hide_index=True, width="stretch")
 with c3:
     tooltips.title("in_transit", 5)
     it = state.cc(reconcile.in_transit_by_bank)
-    st.dataframe(it.assign(value=[fmt_ngn(v) for v in it["in_transit_minor"]]).drop(columns=["in_transit_minor"]), hide_index=True, use_container_width=True)
+    st.dataframe(it.assign(value=[fmt_ngn(v) for v in it["in_transit_minor"]]).drop(columns=["in_transit_minor"]), hide_index=True, width="stretch")
 
 st.divider()
 tooltips.title("exceptions_table")
 summ = state.cc(reconcile.exception_summary, f)
 if not summ.empty:
-    st.dataframe(summ.assign(amount=[fmt_ngn(v) for v in summ["amount_minor"]]).drop(columns=["amount_minor"]), hide_index=True, use_container_width=True)
+    st.dataframe(summ.assign(amount=[fmt_ngn(v) for v in summ["amount_minor"]]).drop(columns=["amount_minor"]), hide_index=True, width="stretch")
 cls = st.multiselect("Show classes", list(reconcile.CLASSES), default=["unpaid", "settled_late", "duplicate", "orphan_payment", "mismatch"], key="rec_cls")
 ex = state.cc(reconcile.exceptions, f, limit_per_class=200)
 ex = ex[ex["cls"].isin(cls)] if not ex.empty else ex
@@ -79,7 +79,7 @@ if ex.empty:
     st.success("No exceptions in this selection.")
 else:
     view = pd.DataFrame({"class": ex["cls"], "entity": ex["entity"], "reference": ex["nsw_ref"], "amount": [fmt_ngn(v) for v in ex["amount_minor"]], "age (days)": ex["age_days"], "origin": ex["origin_country"], "commodity": ex["commodity_group"]})
-    sel = st.dataframe(view.head(400), hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row", key="exc_sel",
+    sel = st.dataframe(view.head(400), hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key="exc_sel",
                        column_config={"age (days)": st.column_config.NumberColumn(format="%.1f"), "class": st.column_config.TextColumn(help=tooltips.tip("variance"))})
     if sel.selection.rows:
         r = ex.iloc[sel.selection.rows[0]]

@@ -8,7 +8,7 @@ from app.components import state, tooltips
 
 def drawer() -> None:
     with st.sidebar:
-        with st.popover("Ask the assistant", use_container_width=True):
+        with st.popover("Ask the assistant", width="stretch"):
             st.caption("Answers use verified tools over the live data. Open the Assistant page for the full view.")
             q = st.text_input("Question", key="drawer_q", placeholder="How much did NCS collect month to date?")
             if st.button("Ask", key="drawer_ask") and q:

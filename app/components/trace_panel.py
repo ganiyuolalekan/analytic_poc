@@ -42,7 +42,7 @@ def render(desc: dict, key: str = "trace") -> None:
     if not l1.empty:
         names = {r.account_code: r.account_code for r in l1.itertuples()}
         d = l1.assign(amount=[fmt_ngn(sign * v, exact=True) for v in l1["net_debit_minor"]])[["entity_id", "account_code", "amount", "n_lines"]]
-        pick = st.dataframe(d, hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row", key=f"{key}_l1df")
+        pick = st.dataframe(d, hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key=f"{key}_l1df")
         if pick.selection.rows:
             ss[f"{key}_acct"] = d.iloc[pick.selection.rows[0]]["account_code"]
             ss.pop(f"{key}_entry", None)
@@ -62,7 +62,7 @@ def render(desc: dict, key: str = "trace") -> None:
         c3.caption(f"Page {page + 1} of {max(1, -(-n // PAGE))}")
         d2 = rows.assign(when=[clock.fmt_wat(t, "%d %b %H:%M") for t in rows["occurred_at"]], amount=[fmt_ngn(sign * v, exact=True) for v in rows["net_debit_minor"]])[
             ["entry_id", "when", "entity_id", "ref_type", "nsw_ref", "amount", "memo"]]
-        p2 = st.dataframe(d2, hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row", key=f"{key}_l2df")
+        p2 = st.dataframe(d2, hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key=f"{key}_l2df")
         if p2.selection.rows:
             ss[f"{key}_entry"] = d2.iloc[p2.selection.rows[0]]["entry_id"]
             sel_entry = ss[f"{key}_entry"]
@@ -71,9 +71,9 @@ def render(desc: dict, key: str = "trace") -> None:
         st.markdown(f"**L3 — source documents for {sel_entry}** ({s.get('ref_type', '')}) " + _tie(s["ties"], "(amounts re-derived from the documents equal the posted lines)"), unsafe_allow_html=True)
         docs = s["docs"]
         if not docs.empty:
-            st.dataframe(docs.assign(amount=[fmt_ngn(v, exact=True) for v in docs["amount_minor"]]).drop(columns=["amount_minor"], errors="ignore"), hide_index=True, use_container_width=True)
+            st.dataframe(docs.assign(amount=[fmt_ngn(v, exact=True) for v in docs["amount_minor"]]).drop(columns=["amount_minor"], errors="ignore"), hide_index=True, width="stretch")
         cmp = pd.DataFrame([{"account": a, "posted_debit": fmt_ngn(v[0]), "posted_credit": fmt_ngn(v[1]), "derived_debit": fmt_ngn(s['derived'].get(a, (0, 0))[0]),
                              "derived_credit": fmt_ngn(s['derived'].get(a, (0, 0))[1])} for a, v in s["actual"].items()])
-        st.dataframe(cmp, hide_index=True, use_container_width=True)
+        st.dataframe(cmp, hide_index=True, width="stretch")
         if s.get("nsw_ref") and st.button(f"L4 — open consignment {s['nsw_ref']}", key=f"{key}_l4"):
             state.goto_trace(s["nsw_ref"])

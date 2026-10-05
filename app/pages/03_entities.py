@@ -41,7 +41,7 @@ def lines_table(lines: list[dict], key: str, show_prev: bool) -> dict | None:
     rows = [{"section": x["section"], "line": x["label"], "amount": fmt_ngn(x["amount"] * 1, exact=False), "amount_minor": x["amount"],
              **({"previous": fmt_ngn(x["prev"]) if x["prev"] is not None else "–", "change": (f"{(x['amount'] - x['prev']) / abs(x['prev']) * 100:+.1f}%" if x["prev"] else "–")} if show_prev else {})} for x in lines]
     d = pd.DataFrame(rows).drop(columns=["amount_minor"])
-    sel = st.dataframe(d, hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row", key=key)
+    sel = st.dataframe(d, hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key=key)
     return lines[sel.selection.rows[0]] if sel.selection.rows else None
 
 
@@ -61,13 +61,13 @@ if card["type"] == "settlement":                 # CBN: settlement ledger view
         fig.update_yaxes(title="lag (hours)")
         tooltips.title("settlement_lag")
         charts.show(fig, "cbn_lag", 340)
-        st.dataframe(sb.assign(value=[fmt_ngn(v) for v in sb["total_ngn_minor"]]).drop(columns=["total_ngn_minor"]).head(100), hide_index=True, use_container_width=True)
+        st.dataframe(sb.assign(value=[fmt_ngn(v) for v in sb["total_ngn_minor"]]).drop(columns=["total_ngn_minor"]).head(100), hide_index=True, width="stretch")
 elif card["type"] == "treasury":                 # MOF-FA: remittances received
     st.subheader("Remittances received (Federation Account)")
     rm = state.cc(queries.remittances)
     paid = rm[rm["status"] == "paid"]
     cards.kpi(st.columns(3)[0], "remitted", fmt_ngn(paid["amount_ngn_minor"].sum()), label="Total received to date")
-    st.dataframe(rm.assign(amount=[fmt_ngn(v) for v in rm["amount_ngn_minor"]]).drop(columns=["amount_ngn_minor", "occurred_at"]), hide_index=True, use_container_width=True)
+    st.dataframe(rm.assign(amount=[fmt_ngn(v) for v in rm["amount_ngn_minor"]]).drop(columns=["amount_ngn_minor", "occurred_at"]), hide_index=True, width="stretch")
 else:
     t_over, t_stmt, t_proc, t_led, t_fund, t_score = st.tabs(["Overview", "Financial statements", "Processes", "Ledger", "Funding & expenses", "Scorecard & alerts"])
     fe = f.with_(entities=(ent,))
@@ -100,14 +100,14 @@ else:
         with c1:
             tooltips.title("process_code", 5)
             pr = state.cc(statements.revenue_breakdown, ent, f, "process_code")
-            st.dataframe(pr.assign(revenue=[fmt_ngn(v) for v in pr["revenue_minor"]]).drop(columns=["revenue_minor"]), hide_index=True, use_container_width=True)
+            st.dataframe(pr.assign(revenue=[fmt_ngn(v) for v in pr["revenue_minor"]]).drop(columns=["revenue_minor"]), hide_index=True, width="stretch")
         with c2:
             tooltips.title("remittance_monitor", 5)
             rm = state.cc(queries.remittances, (ent,))
             if rm.empty:
                 st.caption("No remittances under this agency's rule.")
             else:
-                st.dataframe(rm.assign(amount=[fmt_ngn(v) for v in rm["amount_ngn_minor"]])[["period", "due_date", "paid_at", "amount", "status", "days_late"]], hide_index=True, use_container_width=True)
+                st.dataframe(rm.assign(amount=[fmt_ngn(v) for v in rm["amount_ngn_minor"]])[["period", "due_date", "paid_at", "amount", "status", "days_late"]], hide_index=True, width="stretch")
     with t_stmt:
         st.caption("Select any line to trace it: L0 line › L1 accounts › L2 journal entries › L3 source documents › L4 consignment. " + tooltips.tip("ties_out_check"))
         which = st.radio("Statement", ["Performance", "Position", "Cash flow", "Revenue collection & remittance"], horizontal=True, key="stmt_which")
@@ -131,7 +131,7 @@ else:
             cr = state.cc(statements.collection_remittance, ent, f)
             st.dataframe(pd.DataFrame({"fee": cr["fee_code"], "assessed": [fmt_ngn(v) for v in cr["assessed"]], "paid": [fmt_ngn(v) for v in cr["paid"]], "settled (gross)": [fmt_ngn(v) for v in cr["settled_gross"]],
                                        "outstanding": [fmt_ngn(v) for v in cr["outstanding"]], "collection efficiency": cr["collection_efficiency"], "cost per ₦100": cr["cost_per_100"]}),
-                         hide_index=True, use_container_width=True, column_config={"collection efficiency": st.column_config.ProgressColumn(format="%.0f%%", min_value=0, max_value=1, help=tooltips.tip("collection_efficiency")),
+                         hide_index=True, width="stretch", column_config={"collection efficiency": st.column_config.ProgressColumn(format="%.0f%%", min_value=0, max_value=1, help=tooltips.tip("collection_efficiency")),
                                                                                   "cost per ₦100": st.column_config.NumberColumn(format="₦%.2f", help=tooltips.tip("collection_cost_per_100"))})
         if traced and traced.get("trace"):
             st.markdown(f"##### Trace: {traced['label']}")
@@ -141,10 +141,10 @@ else:
         sm = state.cc(queries.aggregate, "assessed", ["process"], fe)
         sla = state.cc(clearance.sla_breach_by_entity, fe.with_(entities=()))
         mine = sla[sla["entity"] == ent]
-        st.dataframe(sm.assign(**{"fee yield": [fmt_ngn(v) for v in sm["value"]], "assessments": sm["rows"]}).drop(columns=["value", "rows"]), hide_index=True, use_container_width=True)
+        st.dataframe(sm.assign(**{"fee yield": [fmt_ngn(v) for v in sm["value"]], "assessments": sm["rows"]}).drop(columns=["value", "rows"]), hide_index=True, width="stretch")
         if not mine.empty:
             st.markdown("**SLA performance for stages this agency owns**")
-            st.dataframe(mine.rename(columns={"breach_rate": "SLA breach rate"}), hide_index=True, use_container_width=True, column_config={"SLA breach rate": st.column_config.ProgressColumn(format="%.1f%%", min_value=0, max_value=0.5, help=tooltips.tip("sla_breach_rate"))})
+            st.dataframe(mine.rename(columns={"breach_rate": "SLA breach rate"}), hide_index=True, width="stretch", column_config={"SLA breach rate": st.column_config.ProgressColumn(format="%.1f%%", min_value=0, max_value=0.5, help=tooltips.tip("sla_breach_rate"))})
         mt = state.cc(queries.process_matrix, f, ent)
         if not mt.empty:
             tooltips.title("country_sensitivity", 5)
@@ -155,7 +155,7 @@ else:
         tb = state.cc(statements.trial_balance, ent, f.end)
         st.markdown(f"**Trial balance** · debits {fmt_ngn(tb['debit_minor'].sum())} = credits {fmt_ngn(tb['credit_minor'].sum())} " + ("<span class='tie-ok'>✓ balanced</span>" if tb["debit_minor"].sum() == tb["credit_minor"].sum() else "<span class='tie-bad'>✗</span>"), unsafe_allow_html=True, help=tooltips.tip("ledger_trial_balance"))
         pick = st.dataframe(tb.assign(debit=[fmt_ngn(v, exact=True) for v in tb["debit_minor"]], credit=[fmt_ngn(v, exact=True) for v in tb["credit_minor"]])[["account_code", "name", "class", "debit", "credit"]],
-                            hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row", key="tb_pick")
+                            hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key="tb_pick")
         if pick.selection.rows:
             acct = tb.iloc[pick.selection.rows[0]]["account_code"]
             st.markdown(f"##### Journal browser: account {acct}")
@@ -172,7 +172,7 @@ else:
                 fig = go.Figure(go.Bar(x=g["source_country"], y=g["value"] / 1e11, marker_color=logos.colour(ent), hovertemplate="%{x}: ₦%{y:,.3f}bn<extra></extra>"))
                 fig.update_yaxes(title="₦bn")
                 charts.show(fig, "fund_country", 280, legend=False)
-                st.dataframe(fd.assign(amount=[fmt_ngn(v) for v in fd["value"]]).drop(columns=["value", "entity"]), hide_index=True, use_container_width=True)
+                st.dataframe(fd.assign(amount=[fmt_ngn(v) for v in fd["value"]]).drop(columns=["value", "entity"]), hide_index=True, width="stretch")
         with b:
             tooltips.title("appropriation", 5)
             ex = state.cc(queries.aggregate, "expenses", ["week", "category"], fe)
@@ -195,7 +195,7 @@ else:
             st.caption(f"Status: {charts.rag_dot(s['rag'])} {s['rag']} · basis: {s.get('completeness_basis')}", unsafe_allow_html=True)
         al = state.cc(queries.alerts, f.with_(start=None), entities=(ent,), limit=50)
         tooltips.title("alert_board", 5)
-        st.dataframe(al.drop(columns=["details_json", "window_start", "window_end"]), hide_index=True, use_container_width=True)
+        st.dataframe(al.drop(columns=["details_json", "window_start", "window_end"]), hide_index=True, width="stretch")
 
 header.methodology_footer([("Statements", "Computed from the double-entry ledger by SQL (never stored); whole days use a daily rollup, partial days use journal lines; both are tested to be identical."),
                            ("Trace", "Each line expands to accounts, journal entries and source documents; totals at every level sum exactly to the level above."),

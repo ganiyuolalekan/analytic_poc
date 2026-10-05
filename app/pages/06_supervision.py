@@ -34,7 +34,7 @@ with tab_board:
     else:
         view = pd.DataFrame({"logo": [logos.uri(e, 32) for e in al["entity"]], "alert": al["alert_id"], "rule": al["rule_code"], "severity": al["severity"], "entity": al["entity"], "subject": al["subject"],
                              "detected (WAT)": [clock.fmt_wat(t, "%d %b %H:%M") for t in al["detected_at"]], "status": al["status"], "assigned": al["assigned_to"]})
-        sel = st.dataframe(view, hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row", key="alert_pick", height=300,
+        sel = st.dataframe(view, hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row", key="alert_pick", height=300,
                            column_config={"logo": st.column_config.ImageColumn("", width="small"), "severity": st.column_config.TextColumn(help=tooltips.tip("alert_severity")),
                                           "rule": st.column_config.TextColumn(help="Open an alert to read what the rule means.")})
         if sel.selection.rows:
@@ -51,7 +51,7 @@ with tab_board:
                     st.caption(tooltips.tip("why_raised"))
                     rows = det.get("supporting_rows", [])
                     st.write(f"{det.get('n_supporting', len(rows))} supporting records; first {len(rows)} shown.")
-                    st.dataframe(pd.DataFrame({"record": rows}), hide_index=True, use_container_width=True)
+                    st.dataframe(pd.DataFrame({"record": rows}), hide_index=True, width="stretch")
                     refs = [r for r in rows if str(r).startswith("NSW-")]
                     if refs and st.button(f"Trace {refs[0]}", key=f"sup_trace_{a['alert_id']}"):
                         state.goto_trace(refs[0])
@@ -85,7 +85,7 @@ with tab_queue:
     if qd.empty:
         st.success("Nothing awaiting review.")
     else:
-        st.dataframe(qd.sort_values("age_h", ascending=False)[["type", "id", "rule", "severity", "entity", "status", "assigned_to", "age_h"]], hide_index=True, use_container_width=True,
+        st.dataframe(qd.sort_values("age_h", ascending=False)[["type", "id", "rule", "severity", "entity", "status", "assigned_to", "age_h"]], hide_index=True, width="stretch",
                      column_config={"age_h": st.column_config.NumberColumn("age (h)", format="%.0f", help="SLA age: hours since the item was raised.")})
         by = qd.groupby("severity")["id"].count()
         st.caption("Open items by severity: " + ", ".join(f"{k} {v}" for k, v in by.items()))
@@ -96,7 +96,7 @@ with tab_score:
     if not sc.empty:
         st.dataframe(pd.DataFrame({"logo": [logos.uri(e, 32) for e in sc["entity"]], "entity": sc["entity"], "score": sc["score"], "status": sc["rag"].map(lambda r: f"{charts.GLYPH[r]} {r}"),
                                    "completeness": sc["completeness"], "timeliness": sc["timeliness"], "consistency": sc["consistency"], "punctuality": sc["punctuality"],
-                                   "digital share (onboarding)": sc["digital_share"]}), hide_index=True, use_container_width=True, column_config={
+                                   "digital share (onboarding)": sc["digital_share"]}), hide_index=True, width="stretch", column_config={
             "logo": st.column_config.ImageColumn("", width="small"), "score": st.column_config.ProgressColumn("Confidence score", min_value=0, max_value=100, format="%.0f", help=tooltips.tip("data_confidence_score")),
             "completeness": st.column_config.ProgressColumn(min_value=0, max_value=1, format="%.0f%%", help=tooltips.tip("score_completeness")),
             "timeliness": st.column_config.ProgressColumn(min_value=0, max_value=1, format="%.0f%%", help=tooltips.tip("score_timeliness")),
@@ -115,7 +115,7 @@ with tab_rem:
         cards.kpi(c[1], "remitted", fmt_ngn(rm[rm["status"] == "paid"]["amount_ngn_minor"].sum()), label="Paid to date")
         cards.kpi(c[2], "remittance_payable", fmt_ngn(rm[rm["status"] != "paid"]["amount_ngn_minor"].sum()), label="Due, not yet paid")
         st.dataframe(pd.DataFrame({"entity": rm["entity"], "period": rm["period"], "due": [clock.fmt_wat(d, "%d %b") for d in rm["due_date"]], "paid": [clock.fmt_wat(d, "%d %b") if isinstance(d, str) else "–" for d in rm["paid_at"]],
-                                   "amount": [fmt_ngn(v) for v in rm["amount_ngn_minor"]], "status": rm["status"], "days late": rm["days_late"].fillna(rm["days_overdue"])}), hide_index=True, use_container_width=True)
+                                   "amount": [fmt_ngn(v) for v in rm["amount_ngn_minor"]], "status": rm["status"], "days late": rm["days_late"].fillna(rm["days_overdue"])}), hide_index=True, width="stretch")
 
 with tab_audit:
     tooltips.title("audit_log")
@@ -123,7 +123,7 @@ with tab_audit:
     tl = audit.timeline(w, limit=200)
     w.close()
     st.dataframe(pd.DataFrame([{"when (WAT)": clock.fmt_wat(t["ts"], "%d %b %H:%M"), "actor": t["actor"], "role": t["role"], "action": t["action"], "target": f"{t['target_type']} {t['target_id']}"} for t in tl]),
-                 hide_index=True, use_container_width=True)
+                 hide_index=True, width="stretch")
 
 header.methodology_footer([("Alerts", "Rules R-SLA-01 … R-ONB-01 read the as-of views at fixed checkpoints (06:00, 12:00, 18:00 and midnight WAT) in history and every ~30 s live; each stores its metric, threshold, window and supporting rows."),
                            ("Roles", "Analyst can acknowledge and comment; Supervisor can assign, review and resolve; Director can also sign off period reports. Every action writes a review and an audit row."),

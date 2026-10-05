@@ -25,7 +25,7 @@ digraph G {{ rankdir=LR; node [shape=box, style="rounded,filled", fontname="Helv
  AS -> LLM [label="language only\\n(no arithmetic)"]; LLM [label="{where[1]}", fillcolor="#e9eef7"];
  UI -> USERS [dir=both]; USERS [label="Director, supervisors, analysts\\n(SSO, roles)", shape=oval, fillcolor="#fff"];
 }}"""
-st.graphviz_chart(dot, use_container_width=True)
+st.graphviz_chart(dot, width="stretch")
 tooltips.title("architecture")
 st.markdown("""
 **Talk track.** The console only *reads*: connectors take a copy of events and extracts, so live operations are never touched. Every number is computed by deterministic code over a validated ledger; the language model is used for wording and tool selection, never for arithmetic. Because the model sits behind one interface it can be swapped: a hosted model, an in-country model or a small open-weight model on local hardware.

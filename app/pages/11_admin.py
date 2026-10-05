@@ -49,7 +49,7 @@ st.caption("Injected incidents are real engine inputs: the feed, the situation b
 cols = st.columns(6)
 for col, (kind, label) in zip(cols, [("scanner_outage", "Scanner outage at Apapa"), ("permit_backlog", "NAFDAC permit backlog"), ("bank_delay", "Bank settlement delay"), ("fx_shock", "FX shock"),
                                      ("late_remittance", "Late remittance"), ("duplicate_burst", "Duplicate payments burst")]):
-    if col.button(label, disabled=locked, key=f"inj_{kind}", use_container_width=True):
+    if col.button(label, disabled=locked, key=f"inj_{kind}", width="stretch"):
         svc.inject(kind)
         st.toast(f"Injected: {label}")
 if stt["directive"]:
@@ -67,10 +67,10 @@ with col1:
     if not rows.empty:
         pv = rows.pivot_table(index="content", columns="source", values="n", aggfunc="sum").fillna(0)
         pv["% model (llm)"] = 100 * pv.get("llm", 0) / pv.sum(axis=1)
-        st.dataframe(pv, use_container_width=True)
+        st.dataframe(pv, width="stretch")
 with col2:
     st.markdown("**Plans and profiles by source**")
-    st.dataframe(gr, hide_index=True, use_container_width=True)
+    st.dataframe(gr, hide_index=True, width="stretch")
 
 tooltips.title("cost_ledger")
 w = db.connect()
@@ -79,7 +79,7 @@ st.markdown(ledger.format_summary(sm).replace("\n", "  \n"))
 df = ledger.ledger(w)
 w.close()
 if not df.empty:
-    st.dataframe(df.drop(columns=["validation_issues"]), hide_index=True, use_container_width=True)
+    st.dataframe(df.drop(columns=["validation_issues"]), hide_index=True, width="stretch")
 
 st.divider()
 tooltips.title("beat_viewer")
@@ -93,6 +93,6 @@ for bid, b_ in beats.items():
     rows.append({"beat": bid, "name": b_["name"], "starts": clock.fmt_wat(sim0 + timedelta(days=b_["start_day"]), "%d %b"), "ends": clock.fmt_wat(sim0 + timedelta(days=b_["end_day"]), "%d %b"),
                  "detector": ", ".join(b_["detected_by"]) or "none (visible in volume chart)", "detector fired": ("● yes" if len(fired) else "–") if b_["detected_by"] else "n/a",
                  "first detection": clock.fmt_wat(fired["detected_at"].min(), "%d %b %H:%M") if len(fired) else "–"})
-st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 st.caption(f"Database: {db_path().name} · {db_path().stat().st_size / 1e9:.2f} GB · schema v{db.SCHEMA_VERSION}")
 cards.disclaimer_footer()
