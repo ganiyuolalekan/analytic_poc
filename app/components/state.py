@@ -30,15 +30,23 @@ def presenter() -> bool:
     return bool(st.session_state.get("presenter", False))
 
 
-def as_of() -> str:
-    """The data time: the simulation watermark (facts only exist up to here)."""
+BUCKET_S = 30
+
+
+def live_as_of() -> str:
+    """The raw data time (simulation watermark): used only by live panels (feed, counters, clock)."""
     wm = queries.watermark()
     return wm or clock.iso(clock.utcnow())
 
 
+def as_of() -> str:
+    """The data time used by analytics: the watermark floored to a 30 s bucket, so cached results are reused until the bucket moves
+    (the raw watermark advances every couple of seconds and would otherwise defeat the cache)."""
+    return clock.iso(int(clock.to_epoch(live_as_of()) // BUCKET_S) * BUCKET_S)
+
+
 def bucket() -> str:
-    """Cache bucket: changes every 15 seconds so live pages refresh without recomputing on every rerun."""
-    return clock.iso(int(clock.to_epoch(as_of()) // 15) * 15)
+    return as_of()
 
 
 @st.cache_data(ttl=60, show_spinner=False, hash_funcs={types.FunctionType: lambda f: f"{f.__module__}.{f.__qualname__}"})

@@ -1,6 +1,8 @@
 """Clearance performance: dwell/clearance percentiles, stage waterfall, digital vs physical, bottlenecks, target tracker."""
 from __future__ import annotations
 
+from functools import lru_cache
+
 import numpy as np
 import pandas as pd
 
@@ -34,7 +36,12 @@ def _cons_where(f: Filters, tcol: str, params: list, alias: str = "") -> str:
 
 
 def completed(f: Filters, as_of: str | None = None) -> pd.DataFrame:
-    """Consignments that gated out in the period (dwell is only known once they have left)."""
+    """Consignments that gated out in the period (dwell is only known once they have left). Memoised per (filters, as_of): a page asks for it many times."""
+    return _completed(f, as_of or now_iso()).copy(deep=False)
+
+
+@lru_cache(maxsize=6)
+def _completed(f: Filters, as_of: str) -> pd.DataFrame:
     params: list = []
     w = _cons_where(f, "gate_out_at", params) + " AND gate_out_at IS NOT NULL"
     return pd.read_sql_query(f"SELECT nsw_ref, mode, port, origin_country, commodity_group, bank, risk_lane, arrived_at, declared_at, released_at, "

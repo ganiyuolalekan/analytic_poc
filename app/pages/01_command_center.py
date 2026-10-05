@@ -20,6 +20,7 @@ header.page_header("Command Center", "The live view of the simulated NSW channel
                    ("Mode", "Port", "Commodity", "Process", "Origin (live panels only)"))
 f = state.filters()
 as_of = state.as_of()
+live_t = state.live_as_of()
 prev = queries.previous_period(f) if state.compare_on() else None
 
 # ---------------------------------------------------------------- KPI strip
@@ -44,12 +45,12 @@ with left:
 with right:
     tooltips.title("paid", 4)
     feed.live_counters()
-    m = queries.minute_series(60, as_of, "paid")
+    m = queries.minute_series(60, live_t, "paid")
     if not m.empty:
         m = m.assign(entity=m["entity_id"])
         fig = charts.entity_area(m, "minute", "value", "entity", 1e8, "₦m")
         charts.show(fig, "live_money", 250)
-    rt = queries.todays_running_total(as_of)
+    rt = queries.todays_running_total(live_t)
     c1, c2 = st.columns(2)
     cards.kpi(c1, "paid", fmt_ngn(rt["today"]), cards.delta_str(rt["today"], rt["yesterday_same_time"]), label="Today so far")
     cards.kpi(c2, "paid", fmt_ngn(rt["yesterday_same_time"]), label="Yesterday, same time")

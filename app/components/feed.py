@@ -30,7 +30,7 @@ def live_feed(height: int = 430, key: str = "feed") -> None:
     if paused and f"{key}_frozen" in st.session_state:
         df = st.session_state[f"{key}_frozen"]
     else:
-        df = queries.live_events(60, entities=f.entities if mine else (), severities=tuple(sev), as_of=state.as_of())
+        df = queries.live_events(60, entities=f.entities if mine else (), severities=tuple(sev), as_of=state.live_as_of())
         st.session_state[f"{key}_frozen"] = df
     if df.empty:
         st.info("No events yet.")
@@ -48,9 +48,9 @@ def live_feed(height: int = 430, key: str = "feed") -> None:
 
 
 def live_counters() -> None:
-    m = queries.minute_series(60, state.as_of(), "paid")
+    m = queries.minute_series(60, state.live_as_of(), "paid")
     last60 = float(m["value"].sum()) if not m.empty else 0.0
-    ev = queries.events_per_minute(state.as_of(), 30)
+    ev = queries.events_per_minute(state.live_as_of(), 30)
     from app.components import cards
     from nsw_sim.money import fmt_ngn
     c1, c2 = st.columns(2)

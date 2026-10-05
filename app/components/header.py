@@ -40,7 +40,7 @@ def llm_chip() -> str:
 def clock_strip() -> None:
     svc = state.service()
     stt = svc.status()
-    now = clock.fmt_wat(state.as_of(), "%d %b %Y %H:%M:%S WAT")
+    now = clock.fmt_wat(state.live_as_of(), "%d %b %Y %H:%M:%S WAT")
     mode = stt["mode"]
     pulse = '<span class="pulse"></span>' if mode == "live" else ""
     speed = f" · LIVE ×{stt['speed']:g}" if stt["speed"] != 1 else ""
