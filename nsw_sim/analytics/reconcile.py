@@ -121,7 +121,7 @@ def leakage_heatmap(f: Filters, as_of: str | None = None, min_n: int = 15, fee_c
     if fee_code:
         w += " AND fee_code=?"
         p.append(fee_code)
-    df = pd.read_sql_query(f"SELECT commodity_group, origin_country, COUNT(*) n, SUM(expected_amount_ngn_minor) expected, SUM(assessed_ngn_minor) assessed "
+    df = pd.read_sql_query(f"SELECT commodity_group, origin_country, COUNT(*) n, SUM(expected_amount_ngn_minor) expected, SUM(amount_ngn_minor) assessed "
                            f"FROM v_assessments{w} GROUP BY 1,2 HAVING n>=?", db.reader(as_of), params=[*p, min_n])
     df["shortfall_pct"] = (df["expected"] - df["assessed"]) / df["expected"].where(df["expected"] > 0)
     df["shortfall_minor"] = df["expected"] - df["assessed"]

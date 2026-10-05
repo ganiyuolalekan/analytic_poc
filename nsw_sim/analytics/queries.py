@@ -99,6 +99,8 @@ def aggregate(metric: str, group_by: list[str] | tuple[str, ...] = (), f: Filter
         params.append(f.end)
     if metric == "in_transit":
         where += " AND settled_at IS NULL"
+    if metric == "refunds":
+        where += " AND fee_code != 'UNAPPLIED'"          # refunds of unapplied receipts are balance-sheet only
     for attr, col in _FILTER_COLS.items():
         vals = getattr(f, attr)
         if vals and col in set(dims.values()):

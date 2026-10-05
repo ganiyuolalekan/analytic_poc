@@ -53,9 +53,10 @@ def scorecard(as_of: str | None = None, window_days: float = 7, entities: tuple[
             cons = 0.5 * float(cs.at[ent, "paid_settled"]) + 0.5 * float(cs.at[ent, "accuracy"])
         pun = float(rm.at[ent, "punctuality"]) if ent in rm.index else 1.0
         parts = {"completeness": comp, "timeliness": timel, "consistency": cons if cons is not None else 1.0, "punctuality": pun}
-        score = None if comp is None else 100 * sum(WEIGHTS[k] * (parts[k] if parts[k] is not None else 1.0) for k in WEIGHTS)
+        # entities that own no stage records (fee-only agencies) are scored on the data they do supply: completeness defaults to 1.0
+        score = 100 * sum(WEIGHTS[k] * (parts[k] if parts[k] is not None else 1.0) for k in WEIGHTS)
         rows.append({"entity": ent, **{k: parts[k] for k in WEIGHTS}, "score": score, "rag": rag(score),
-                     "digital_share": float(st.at[ent, "digital_share"]) if ent in st.index else None,
+                     "digital_share": float(st.at[ent, "digital_share"]) if ent in st.index else None, "completeness_basis": "stage records" if ent in st.index else "fee data only (no stage records)",
                      "events": int(st.at[ent, "n"]) if ent in st.index else 0,
                      "settlement_lag_h": float(stl.at[ent, "settle_lag_h"]) if ent in stl.index else None,
                      "collection_cost_ratio": float(stl.at[ent, "cost_ratio"]) if ent in stl.index else None})

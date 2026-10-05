@@ -204,7 +204,7 @@ def _views() -> list[tuple[str, str]]:
               SUM(credit_minor) - SUM(debit_minor) AS net_credit_minor
            FROM v_ledger_lines WHERE class IN ('Revenue','Expense') GROUP BY entity_id, day, account_code"""),
         ("v_alerts", f"""SELECT alert_id, rule_code, severity, entity_id, subject, detected_at, window_start, window_end,
-              metric_value, threshold, status, assigned_to, updated_at, cleared_at
+              metric_value, threshold, details_json, status, assigned_to, updated_at, cleared_at
            FROM main.alerts WHERE detected_at <= {a}"""),
         ("v_live_events", f"SELECT * FROM main.live_events WHERE occurred_at <= {a}"),
         ("v_fx_rates", f"SELECT * FROM main.fx_rates WHERE ts_utc <= {a}"),
