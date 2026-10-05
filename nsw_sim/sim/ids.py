@@ -89,6 +89,7 @@ class IdFactory:
         self._lock = threading.Lock()
         self.n = 0                                   # global consignment ordinal
         self.pay_n = 0                               # global payment ordinal
+        self.exp_n = 0                               # expense / funding ordinal
         self._nsw_seq: dict[str, int] = {}
         self._je_seq: dict[tuple[str, str], int] = {}
         self._alert_seq: dict[str, int] = {}
@@ -104,12 +105,15 @@ class IdFactory:
         self.n = max(n, int(row[0]) if row else 0)
         row = conn.execute("SELECT value FROM sim_state WHERE key='seq_payment'").fetchone()
         self.pay_n = int(row[0]) if row else 0
+        row = conn.execute("SELECT value FROM sim_state WHERE key='seq_expense'").fetchone()
+        self.exp_n = int(row[0]) if row else 0
         self._nsw_seq = {k: int(v) for k, v in conn.execute(
-            "SELECT substr(nsw_ref,1,17), MAX(CAST(substr(nsw_ref,-7) AS INTEGER)) FROM consignments GROUP BY 1")}
+            "SELECT substr(nsw_ref,1,length(nsw_ref)-8), MAX(CAST(substr(nsw_ref,-7) AS INTEGER)) FROM consignments GROUP BY 1")}
 
     def persist(self, conn: sqlite3.Connection) -> None:
         conn.execute("INSERT OR REPLACE INTO sim_state(key,value) VALUES('seq_consignment',?)", (str(self.n),))
         conn.execute("INSERT OR REPLACE INTO sim_state(key,value) VALUES('seq_payment',?)", (str(self.pay_n),))
+        conn.execute("INSERT OR REPLACE INTO sim_state(key,value) VALUES('seq_expense',?)", (str(self.exp_n),))
 
     def next_consignment(self, yyyymm: str, port: str) -> tuple[int, str]:
         with self._lock:
@@ -118,6 +122,11 @@ class IdFactory:
             seq = self._nsw_seq.get(key, 0) + 1
             self._nsw_seq[key] = seq
             return self.n, f"{key}-{seq:07d}"
+
+    def n_expense(self) -> int:
+        with self._lock:
+            self.exp_n += 1
+            return self.exp_n
 
     def next_payment(self) -> tuple[int, str]:
         with self._lock:
