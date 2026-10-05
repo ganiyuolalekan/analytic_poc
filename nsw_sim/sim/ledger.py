@@ -95,6 +95,24 @@ class Ledger:
 
     @staticmethod
     def flush(conn: sqlite3.Connection, entries: list[tuple], lines: list[tuple]) -> None:
+        roll: dict[tuple, list[int]] = {}
+        day_cache: dict[str, str] = {}
+        for eid, ent, acct, dr, cr, ccy, origin, proc, ts in lines:
+            d = day_cache.get(ts)
+            if d is None:
+                d = day_cache[ts] = clock.wat_day(ts)
+            k = (ent, d, acct, origin or "", proc or "")
+            v = roll.get(k)
+            if v is None:
+                roll[k] = [dr, cr, 1]
+            else:
+                v[0] += dr
+                v[1] += cr
+                v[2] += 1
+        conn.executemany("INSERT INTO rollup_ledger_day(entity_id,day,account_code,origin_country,process_code,debit_minor,credit_minor,n_lines) "
+                         "VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(entity_id,day,account_code,origin_country,process_code) DO UPDATE SET "
+                         "debit_minor=debit_minor+excluded.debit_minor, credit_minor=credit_minor+excluded.credit_minor, n_lines=n_lines+excluded.n_lines",
+                         [(*k, *v) for k, v in roll.items()])
         conn.executemany("INSERT INTO journal_entries(entry_id,entity_id,occurred_at,ref_type,ref_id,nsw_ref,memo) VALUES(?,?,?,?,?,?,?)", entries)
         conn.executemany("INSERT INTO journal_lines(entry_id,entity_id,account_code,debit_minor,credit_minor,currency,origin_country,"
                          "process_code,occurred_at) VALUES(?,?,?,?,?,?,?,?,?)", lines)

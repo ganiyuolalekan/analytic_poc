@@ -1,7 +1,7 @@
 # Supervision rules (Section 10.1). Thresholds are defaults; evaluated at fixed checkpoints in backfill and
 # every minute (cheap rules) in live mode.
 rules:
-  R-SLA-01: {name: SLA breach rate by agency and process, severity: high, window_hours: 24, threshold: 0.15, min_events: 25, need: supervision}
+  R-SLA-01: {name: SLA breach rate by agency and process, severity: high, window_hours: 24, threshold: 0.15, min_events: 40, need: supervision}
   R-PHYS-01: {name: Physical bottleneck (exam wait vs baseline), severity: high, window_hours: 6, ratio: 1.8, baseline_days: 14, min_events: 12, need: speed}
   R-FEE-01: {name: Assessed vs expected shortfall (commodity x origin), severity: high, window_days: 3, threshold: 0.08, min_assessments: 20, need: trust}
   R-REC-01: {name: Paid but not settled beyond T+2, severity: medium, max_hours: 48, min_count: 30, need: trust}
@@ -9,7 +9,7 @@ rules:
   R-REM-01: {name: Remittance late, severity: high, grace_days: 3, need: supervision}
   R-DUP-01: {name: Duplicate payments, severity: medium, window_minutes: 60, min_count: 5, need: trust}
   R-FX-01: {name: Daily USD/NGN move, severity: info, threshold: 0.02, need: trust}
-  R-DQ-01: {name: Data completeness per entity, severity: medium, window_hours: 24, threshold: 0.90, min_events: 25, need: trust}
+  R-DQ-01: {name: Data completeness per entity, severity: medium, window_hours: 24, threshold: 0.90, min_events: 40, need: trust}
   R-CASH-01: {name: Collection cost ratio spike, severity: low, ratio: 1.5, baseline_days: 30, need: trust}
   R-TGT-01: {name: Dwell projection misses end-2026 target, severity: info, need: speed}
   R-ONB-01: {name: Agency onboarding lag, severity: medium, threshold: 0.80, window_hours: 24, min_events: 25, need: supervision}

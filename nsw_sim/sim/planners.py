@@ -74,8 +74,8 @@ def check_profile(code: str) -> Callable[[EntityProfile], tuple[EntityProfile, l
                 if m.partner_country not in settings_partner_countries():
                     c.n += 1
                     m.partner_country = b0.partner_country
-                nm = m.facility_name if "(simulated)" in m.facility_name.lower() else f"{m.facility_name} (Simulated)"
-                pf.append(PartnerFunding(facility_name=nm[:80], partner_country=m.partner_country, instrument=m.instrument,
+                nm = b0.facility_name                                     # facility names stay generic and stable (never renamed by the model)
+                pf.append(PartnerFunding(facility_name=nm[:80], partner_country=b0.partner_country, instrument=m.instrument,
                                          amount_ngn_per_quarter=c.val(m.amount_ngn_per_quarter, b0.amount_ngn_per_quarter * 0.5,
                                                                       b0.amount_ngn_per_quarter * 1.6), purpose=m.purpose[:100]))
             out.partner_funding = pf or out.partner_funding
@@ -100,7 +100,7 @@ def check_profile(code: str) -> Callable[[EntityProfile], tuple[EntityProfile, l
         if base.remittance.basis != "none":
             out.remittance.share = c.val(p.remittance.share, max(0.0, base.remittance.share - 0.05), min(1.0, base.remittance.share + 0.05))
             out.remittance.due_day = int(c.val(p.remittance.due_day, 8, 12))
-            out.remittance.typical_delay_days = [int(c.val(x, -3, 4)) for x in p.remittance.typical_delay_days[:8]] or base.remittance.typical_delay_days
+            out.remittance.typical_delay_days = [int(c.val(x, -3, 2)) for x in p.remittance.typical_delay_days[:8]] or base.remittance.typical_delay_days
         for k, bv in base.sla_hours.items():
             if k in p.sla_hours:
                 out.sla_hours[k] = c.val(p.sla_hours[k], bv * 0.8, bv * 1.3)
@@ -109,7 +109,7 @@ def check_profile(code: str) -> Callable[[EntityProfile], tuple[EntityProfile, l
         s0 = c.val(p.onboarding.digital_share_start, max(0.5, bo.digital_share_start - 0.05), min(0.995, bo.digital_share_start + 0.05))
         s1 = c.val(p.onboarding.digital_share_end, max(0.5, bo.digital_share_end - 0.05), min(0.995, bo.digital_share_end + 0.05))
         out.onboarding.digital_share_start, out.onboarding.digital_share_end = s0, max(s0, s1)
-        out.onboarding.completeness = c.val(p.onboarding.completeness, 0.95, 0.995)
+        out.onboarding.completeness = c.val(p.onboarding.completeness, 0.97, 0.995)
         out.seasonality = {str(m): c.val(p.seasonality.get(str(m), base.seasonality[str(m)]), 0.85, 1.15) for m in range(1, 13)}
         quirks = [re.sub(r"\s+", " ", q).strip()[:140] for q in p.quirks if isinstance(q, str) and q.strip()]
         out.quirks = quirks[:5] or base.quirks
@@ -197,6 +197,16 @@ def beats_for_week(week_start: date) -> list[dict]:
     return out
 
 
+def _within_mode(d: dict[str, float], name: str, errors: list[str]) -> dict[str, float]:
+    """Port shares are relative within a mode (sea / air): renormalise; only an empty group is an error."""
+    vals = {k: float(v) for k, v in d.items() if isinstance(v, (int, float)) and v >= 0}
+    s = sum(vals.values())
+    if s <= 0:
+        errors.append(f"port_share: no positive shares for {name}")
+        return vals
+    return {k: v / s for k, v in vals.items()}
+
+
 def check_flow(week_start: date) -> Callable[[FlowPlan], tuple[FlowPlan, list[str], int]]:
     tol = settings()["plausibility"]["share_sum_tolerance"]
     lo, hi = settings()["plausibility"]["count_multiplier_range"]
@@ -212,8 +222,8 @@ def check_flow(week_start: date) -> Callable[[FlowPlan], tuple[FlowPlan, list[st
             errors.append("fx_path must have 7 values")
         sea, air = set(cfg["ports"]["sea"]), set(cfg["ports"]["air"])
         port = {k: v for k, v in p.port_share.items() if k in sea | air}
-        sea_p = normalise_shares({k: v for k, v in port.items() if k in sea}, sea, tol * 2, "port_share(sea ports)", errors)
-        air_p = normalise_shares({k: v for k, v in port.items() if k in air}, air, tol * 2, "port_share(air ports)", errors)
+        sea_p = _within_mode({k: v for k, v in port.items() if k in sea}, "sea ports", errors)
+        air_p = _within_mode({k: v for k, v in port.items() if k in air}, "air ports", errors)
         mode = normalise_shares(p.mode_share, {"sea", "air"}, tol, "mode_share", errors)
         origin = normalise_shares(p.origin_share, set(cfg["countries"]), tol, "origin_share", errors)
         comm = normalise_shares(p.commodity_share, set(cfg["commodity_groups"]), tol, "commodity_share", errors)
@@ -280,8 +290,8 @@ def check_ops(code: str, week_start: date, prof: EntityProfile) -> Callable[[Ops
         out.partner_receipts = rec
         out.refunds = [x.model_copy(update={"day": int(c.val(x.day, 0, 6)), "amount_factor": c.val(x.amount_factor, 0.1, 1.0),
                                             "memo": x.memo[:100]}) for x in p.refunds[:2] if x.fee_code in fee_codes]
-        out.remittance_delay_days = int(c.val(p.remittance_delay_days, 0, 5))
-        out.dq_incidents = [x.model_copy(update={"day": int(c.val(x.day, 0, 6)), "count": int(c.val(x.count, 1, 3))}) for x in p.dq_incidents[:3]]
+        out.remittance_delay_days = int(c.val(p.remittance_delay_days, 0, 1))
+        out.dq_incidents = [x.model_copy(update={"day": int(c.val(x.day, 0, 6)), "count": int(c.val(x.count, 1, 2))}) for x in p.dq_incidents[:3]]
         out.note = re.sub(r"\s+", " ", p.note)[:200]
         return out, [], c.n
 

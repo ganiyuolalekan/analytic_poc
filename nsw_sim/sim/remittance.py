@@ -31,10 +31,10 @@ class RemittanceMixin:
         due_d = date(y + (m == 12), (m % 12) + 1, min(rule.due_day, 28))
         due_ts = clock.wat_midnight_utc(due_d).timestamp() + 17 * 3600
         rnd = random.Random(f"{ent}{period}")
-        delay = rnd.choice(rule.typical_delay_days)
+        delay = min(2, rnd.choice(rule.typical_delay_days))
         plan = self.ops_plans.get((ent, clock.week_start(due_d)))
         if plan:
-            delay += plan[0].remittance_delay_days
+            delay += min(1, max(0, plan[0].remittance_delay_days))
         b5 = self.cond._w["B5"]
         if ent == b5[2]["entity"] and b5[0] <= due_ts < b5[1]:
             delay = int(b5[2]["days_late"])                       # beat B5: enforced by the engine, not the model

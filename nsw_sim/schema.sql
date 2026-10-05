@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS inflight(
 CREATE TABLE IF NOT EXISTS stage_events(
   event_id TEXT PRIMARY KEY, nsw_ref TEXT, stage TEXT, system_type TEXT, owner_entity TEXT,
   ready_at TEXT, started_at TEXT, occurred_at TEXT, wait_h REAL, dur_h REAL, sla_hours REAL, sla_breach INT,
-  status TEXT, data_complete INT);
+  status TEXT, data_complete INT, doc_no TEXT);
 
 CREATE TABLE IF NOT EXISTS fee_assessments(
   assessment_id TEXT PRIMARY KEY, nsw_ref TEXT, entity_id TEXT, process_code TEXT, fee_code TEXT, basis TEXT,
@@ -106,3 +106,6 @@ CREATE TABLE IF NOT EXISTS rollup_minute(
 CREATE TABLE IF NOT EXISTS rollup_day(
   entity_id TEXT, day TEXT, metric TEXT, dim TEXT, dim_value TEXT, value REAL,
   PRIMARY KEY(entity_id, day, metric, dim, dim_value));
+CREATE TABLE IF NOT EXISTS rollup_ledger_day(
+  entity_id TEXT, day TEXT, account_code TEXT, origin_country TEXT, process_code TEXT,
+  debit_minor INT, credit_minor INT, n_lines INT, PRIMARY KEY(entity_id, day, account_code, origin_country, process_code));

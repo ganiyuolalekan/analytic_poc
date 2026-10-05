@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta
 from typing import Callable
 
 from nsw_sim import clock, db
-from nsw_sim.config import get_logger
+from nsw_sim.config import db_path, get_logger
 from nsw_sim.sim import planners
 from nsw_sim.sim.engine import Engine
 from nsw_sim.sim.ledger import build_coa
@@ -85,3 +85,30 @@ def catch_up_window(conn: sqlite3.Connection, engine: Engine, until: float, prog
         engine.flush(day_end)
         if progress:
             progress(f"Catching up: {clock.fmt_wat(day_end, '%d %b %H:%M')}")
+
+
+KEEP_TABLES = ["entity_profiles", "weekly_plans", "llm_calls", "generation_runs", "directives"]
+
+
+def reset_facts() -> None:
+    """Recreate the database keeping only profiles, weekly plans and the LLM call log (so no model tokens are re-spent)."""
+    import os
+    path = db_path()
+    kept: dict[str, tuple[list, list]] = {}
+    if path.exists():
+        old = db.connect(path)
+        for t in KEEP_TABLES:
+            try:
+                cur = old.execute(f"SELECT * FROM {t}")
+                kept[t] = ([d[0] for d in cur.description], cur.fetchall())
+            except sqlite3.Error:
+                pass
+        old.close()
+        for ext in ("", "-wal", "-shm"):
+            if os.path.exists(str(path) + ext):
+                os.remove(str(path) + ext)
+    conn = db.connect(path)
+    db.init_db(conn, indexes=False)
+    for t, (cols, rows) in kept.items():
+        db.insert_many(conn, t, cols, rows, or_replace=True)
+    conn.close()

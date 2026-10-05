@@ -176,9 +176,16 @@ class Engine(PaymentMixin, SettlementMixin, RemittanceMixin, OpsMixin):
                 t = next_working_time(t, jitter_s=(cn.seed % 7200))
         return t
 
+    @staticmethod
+    def permit_no(agency: str, cn: Cn) -> str | None:
+        y = clock.wat(cn.manifested_at).strftime("%Y")
+        pats = {"NAFDAC": f"NAFDAC/IP/{y}/{cn.n:06d}", "SON": f"SONCAP/CoC/{y}/{cn.n:07d}", "NAQS": f"NAQS/PHY/{y}/{cn.n:06d}",
+                "NESREA": f"NESREA/EP/{y}/{cn.n:05d}", "NPA": f"NPA/PD/{cn.port}/{y}/{cn.n:06d}", "FAAN": f"FAAN/CH/{cn.port}/{y}/{cn.n:06d}"}
+        return pats.get(agency)
+
     # ------------------------------------------------------------------ rows / events
     def stage_row(self, cn: Cn, stage: str, owner: str, ready: float, started: float, done: float, wait_h: float, dur_h: float,
-                  status: str = "done", idx: str = "") -> None:
+                  status: str = "done", idx: str = "", doc_no: str | None = None) -> None:
         sla = None
         key = SLA_KEY.get(stage)
         if key:
@@ -201,15 +208,15 @@ class Engine(PaymentMixin, SettlementMixin, RemittanceMixin, OpsMixin):
         eid = f"SE{cn.n:07d}-{stage}{idx}"
         if status == "queued":      # queue-entry fact: the planned wait/duration are known, the start time is not (yet)
             row = (eid, cn.ref, stage, self.sim_cfg["stages"].get(stage, {"type": "D"})["type"], owner, clock.iso(ready),
-                   None, clock.iso(done), round(wait_h, 3), round(dur_h, 3), sla, breach, status, 1)
+                   None, clock.iso(done), round(wait_h, 3), round(dur_h, 3), sla, breach, status, 1, None)
             self.b["stage"].append(row)
             return
         if complete:
             row = (eid, cn.ref, stage, self.sim_cfg["stages"].get(stage, {"type": "D"})["type"], owner, clock.iso(ready),
-                   clock.iso(started), clock.iso(done), round(wait_h, 3), round(dur_h, 3), sla, breach, status, 1)
+                   clock.iso(started), clock.iso(done), round(wait_h, 3), round(dur_h, 3), sla, breach, status, 1, doc_no)
         else:
             row = (eid, cn.ref, stage, self.sim_cfg["stages"].get(stage, {"type": "D"})["type"], owner, clock.iso(ready),
-                   None, clock.iso(done), None, None, sla, breach if status == "queued" else None, status, 0)
+                   None, clock.iso(done), None, None, sla, breach if status == "queued" else None, status, 0, doc_no)
         self.b["stage"].append(row)
         day = clock.wat_day(done)
         self.rup(owner, day, "dq_total", "field", "stage_events.started_at", 1)
@@ -383,7 +390,7 @@ class Engine(PaymentMixin, SettlementMixin, RemittanceMixin, OpsMixin):
     def h_permit(self, t: float, ref_: str, p: dict) -> None:
         cn = self.cns[ref_]
         agency = p["a"]
-        self.stage_row(cn, "S02", agency, p["ready"], p["start"], t, p["w"], p["d"], idx=f"A{p['i']}")
+        self.stage_row(cn, "S02", agency, p["ready"], p["start"], t, p["w"], p["d"], idx=f"A{p['i']}", doc_no=self.permit_no(agency, cn))
         self.emit("nsw.permit.approved", t, agency, cn.ref, "Permit approved", f"{agency} approved the permit for {cn.ref}.", {})
         self.assess_stage(cn, "S02", t, self.rng(cn, 30 + p["i"]), entities=[agency])
         cn.s02_left -= 1
@@ -477,7 +484,7 @@ class Engine(PaymentMixin, SettlementMixin, RemittanceMixin, OpsMixin):
 
     def h_s08(self, t: float, ref_: str, p: dict) -> None:
         cn = self.cns[ref_]
-        self.stage_row(cn, "S08", cn.owner, p["ready"], p["start"], t, p["w"], p["d"])
+        self.stage_row(cn, "S08", cn.owner, p["ready"], p["start"], t, p["w"], p["d"], doc_no=self.permit_no(cn.owner, cn))
         cn.physical_h += p["w"] + p["d"]
         cn.handoff_h += p["w"]
         rnd = self.rng(cn, 9)
@@ -546,7 +553,7 @@ class Engine(PaymentMixin, SettlementMixin, RemittanceMixin, OpsMixin):
         e, l_ = self.ledger.take()
         Ledger.flush(conn, e, l_)
         conn.executemany("INSERT OR REPLACE INTO stage_events(event_id,nsw_ref,stage,system_type,owner_entity,ready_at,started_at,occurred_at,"
-                         "wait_h,dur_h,sla_hours,sla_breach,status,data_complete) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", b["stage"])
+                         "wait_h,dur_h,sla_hours,sla_breach,status,data_complete,doc_no) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", b["stage"])
         conn.executemany("INSERT INTO fee_assessments(assessment_id,nsw_ref,entity_id,process_code,fee_code,basis,base_amount_minor,rate,"
                          "amount_minor,currency,fx_rate,amount_ngn_minor,origin_country,expected_amount_ngn_minor,occurred_at,mode,port,"
                          "commodity_group,hs_code,risk_lane) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", b["fees"])

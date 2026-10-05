@@ -84,7 +84,9 @@ def connect(path: str | Path | None = None, *, query_only: bool = False) -> sqli
 
 
 def init_db(conn: sqlite3.Connection, *, indexes: bool = True) -> None:
+    from nsw_sim.migrations import migrate
     conn.executescript(_SCHEMA_FILE.read_text(encoding="utf-8"))
+    migrate(conn)
     if indexes:
         create_indexes(conn)
     kv_set(conn, "schema_version", str(SCHEMA_VERSION))
@@ -135,6 +137,7 @@ def _views() -> list[tuple[str, str]]:
     return [
         ("v_entities", "SELECT entity_id, code, name, type, colour, logo_path, mandate, profile_source FROM main.entities"),
         ("v_countries", "SELECT * FROM main.countries"),
+        ("v_parties", "SELECT * FROM main.parties"),
         ("v_consignments", f"""SELECT nsw_ref, mode, port, origin_country, commodity_group, hs_code, cif_value_ngn_minor,
               risk_lane, importer_id, agent_id, carrier, bank, rotation_no, form_m, paar, declaration_no, bl_no,
               container_no, vessel_imo, weight_kg, teu, source, manifested_at,

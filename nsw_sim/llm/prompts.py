@@ -112,7 +112,7 @@ def ops_user(code: str, week_start: str, profile_brief: dict, beats: list[dict])
     return (f"Entity {code}, week starting {week_start}. Profile brief: {compact(profile_brief)}\nScenario beats this week: "
             f"{compact(beats)}\nBands: expense multiplier 0.6-1.6 per category; appropriation amount_factor 0-2; partner "
             "amount_factor 0.5-1.3 (only on the facility listed, at most one receipt); refunds amount_factor 0.1-1.0, "
-            f"at most 2; remittance_delay_days 0-5; day indexes 0 (Mon) to 6 (Sun).\nReturn this shape:\n{OPS_SHAPE}")
+            f"at most 2; remittance_delay_days 0-1; day indexes 0 (Mon) to 6 (Sun).\nReturn this shape:\n{OPS_SHAPE}")
 
 
 def director_user(context: dict, interval_s: int) -> str:

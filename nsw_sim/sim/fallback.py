@@ -35,7 +35,7 @@ def _rules(code: str) -> list[dict]:
         "NCS": [
             _r("NCS-DUTY", "Import duty", "VAL", "ad_valorem", rate=0.0, rate_by_group=DUTY_RATES, applies_if=IMP,
                country_sensitive=True, stage="S04"),
-            _r("NCS-LEVY", "Levies and surcharges", "DECL", "ad_valorem", rate=0.065, applies_if=IMP,
+            _r("NCS-LEVY", "Levies and surcharges", "DECL", "ad_valorem", rate=0.060, applies_if=IMP,
                country_sensitive=True, stage="S04"),
             _r("NCS-EXAM", "Examination fee", "EXAM", "flat", amount=95000, applies_if={"risk_lane": ["yellow", "red"]},
                stage="S04"),

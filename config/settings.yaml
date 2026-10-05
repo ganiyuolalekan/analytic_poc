@@ -51,7 +51,7 @@ monthly_targets_ngn_bn:
   NSW: [0.4, 0.8]
 calibration_tolerance: 0.15
 
-sla_hours: {S02_permit: 48, S04_assessment: 12, S05_payment: 24, S06_exam: 36, S07_release: 6, S09_evacuation: 48}
+sla_hours: {S02_permit: 36, S04_assessment: 12, S05_payment: 24, S06_exam: 36, S07_release: 6, S09_evacuation: 48}
 
 benchmarks:
   baseline_days: [18, 21]
@@ -64,7 +64,7 @@ benchmarks:
 # ---------------- simulation engine parameters (simulated approximations) ----------------
 sim:
   seed: 20260701
-  value_scale: 0.40            # scales the CIF value medians in reference_data so monthly collections land in the bands
+  value_scale: 0.38            # scales the CIF value medians in reference_data so monthly collections land in the bands
   holiday_arrival_factor: 0.35
   weekend_arrival_factor: 0.55
   hourly_shape: [0.2,0.15,0.12,0.12,0.15,0.3,0.6,1.0,1.4,1.6,1.7,1.6,1.4,1.5,1.6,1.5,1.3,1.1,0.9,0.7,0.55,0.45,0.35,0.25]
@@ -78,14 +78,14 @@ sim:
   # Stage parameters: median hours at progress p=0 (start of July) and p=1 (end state).
   # wait = hand-off wait before work starts; dur = processing time (what SLAs measure).
   stages:
-    S02: {type: D, wait: [12, 4],   dur: [18, 8],   sw: 0.55, sd: 0.55, office: true}
-    S03: {type: D, wait: [20, 8],   dur: [3, 1.5],  sw: 0.6,  sd: 0.4,  office: false}
-    S04: {type: D, wait: [6, 2],    dur: [6, 3],    sw: 0.5,  sd: 0.45, office: true}
-    S05: {type: D, wait: [14, 5],   dur: [9, 4],    sw: 0.6,  sd: 0.5,  office: false}
+    S02: {type: D, wait: [11, 3.5],   dur: [18, 8],   sw: 0.55, sd: 0.55, office: true}
+    S03: {type: D, wait: [15, 5.5],   dur: [3, 1.5],  sw: 0.6,  sd: 0.4,  office: false}
+    S04: {type: D, wait: [6, 2],    dur: [5, 2.5],    sw: 0.5,  sd: 0.45, office: true}
+    S05: {type: D, wait: [11, 3.8],   dur: [9, 4],    sw: 0.6,  sd: 0.5,  office: false}
     S06: {type: P, wait: [68, 60],  dur: [18, 15],  sw: 0.55, sd: 0.5,  office: false}
     S07: {type: D, wait: [2, 1],    dur: [3, 2],    sw: 0.5,  sd: 0.4,  office: true}
     S08: {type: P, wait: [56, 52],  dur: [10, 9],   sw: 0.5,  sd: 0.45, office: false}
-    S09: {type: P, wait: [86, 82],  dur: [24, 22],  sw: 0.5,  sd: 0.5,  office: false}
+    S09: {type: P, wait: [92, 83],  dur: [22, 20],  sw: 0.5,  sd: 0.5,  office: false}
   port_factor: {NGAPP: 1.12, NGTIN: 1.10, NGONN: 0.9, NGLEK: 0.75, NGPHC: 0.95, LOS: 1.0, ABV: 0.9, KAN: 0.9, PHC: 0.9}
   air_physical_factor: 0.3
   lane_exam_factor: {yellow: 0.45, red: 1.0, blue: 0.0}

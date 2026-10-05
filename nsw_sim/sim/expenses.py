@@ -86,7 +86,7 @@ class OpsMixin:
                     self.schedule(t0 + 10 * HOUR, "FUND", f"SYS:FUND:{d}:{ent}:A", {"entity": ent, "type": "appropriation", "country": "NG",
                                   "facility": "Federal appropriation (simulated)", "amount": int(round(amt * 100)), "src": src})
             for r in plan.partner_receipts:
-                pf = next((x for x in prof.partner_funding if x.facility_name == r.facility), None)
+                pf = next((x for x in prof.partner_funding if x.facility_name == r.facility), prof.partner_funding[0] if prof.partner_funding else None)
                 if pf and r.day == dow and (t0 - self.last_partner.get(ent, -1e18)) > 60 * DAY:
                     self.last_partner[ent] = t0
                     self.schedule(t0 + 11 * HOUR, "FUND", f"SYS:FUND:{d}:{ent}:P", {"entity": ent, "type": pf.instrument, "country": r.partner_country,
@@ -107,14 +107,14 @@ class OpsMixin:
                         for k in range(inc.count):
                             self.schedule(t0 + rnd.uniform(8, 18) * HOUR, "ORPHAN", f"SYS:ORPH:{d}:{ent}:{k}", {})
                     else:
-                        self.dq_pending[ent] = self.dq_pending.get(ent, 0) + inc.count
+                        self.dq_pending[ent] = self.dq_pending.get(ent, 0) + min(2, inc.count)
 
     def _beat_events(self, d: date, t0: float, rnd: random.Random) -> None:
         sim0_day = clock.wat(self.cond.sim0).date()
         off = (d - sim0_day).days
         b8 = self.cond.beats["B8"]
         if b8["start_day"] <= off < b8["end_day"]:
-            times = sorted(t0 + rnd.uniform(8, 20) * HOUR for _ in range(int(b8["params"]["count"])))
+            times = sorted(t0 + 11.3 * HOUR + rnd.uniform(0, 75 * 60) for _ in range(int(b8["params"]["count"])))   # a burst, not a drip
             for i, tt in enumerate(times):
                 self.schedule(tt, "FORCEDUP", f"SYS:B8:{d}:{i}", {})
         for bid, typ_s, typ_e, ent, head_s, head_e in (
@@ -136,8 +136,9 @@ class OpsMixin:
         amt = p["amount"]
         ent = p["entity"]
         acct = CATEGORY_ACCOUNT[p["cat"]]
-        self.b["exp"].append((f"EX{self.ids.n_expense():08d}", ent, p["cat"], p["vendor"], amt, clock.iso(t), p["memo"], p["src"]))
-        self.ledger.post(ent, t, "expense", ref_, None, p["memo"], [(acct, amt, 0, "NGN", None, None), ("1100", 0, amt, "NGN", None, None)])
+        xid = f"EX{self.ids.n_expense():08d}"
+        self.b["exp"].append((xid, ent, p["cat"], p["vendor"], amt, clock.iso(t), p["memo"], p["src"]))
+        self.ledger.post(ent, t, "expense", xid, None, p["memo"], [(acct, amt, 0, "NGN", None, None), ("1100", 0, amt, "NGN", None, None)])
         day = clock.wat_day(t)
         for key in (day[:7], f"{day[:4]}-Q{(int(day[5:7]) - 1) // 3 + 1}"):
             self.opex_acc[(ent, key)] = self.opex_acc.get((ent, key), 0) + amt
@@ -146,14 +147,16 @@ class OpsMixin:
     def h_depr(self, t: float, ref_: str, p: dict) -> None:
         ent = p["entity"]
         amt = int(round(self.monthly_opex(ent, clock.wat(t).month) * 24 / 60 * 100))
-        self.ledger.post(ent, t, "depreciation", ref_, None, "Monthly depreciation", [("5600", amt, 0, "NGN", None, None), ("1500", 0, amt, "NGN", None, None)])
-        self.b["exp"].append((f"EX{self.ids.n_expense():08d}", ent, "Depreciation", "Fixed asset register", amt, clock.iso(t), "Monthly depreciation (non-cash)", "engine"))
+        xid = f"EX{self.ids.n_expense():08d}"
+        self.ledger.post(ent, t, "depreciation", xid, None, "Monthly depreciation", [("5600", amt, 0, "NGN", None, None), ("1500", 0, amt, "NGN", None, None)])
+        self.b["exp"].append((xid, ent, "Depreciation", "Fixed asset register", amt, clock.iso(t), "Monthly depreciation (non-cash)", "engine"))
 
     def h_fund(self, t: float, ref_: str, p: dict) -> None:
         ent, amt, typ = p["entity"], p["amount"], p["type"]
         credit = {"appropriation": "4800", "grant": "4850", "concessional_loan": "2500"}[typ]
-        self.ledger.post(ent, t, "funding", ref_, None, f"{p['facility']} ({p['country']})", [("1100", amt, 0, "NGN", p["country"], None), (credit, 0, amt, "NGN", p["country"], None)])
-        self.b["fund"].append((f"FR{self.ids.n_expense():08d}", ent, typ, p["country"], p["facility"], amt, clock.iso(t), p["src"]))
+        fid = f"FR{self.ids.n_expense():08d}"
+        self.ledger.post(ent, t, "funding", fid, None, f"{p['facility']} ({p['country']})", [("1100", amt, 0, "NGN", p["country"], None), (credit, 0, amt, "NGN", p["country"], None)])
+        self.b["fund"].append((fid, ent, typ, p["country"], p["facility"], amt, clock.iso(t), p["src"]))
         self.rup(ent, clock.wat_day(t), "funding", "source_country", p["country"], amt)
 
     def _opening(self, t: float) -> None:
