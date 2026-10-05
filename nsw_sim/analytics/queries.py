@@ -89,6 +89,8 @@ def aggregate(metric: str, group_by: list[str] | tuple[str, ...] = (), f: Filter
     f = f or Filters()
     view, tcol, vcol, dims = METRICS[metric]
     conn = db.reader(as_of)
+    if view == "v_assessed_vs_paid":
+        conn, view = db.avp(as_of)
     params: list = []
     where = " WHERE 1=1"
     if f.start:
@@ -253,3 +255,65 @@ def situation_board(as_of: str | None = None) -> dict:
                            "JOIN v_consignments c ON c.nsw_ref=s.nsw_ref WHERE s.stage='S06' AND s.status='queued' AND s.occurred_at > ? GROUP BY 1",
                            c, params=(clock.iso(clock.to_dt(as_of or now_iso()) - timedelta(hours=12)),))
     return {"incidents": inc, "settlement_lag": lag, "permit_queues": q, "exam_waits": ex}
+
+
+# ------------------------------------------------------------------------------------------- extra lookups used by pages
+def funding(f: Filters, as_of: str | None = None) -> pd.DataFrame:
+    p: list = []
+    w = " WHERE 1=1"
+    if f.start:
+        w += " AND occurred_at>=?"
+        p.append(f.start)
+    if f.end:
+        w += " AND occurred_at<?"
+        p.append(f.end)
+    w += _in("entity_id", f.entities, p)
+    return pd.read_sql_query(f"SELECT entity_id AS entity, source_type, source_country, facility, SUM(amount_ngn_minor) AS value, COUNT(*) AS receipts FROM v_funding{w} "
+                             f"GROUP BY 1,2,3,4 ORDER BY value DESC", db.reader(as_of), params=p)
+
+
+def remittances(entities: tuple[str, ...] = (), as_of: str | None = None) -> pd.DataFrame:
+    p: list = []
+    w = ""
+    if entities:
+        w = f" WHERE entity_id IN ({','.join('?' * len(entities))})"
+        p = list(entities)
+    df = pd.read_sql_query(f"SELECT remittance_id, entity_id AS entity, period, due_date, paid_at, amount_ngn_minor, status, days_late, occurred_at FROM v_remittances{w} ORDER BY due_date DESC", db.reader(as_of), params=p)
+    now = clock.to_epoch(as_of or now_iso())
+    df["days_overdue"] = [max(0.0, (now - clock.to_epoch(d)) / 86400) if s != "paid" else None for d, s in zip(df["due_date"], df["status"])]
+    return df
+
+
+def settlement_batches(f: Filters, as_of: str | None = None, banks: tuple = ()) -> pd.DataFrame:
+    p: list = []
+    w = " WHERE 1=1"
+    if f.start:
+        w += " AND closed_at>=?"
+        p.append(f.start)
+    if f.end:
+        w += " AND closed_at<?"
+        p.append(f.end)
+    w += _in("bank", banks, p)
+    return pd.read_sql_query(f"SELECT batch_id, bank, value_date, closed_at, completed_at, total_ngn_minor, lag_hours, status, n_payments FROM v_settlement_batches{w} ORDER BY closed_at DESC", db.reader(as_of), params=p)
+
+
+def process_matrix(f: Filters, entity: str, as_of: str | None = None) -> pd.DataFrame:
+    return aggregate("assessed", ["process", "origin_country"], f.with_(entities=(entity,)), as_of)
+
+
+def alerts(f: Filters, as_of: str | None = None, statuses: tuple = (), severities: tuple = (), entities: tuple = (), rules: tuple = (), limit: int = 500) -> pd.DataFrame:
+    p: list = []
+    w = " WHERE 1=1"
+    if f.start:
+        w += " AND detected_at>=?"
+        p.append(f.start)
+    if f.end:
+        w += " AND detected_at<?"
+        p.append(f.end)
+    w += _in("status", statuses, p) + _in("severity", severities, p) + _in("entity_id", entities, p) + _in("rule_code", rules, p)
+    return pd.read_sql_query(f"SELECT alert_id, rule_code, severity, entity_id AS entity, subject, detected_at, window_start, window_end, metric_value, threshold, status, assigned_to, "
+                             f"cleared_at, details_json FROM v_alerts{w} ORDER BY detected_at DESC LIMIT {int(limit)}", db.reader(as_of), params=p)
+
+
+def trial_balance_accounts(as_of: str | None = None) -> pd.DataFrame:
+    return pd.read_sql_query("SELECT entity_id, account_code, name, class FROM chart_of_accounts", db.reader(as_of))

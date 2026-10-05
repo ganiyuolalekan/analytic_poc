@@ -26,7 +26,7 @@ def _window(as_of: str | None, days: float) -> tuple[str, str]:
 
 def scorecard(as_of: str | None = None, window_days: float = 7, entities: tuple[str, ...] = ()) -> pd.DataFrame:
     """One row per fee-earning entity with the five scorecard components, the composite score and RAG."""
-    c = db.reader(as_of)
+    c = db.avp(as_of)[0]
     s, e = _window(as_of, window_days)
     st = pd.read_sql_query("SELECT owner_entity AS entity, COUNT(*) n, AVG(data_complete) completeness, "
                            "AVG(CASE WHEN status='done' THEN 1.0 ELSE 0.0 END) digital_share FROM v_stage_durations "
@@ -36,7 +36,7 @@ def scorecard(as_of: str | None = None, window_days: float = 7, entities: tuple[
     d14, d3 = clock.iso(clock.to_dt(e) - timedelta(days=14)), clock.iso(clock.to_dt(e) - timedelta(days=3))
     cs = pd.read_sql_query("SELECT entity_id AS entity, COUNT(*) n, AVG(CASE WHEN paid_ngn_minor>0 AND settled_ngn_minor>0 THEN 1.0 ELSE 0.0 END) paid_settled, "
                            "AVG(CASE WHEN ABS(assessed_ngn_minor-expected_amount_ngn_minor)<=0.01*expected_amount_ngn_minor THEN 1.0 ELSE 0.0 END) accuracy "
-                           "FROM v_assessed_vs_paid WHERE occurred_at>? AND occurred_at<=? GROUP BY 1", c, params=(d14, d3)).set_index("entity")
+                           "FROM v_assessed_vs_paid WHERE occurred_at>? AND occurred_at<=? GROUP BY 1".replace("v_assessed_vs_paid", db.avp(as_of)[1]), c, params=(d14, d3)).set_index("entity")
     rm = pd.read_sql_query("SELECT entity_id AS entity, COUNT(*) n_rem, AVG(CASE WHEN days_late<=1 THEN 1.0 ELSE 0.0 END) punctuality FROM v_remittances "
                            "WHERE paid_at IS NOT NULL AND occurred_at>? GROUP BY 1", c, params=(clock.iso(clock.to_dt(e) - timedelta(days=120)),)).set_index("entity")
     stl = pd.read_sql_query("SELECT entity_id AS entity, AVG((julianday(settled_at)-julianday(paid_at))*24) settle_lag_h, SUM(collection_cost_ngn_minor)*1.0/SUM(amount_ngn_minor) cost_ratio "

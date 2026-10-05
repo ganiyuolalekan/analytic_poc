@@ -10,9 +10,10 @@ Updated: 2026-10-05. Brief: `code.md`. Decisions: `ASSUMPTIONS.md`. Cost log: `r
 - Phase 4 backfill (`scripts/seed.py`, `--rebuild` keeps plans), live service + director (`nsw_sim/sim/service.py`, `director.py`) - service not yet exercised end to end
 - Phase 5 analytics (queries, clearance, forecast, quality, statements, reconcile, trace, reports) + supervision (rules, alerts, reviews, audit, replay)
 
+## Also done since: Phase 6 UI (shell, components, 11 pages incl. tooltips.yaml 124 keys via scripts/build_tooltips.py), tests for phases 3/5 + beats (slow)
+
 ## Next (in order)
-1. Phase 5 tests (`tests/test_phase5_*.py`): statements tie-out, trace tie-out (50 lines), beats detected (slow, uses data/nsw.db), reports fingerprint/exports
-2. Phase 6 Streamlit app: `app/main.py` shell + components + 12 pages + `config/tooltips.yaml` + AppTest + tooltip coverage test
+1. Phase 6 leftovers: `app/pages/08_assistant.py`, AppTest + tooltip coverage tests (`tests/test_phase6_ui.py`), replace deprecated `use_container_width`, perf check of page loads
 3. Phase 7 assistant: `nsw_sim/assistant/*`, golden questions (60+), `tests/oracle.py`, `scripts/run_assistant_eval.py`, `scripts/gen_question_variants.py`
 4. Phase 8: README, snapshot (`scripts/snapshot.py`), acceptance (`reports/acceptance.md`), perf checks
 5. Phase 9: `scripts/make_share_report.py` -> `reports/share/`

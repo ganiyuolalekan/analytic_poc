@@ -40,11 +40,11 @@ def _where(f: Filters, tcol: str = "occurred_at", alias: str = "") -> tuple[str,
 
 def four_way(f: Filters, as_of: str | None = None) -> dict:
     """Funnel for the cohort of assessments raised in the period (as of ``as_of``)."""
-    conn = db.reader(as_of)
+    conn, avp = db.avp(as_of)
     w, p = _where(f)
     r = conn.execute(f"SELECT COUNT(*), SUM(assessed_ngn_minor), SUM(paid_ngn_minor>0), SUM(CASE WHEN paid_ngn_minor>0 THEN paid_ngn_minor END), "
                      f"SUM(settled_ngn_minor>0), SUM(settled_ngn_minor+collection_cost_ngn_minor), SUM(collection_cost_ngn_minor), SUM(settled_ngn_minor) "
-                     f"FROM v_assessed_vs_paid{w}", p).fetchone()
+                     f"FROM {avp}{w}", p).fetchone()
     n, assessed, n_paid, paid, n_set, settled_gross, cost, net = [(x or 0) for x in r]
     # remitted share of the settled cohort: net settled by (entity, settlement period) x remit share of paid remittances
     sw, sp = _where(f, "occurred_at", "f")
@@ -76,13 +76,13 @@ def exception_summary(f: Filters, as_of: str | None = None) -> pd.DataFrame:
 
 def exceptions(f: Filters, as_of: str | None = None, limit_per_class: int = 300) -> pd.DataFrame:
     """Exception rows with classification, age, amount, entity, origin. ``in_transit`` within T+2 is timing, not an exception."""
-    conn = db.reader(as_of)
+    conn, avp = db.avp(as_of)
     now = clock.to_dt(as_of or now_iso())
     t72, t48 = clock.iso(now - timedelta(hours=72)), clock.iso(now - timedelta(hours=48))
     w, p = _where(f)
     now_s = clock.iso(now)
     base = ("SELECT '{cls}' AS cls, entity_id AS entity, nsw_ref, assessment_id AS subject, {amt} AS amount_minor, "
-            "ROUND((julianday(?)-julianday({age}))*1.0,1) AS age_days, origin_country, commodity_group, fee_code, occurred_at AS at FROM v_assessed_vs_paid{w} AND {cond} "
+            "ROUND((julianday(?)-julianday({age}))*1.0,1) AS age_days, origin_country, commodity_group, fee_code, occurred_at AS at FROM {avp}{w} AND {cond} "
             "ORDER BY {amt_order} DESC LIMIT " + str(int(limit_per_class)))
     specs = [
         ("unpaid", "assessed_ngn_minor", "occurred_at", f"paid_ngn_minor=0 AND occurred_at<'{t72}'", "assessed_ngn_minor"),
@@ -94,7 +94,7 @@ def exceptions(f: Filters, as_of: str | None = None, limit_per_class: int = 300)
     ]
     parts = []
     for cls, amt, age, cond, order in specs:
-        q = base.format(cls=cls, amt=amt, age=age, w=w, cond=cond, amt_order=order)
+        q = base.format(cls=cls, amt=amt, age=age, w=w, cond=cond, amt_order=order, avp=avp)
         parts.append(pd.read_sql_query(q, conn, params=[now_s, *p]))
     # payments that are not tied to an assessment
     pw, pp = "", []
@@ -131,8 +131,9 @@ def leakage_heatmap(f: Filters, as_of: str | None = None, min_n: int = 15, fee_c
 def unpaid_ageing(f: Filters, as_of: str | None = None) -> pd.DataFrame:
     now = as_of or now_iso()
     w, p = _where(f)
-    df = pd.read_sql_query(f"SELECT assessed_ngn_minor-paid_ngn_minor AS open_minor, (julianday(?)-julianday(occurred_at)) AS age FROM v_assessed_vs_paid{w} "
-                           f"AND assessed_ngn_minor>paid_ngn_minor AND paid_ngn_minor=0", db.reader(as_of), params=[now, *p])
+    conn, avp = db.avp(as_of)
+    df = pd.read_sql_query(f"SELECT assessed_ngn_minor-paid_ngn_minor AS open_minor, (julianday(?)-julianday(occurred_at)) AS age FROM {avp}{w} "
+                           f"AND assessed_ngn_minor>paid_ngn_minor AND paid_ngn_minor=0", conn, params=[now, *p])
     bins = [(0, 3, "0-3 days"), (3, 7, "3-7 days"), (7, 14, "7-14 days"), (14, 1e9, "over 14 days")]
     rows = [{"bucket": lab, "amount_minor": int(df[(df["age"] >= lo) & (df["age"] < hi)]["open_minor"].sum()), "count": int(((df["age"] >= lo) & (df["age"] < hi)).sum())}
             for lo, hi, lab in bins]
@@ -165,8 +166,8 @@ def variance_bridge(f: Filters, as_of: str | None = None) -> list[dict]:
     retained = 0
     # retained under the remittance rule = net settled that the rule does not require to be remitted
     w, p = _where(f)
-    conn = db.reader(as_of)
-    rows = conn.execute(f"SELECT entity_id, SUM(settled_ngn_minor) FROM v_assessed_vs_paid{w} GROUP BY 1", p).fetchall()
+    conn, avp = db.avp(as_of)
+    rows = conn.execute(f"SELECT entity_id, SUM(settled_ngn_minor) FROM {avp}{w} GROUP BY 1", p).fetchall()
     sh = pd.read_sql_query("SELECT entity_id, AVG(share) s FROM v_remittances GROUP BY 1", conn).set_index("entity_id")["s"].to_dict()
     for ent, v in rows:
         retained += (v or 0) * (1 - sh.get(ent, 1.0 if ent not in ("NSW",) else 0.0))

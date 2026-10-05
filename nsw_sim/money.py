@@ -29,7 +29,7 @@ def round_minor(value: float) -> int:
 
 def fmt_ngn(minor: int | float | None, exact: bool = False, signed: bool = False) -> str:
     """Format kobo as ₦1.23bn / ₦456.7m / ₦12,345 (compact) or exact ₦1,234,567.89."""
-    if minor is None:
+    if minor is None or minor != minor:      # None or NaN
         return "–"
     naira = Decimal(int(round(float(minor)))) / KOBO
     sign = "-" if naira < 0 else ("+" if signed and naira > 0 else "")

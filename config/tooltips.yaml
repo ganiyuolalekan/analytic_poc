@@ -1,0 +1,2259 @@
+R-CASH-01:
+  label: Collection cost spike alert
+  long: '**What it is.** Raised when an agency''s collection cost ratio exceeds 1.5 times its 30-day mean.
+
+    **How it is calculated.** Seven-day ratio divided by 30-day ratio.
+
+    **Where it comes from.** `settlements`.
+
+    **How to read it.** Rare in this simulation.
+
+    **Why the NSW cares.** Cost control.
+
+    **Caveats.** Simulated rates.'
+  needs:
+  - trust
+  short: Raised when an agency's collection cost ratio exceeds 1.5 times its 30-day mean.
+  sources:
+  - settlements
+R-DQ-01:
+  label: Data completeness alert
+  long: '**What it is.** Raised when an agency''s record completeness falls below 90% in 24 hours.
+
+    **How it is calculated.** Share of stage records with all fields; at least 40 records.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Open the alert to see incomplete records.
+
+    **Why the NSW cares.** Data quality limits trust.
+
+    **Caveats.** Synthetic gaps.'
+  needs:
+  - trust
+  short: Raised when an agency's record completeness falls below 90% in 24 hours.
+  sources:
+  - stage_events
+R-DUP-01:
+  label: Duplicate payments alert
+  long: '**What it is.** Raised when five or more duplicate payments arrive within an hour.
+
+    **How it is calculated.** Count of duplicate-flagged payments in 60 minutes.
+
+    **Where it comes from.** `payments`.
+
+    **How to read it.** Bursts usually come from one channel.
+
+    **Why the NSW cares.** Protects traders and reconciliation.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: Raised when five or more duplicate payments arrive within an hour.
+  sources:
+  - payments
+R-FEE-01:
+  label: Fee shortfall alert
+  long: '**What it is.** Raised when a commodity and origin pair is assessed more than 8% below the fee-rule expectation over three days.
+
+    **How it is calculated.** Expected minus assessed divided by expected, for at least 20 assessments.
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** Open the heatmap to see the pair.
+
+    **Why the NSW cares.** Revenue assurance.
+
+    **Caveats.** Expected amounts are simulated.'
+  needs:
+  - trust
+  short: Raised when a commodity and origin pair is assessed more than 8% below the fee-rule expectation over three days.
+  sources:
+  - fee_assessments
+R-FX-01:
+  label: FX move alert
+  long: '**What it is.** Raised when USD/NGN moves more than 2% in a day.
+
+    **How it is calculated.** Daily rate divided by the previous day''s rate minus one.
+
+    **Where it comes from.** `fx_rates`.
+
+    **How to read it.** Info severity: context for fee changes.
+
+    **Why the NSW cares.** Explains swings in naira collections.
+
+    **Caveats.** Simulated path.'
+  needs:
+  - trust
+  short: Raised when USD/NGN moves more than 2% in a day.
+  sources:
+  - fx_rates
+R-ONB-01:
+  label: Onboarding lag alert
+  long: '**What it is.** Raised when under 80% of an agency''s records arrive digitally in 24 hours.
+
+    **How it is calculated.** Share of records captured digitally.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Improves as onboarding progresses.
+
+    **Why the NSW cares.** Tracks adoption.
+
+    **Caveats.** Simulated trajectory.'
+  needs:
+  - supervision
+  short: Raised when under 80% of an agency's records arrive digitally in 24 hours.
+  sources:
+  - stage_events
+R-PHYS-01:
+  label: Physical bottleneck alert
+  long: '**What it is.** Raised when the median examination wait at a port exceeds 1.8 times its recent baseline.
+
+    **How it is calculated.** Median planned exam wait over six hours versus the previous 14 days at the same port.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** A ratio of 2.5 means waits are 2.5 times normal.
+
+    **Why the NSW cares.** Physical delays are outside the platform''s control.
+
+    **Caveats.** Uses queue-entry wait estimates.'
+  needs:
+  - speed
+  short: Raised when the median examination wait at a port exceeds 1.8 times its recent baseline.
+  sources:
+  - stage_events
+R-REC-01:
+  label: Paid-not-settled alert
+  long: '**What it is.** Raised when 30 or more payments at a bank are older than 48 hours and unsettled.
+
+    **How it is calculated.** Count of unsettled payments older than T+2 per bank.
+
+    **Where it comes from.** `payment_allocations`.
+
+    **How to read it.** Check the bank''s settlement lag.
+
+    **Why the NSW cares.** Money is stuck in the rail.
+
+    **Caveats.** Timing items under 48 hours are ignored.'
+  needs:
+  - trust
+  short: Raised when 30 or more payments at a bank are older than 48 hours and unsettled.
+  sources:
+  - payment_allocations
+R-REM-01:
+  label: Late remittance alert
+  long: '**What it is.** Raised when an agency pays its share to the Treasury more than 3 days after the due date.
+
+    **How it is calculated.** Paid minus due date; unpaid items are measured to now.
+
+    **Where it comes from.** `remittances`.
+
+    **How to read it.** High severity means the delay exceeds the threshold.
+
+    **Why the NSW cares.** Timely remittance protects government cash flow.
+
+    **Caveats.** Remittance rules are simulated.'
+  needs:
+  - supervision
+  short: Raised when an agency pays its share to the Treasury more than 3 days after the due date.
+  sources:
+  - remittances
+R-SET-01:
+  label: Settlement lag alert
+  long: '**What it is.** Raised when a bank''s settlement batch takes more than 48 hours.
+
+    **How it is calculated.** Completed minus closed time, or age of an open batch.
+
+    **Where it comes from.** `settlement_batches`.
+
+    **How to read it.** T+3 means 72 hours.
+
+    **Why the NSW cares.** Slow banks hold agency cash.
+
+    **Caveats.** Simulated lags.'
+  needs:
+  - supervision
+  short: Raised when a bank's settlement batch takes more than 48 hours.
+  sources:
+  - settlement_batches
+R-SLA-01:
+  label: SLA breach alert
+  long: '**What it is.** Raised when more than 15% of an agency''s records for a stage breach the service level in 24 hours.
+
+    **How it is calculated.** Breach rate over records in the window; needs at least 40 records.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Open the alert to see the stage and the records.
+
+    **Why the NSW cares.** Agency timeliness is a core supervision metric.
+
+    **Caveats.** SLA hours are simulated.'
+  needs:
+  - supervision
+  short: Raised when more than 15% of an agency's records for a stage breach the service level in 24 hours.
+  sources:
+  - stage_events
+R-TGT-01:
+  label: Target projection alert
+  long: '**What it is.** Raised when the dwell trend is projected to miss the end-2026 target.
+
+    **How it is calculated.** Trend projection of weekly median dwell.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Info severity.
+
+    **Why the NSW cares.** Early view of programme risk.
+
+    **Caveats.** Linear projection.'
+  needs:
+  - speed
+  short: Raised when the dwell trend is projected to miss the end-2026 target.
+  sources:
+  - consignments
+admin_controls:
+  label: Admin controls
+  long: '**What it is.** Presenter controls for the simulation.
+
+    **How it is calculated.** Commands are queued to the service and applied on its next tick.
+
+    **Where it comes from.** `service`.
+
+    **How to read it.** Use with presenter mode.
+
+    **Why the NSW cares.** Drive the live demo.
+
+    **Caveats.** Injected incidents are real engine inputs.'
+  needs:
+  - supervision
+  short: Presenter controls for the simulation.
+  sources:
+  - service
+ageing:
+  label: Unpaid ageing
+  long: '**What it is.** Unpaid assessments by age bucket.
+
+    **How it is calculated.** Open amount grouped by days since assessment.
+
+    **Where it comes from.** `v_assessed_vs_paid`.
+
+    **How to read it.** Older buckets are riskier.
+
+    **Why the NSW cares.** Prioritises collection.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: Unpaid assessments by age bucket.
+  sources:
+  - v_assessed_vs_paid
+alert_board:
+  label: Alert board
+  long: '**What it is.** All alerts with filters and actions.
+
+    **How it is calculated.** Rows from the rules engine with their review state.
+
+    **Where it comes from.** `alerts`.
+
+    **How to read it.** Open an alert to see why it was raised.
+
+    **Why the NSW cares.** Supervision workbench.
+
+    **Caveats.** Demo roles.'
+  needs:
+  - supervision
+  short: All alerts with filters and actions.
+  sources:
+  - alerts
+alert_severity:
+  label: Alert severity
+  long: '**What it is.** How urgent an alert is: info, low, medium or high.
+
+    **How it is calculated.** Set by the rule definition.
+
+    **Where it comes from.** `alerts`.
+
+    **How to read it.** High alerts need attention first.
+
+    **Why the NSW cares.** Helps supervisors prioritise.
+
+    **Caveats.** Thresholds are configurable.'
+  needs:
+  - supervision
+  short: 'How urgent an alert is: info, low, medium or high.'
+  sources:
+  - alerts
+appropriation:
+  label: Appropriation
+  long: '**What it is.** Government budget releases funding an agency''s operations.
+
+    **How it is calculated.** Sum of appropriation receipts (account 4800).
+
+    **Where it comes from.** `funding_receipts`.
+
+    **How to read it.** Regular releases cover part of operating cost.
+
+    **Why the NSW cares.** Shows how operations are funded alongside fee income.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: Government budget releases funding an agency's operations.
+  sources:
+  - funding_receipts
+architecture:
+  label: Architecture
+  long: '**What it is.** How the console plugs into the NSW.
+
+    **How it is calculated.** Read-only connections to NSW and agency systems feed a validated ledger and analytics store.
+
+    **Where it comes from.** `design`.
+
+    **How to read it.** Toggle hosting to change the diagram.
+
+    **Why the NSW cares.** No disruption to live operations.
+
+    **Caveats.** Conceptual.'
+  needs:
+  - trust
+  short: How the console plugs into the NSW.
+  sources:
+  - design
+as_of:
+  label: As of
+  long: '**What it is.** The moment in time the numbers describe.
+
+    **How it is calculated.** Only facts that occurred at or before this time are included.
+
+    **Where it comes from.** `all tables`.
+
+    **How to read it.** Live views use the current simulated time.
+
+    **Why the NSW cares.** Prevents future data leaking into past reports.
+
+    **Caveats.** Times shown in WAT.'
+  needs:
+  - trust
+  short: The moment in time the numbers describe.
+  sources:
+  - all tables
+assessed:
+  label: Assessed
+  long: '**What it is.** Total fees and duties the agencies have charged on consignments in the selected period.
+
+    **How it is calculated.** Sum of fee assessments (in naira) raised in the period that match the filters; foreign-currency fees use the exchange rate on the assessment day.
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** Compare with Paid to see what is still outstanding; a persistent gap signals unpaid or delayed payments.
+
+    **Why the NSW cares.** It is the starting point of the reconciliation chain: if assessment is wrong everything downstream is wrong.
+
+    **Caveats.** Synthetic NSW-channel data only, not total agency revenue.'
+  needs:
+  - trust
+  short: Total fees and duties the agencies have charged on consignments in the selected period.
+  sources:
+  - fee_assessments
+assessment_mismatch:
+  label: Assessment mismatch
+  long: '**What it is.** Assessed amount differs from the fee-rule expectation by more than 1%.
+
+    **How it is calculated.** Absolute difference between assessed and expected exceeds 1% of expected.
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** Small random differences are valuation adjustments.
+
+    **Why the NSW cares.** Systematic mismatches signal under-assessment.
+
+    **Caveats.** Expected amount comes from the simulated fee rules.'
+  needs:
+  - trust
+  short: Assessed amount differs from the fee-rule expectation by more than 1%.
+  sources:
+  - fee_assessments
+assistant_basis:
+  label: How I computed this
+  long: '**What it is.** The tools and arguments used for an answer.
+
+    **How it is calculated.** Each tool call with arguments, rows returned, duration and formula.
+
+    **Where it comes from.** `assistant`.
+
+    **How to read it.** Open to audit an answer.
+
+    **Why the NSW cares.** Transparency of conversational answers.
+
+    **Caveats.** Row counts are capped.'
+  needs:
+  - trust
+  short: The tools and arguments used for an answer.
+  sources:
+  - assistant
+audit_log:
+  label: Audit log
+  long: '**What it is.** A permanent record of every action and system alert.
+
+    **How it is calculated.** Rows are appended for each review action, sign-off and alert raised.
+
+    **Where it comes from.** `audit_log`.
+
+    **How to read it.** Read from newest to oldest.
+
+    **Why the NSW cares.** Supports accountability and investigation.
+
+    **Caveats.** Demo log.'
+  needs:
+  - supervision
+  short: A permanent record of every action and system alert.
+  sources:
+  - audit_log
+beat_viewer:
+  label: Story beats
+  long: '**What it is.** Scripted events that are guaranteed to exist and be detected.
+
+    **How it is calculated.** Ten beats with effect sizes enforced by the engine and detectors checked.
+
+    **Where it comes from.** `scenario`.
+
+    **How to read it.** Each shows whether its detector fired.
+
+    **Why the NSW cares.** Ensures the demo story is real.
+
+    **Caveats.** Dates are relative to the start.'
+  needs:
+  - trust
+  short: Scripted events that are guaranteed to exist and be detected.
+  sources:
+  - scenario
+bottleneck_finder:
+  label: Bottleneck finder
+  long: '**What it is.** Stages ranked by their contribution to delay.
+
+    **How it is calculated.** Mean hours per consignment by stage (slowest permit agency for permits).
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Top items first; check whether the NSW controls them.
+
+    **Why the NSW cares.** Focuses investment.
+
+    **Caveats.** Based on completed consignments.'
+  needs:
+  - speed
+  short: Stages ranked by their contribution to delay.
+  sources:
+  - stage_events
+clearance_time:
+  label: Clearance time
+  long: '**What it is.** Days from declaration filed to customs release.
+
+    **How it is calculated.** released_at minus declared_at per consignment.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Shorter than dwell time.
+
+    **Why the NSW cares.** Measures the customs and agency part of the journey.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - speed
+  short: Days from declaration filed to customs release.
+  sources:
+  - consignments
+collection_cost_per_100:
+  label: Cost of collection per ₦100
+  long: '**What it is.** Collection costs for every ₦100 collected.
+
+    **How it is calculated.** 100 x collection cost divided by gross settled amount.
+
+    **Where it comes from.** `settlements`.
+
+    **How to read it.** Typically well below ₦1; compare agencies.
+
+    **Why the NSW cares.** Efficiency of the collection channel in one number.
+
+    **Caveats.** Simulated.'
+  needs:
+  - trust
+  short: Collection costs for every ₦100 collected.
+  sources:
+  - settlements
+collection_efficiency:
+  label: Collection efficiency
+  long: '**What it is.** Share of assessed value that has reached the agencies as settled cash.
+
+    **How it is calculated.** Settled gross divided by assessed for the same set of assessments.
+
+    **Where it comes from.** `fee_assessments, payment_allocations`.
+
+    **How to read it.** Close to 100% for mature periods; recent periods are lower because of timing.
+
+    **Why the NSW cares.** A single, simple measure of how much of what was charged was actually collected.
+
+    **Caveats.** Depends on how old the assessments are.'
+  needs:
+  - trust
+  short: Share of assessed value that has reached the agencies as settled cash.
+  sources:
+  - fee_assessments
+  - payment_allocations
+commodity_group:
+  label: Commodity group
+  long: '**What it is.** Ten broad groups of goods that drive duty, permits and inspections.
+
+    **How it is calculated.** Assigned to each consignment from its HS code.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Compare groups.
+
+    **Why the NSW cares.** Policy and permits differ by commodity.
+
+    **Caveats.** Simulated mapping.'
+  needs:
+  - trust
+  short: Ten broad groups of goods that drive duty, permits and inspections.
+  sources:
+  - consignments
+compare_previous_period:
+  label: Compare to previous period
+  long: '**What it is.** Adds a column comparing with the equal-length period before.
+
+    **How it is calculated.** Same calculation for the preceding period.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Positive deltas mean growth.
+
+    **Why the NSW cares.** Shows direction at a glance.
+
+    **Caveats.** Needs a start date.'
+  needs:
+  - trust
+  short: Adds a column comparing with the equal-length period before.
+  sources:
+  - filters
+cost_ledger:
+  label: Cost ledger
+  long: '**What it is.** Model usage by role, model and day.
+
+    **How it is calculated.** Tokens aggregated from every call; dollars shown only if prices are set.
+
+    **Where it comes from.** `llm_calls`.
+
+    **How to read it.** Cached calls cost nothing.
+
+    **Why the NSW cares.** Keeps spend visible.
+
+    **Caveats.** Prices are not assumed.'
+  needs:
+  - trust
+  short: Model usage by role, model and day.
+  sources:
+  - llm_calls
+cost_of_collection:
+  label: Cost of collection
+  long: '**What it is.** What it costs to collect the money: fees withheld at settlement.
+
+    **How it is calculated.** Sum of collection costs withheld on settled allocations (rate set per agency profile).
+
+    **Where it comes from.** `settlements`.
+
+    **How to read it.** Compare across agencies and over time; spikes are flagged by rule R-CASH-01.
+
+    **Why the NSW cares.** Lower collection cost leaves more for government.
+
+    **Caveats.** Simulated rates; does not include agencies'' own operating costs.'
+  needs:
+  - trust
+  short: 'What it costs to collect the money: fees withheld at settlement.'
+  sources:
+  - settlements
+cost_of_delay:
+  label: Cost of delay
+  long: '**What it is.** Illustrative cost of dwell beyond a reference number of days.
+
+    **How it is calculated.** Excess days times demurrage per TEU-day, storage per tonne-day and inventory carrying cost on cargo value.
+
+    **Where it comes from.** `consignments (assumptions editable)`.
+
+    **How to read it.** Use to size the benefit of faster clearance.
+
+    **Why the NSW cares.** Puts a money value on delay.
+
+    **Caveats.** Assumptions are illustrative and editable.'
+  needs:
+  - speed
+  short: Illustrative cost of dwell beyond a reference number of days.
+  sources:
+  - consignments (assumptions editable)
+country_map:
+  label: Collections by origin country
+  long: '**What it is.** Map of assessed fees by origin country.
+
+    **How it is calculated.** Sum of assessed amounts grouped by origin country.
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** Darker is larger.
+
+    **Why the NSW cares.** Where the money comes from.
+
+    **Caveats.** Simulated origin mix.'
+  needs:
+  - trust
+  short: Map of assessed fees by origin country.
+  sources:
+  - fee_assessments
+country_sensitivity:
+  label: Country sensitivity
+  long: '**What it is.** How an agency''s fees, inspections and delays vary by origin country.
+
+    **How it is calculated.** Per agency and country: fee multiplier, inspection modifier, document-issue rate and dwell modifier.
+
+    **Where it comes from.** `entity profiles`.
+
+    **How to read it.** Values near 1 are neutral.
+
+    **Why the NSW cares.** Explains differences between origins.
+
+    **Caveats.** Generated within bounds.'
+  needs:
+  - trust
+  short: How an agency's fees, inspections and delays vary by origin country.
+  sources:
+  - entity profiles
+currency_view:
+  label: Currency view
+  long: '**What it is.** Show amounts in naira or US dollars.
+
+    **How it is calculated.** Dollar view divides each transaction by that day''s USD/NGN rate.
+
+    **Where it comes from.** `fx_rates`.
+
+    **How to read it.** Dollar view removes exchange-rate effects.
+
+    **Why the NSW cares.** Context for foreign partners.
+
+    **Caveats.** Simulated rates.'
+  needs:
+  - trust
+  short: Show amounts in naira or US dollars.
+  sources:
+  - fx_rates
+data_confidence_score:
+  label: Data confidence score
+  long: '**What it is.** A 0-100 score of how complete, timely and consistent an agency''s data is.
+
+    **How it is calculated.** 40% completeness, 25% timeliness, 20% consistency, 15% remittance punctuality (weights configurable).
+
+    **Where it comes from.** `stage_events, fee_assessments, remittances`.
+
+    **How to read it.** Above 90 is healthy; 75-90 needs attention; below 75 treat figures with caution.
+
+    **Why the NSW cares.** Leaders see how far to trust each number.
+
+    **Caveats.** Weights are illustrative.'
+  needs:
+  - trust
+  - supervision
+  short: A 0-100 score of how complete, timely and consistent an agency's data is.
+  sources:
+  - stage_events
+  - fee_assessments
+  - remittances
+degraded_mode:
+  label: Degraded mode
+  long: '**What it is.** The language model is unavailable or over budget; deterministic fallback keeps running.
+
+    **How it is calculated.** Status set after repeated model failures or when the token budget is reached.
+
+    **Where it comes from.** `llm status`.
+
+    **How to read it.** Banner shows the reason.
+
+    **Why the NSW cares.** The demo never freezes.
+
+    **Caveats.** Content falls back to templates.'
+  needs:
+  - trust
+  short: The language model is unavailable or over budget; deterministic fallback keeps running.
+  sources:
+  - llm status
+digital_vs_physical:
+  label: Digital vs physical time
+  long: '**What it is.** Splits delay into stages the NSW platform controls (digital) and stages it does not (scanners, terminals, trucks).
+
+    **How it is calculated.** Sum of stage waits and durations by system type, as a share of total time per consignment.
+
+    **Where it comes from.** `consignments, stage_events`.
+
+    **How to read it.** If the digital share falls while total time stays high, physical constraints dominate.
+
+    **Why the NSW cares.** Shows progress the platform can claim and bottlenecks outside its control.
+
+    **Caveats.** Stage boundaries are simulated.'
+  needs:
+  - speed
+  - trust
+  short: Splits delay into stages the NSW platform controls (digital) and stages it does not (scanners, terminals, trucks).
+  sources:
+  - consignments
+  - stage_events
+directive:
+  label: Directive
+  long: '**What it is.** A bounded adjustment the director gives the engine for the next window.
+
+    **How it is calculated.** Arrival multiplier, scanner status, permit pressure, settlement lag and payment failure rate within allowed ranges.
+
+    **Where it comes from.** `directives`.
+
+    **How to read it.** Small changes unless an incident is active.
+
+    **Why the NSW cares.** Shows how the model shapes live conditions.
+
+    **Caveats.** Engine enforces bounds.'
+  needs:
+  - speed
+  short: A bounded adjustment the director gives the engine for the next window.
+  sources:
+  - directives
+distribution_to_treasury:
+  label: Distribution to Treasury
+  long: '**What it is.** Recognised share of income owed to the Treasury.
+
+    **How it is calculated.** Account 3200: debited when the remittance obligation arises.
+
+    **Where it comes from.** `journal_lines`.
+
+    **How to read it.** Compare with remittances paid.
+
+    **Why the NSW cares.** Separates what is owed from what is paid.
+
+    **Caveats.** Equity account.'
+  needs:
+  - supervision
+  short: Recognised share of income owed to the Treasury.
+  sources:
+  - journal_lines
+duplicate_payment:
+  label: Duplicate payment
+  long: '**What it is.** A second payment with the same payer and amount for the same consignment.
+
+    **How it is calculated.** Payments flagged as duplicates that have not yet been refunded.
+
+    **Where it comes from.** `payments`.
+
+    **How to read it.** Bursts raise rule R-DUP-01.
+
+    **Why the NSW cares.** Duplicates tie up trader money and need refunds.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: A second payment with the same payer and amount for the same consignment.
+  sources:
+  - payments
+dwell_time:
+  label: Dwell time
+  long: '**What it is.** Days a consignment spends in Nigeria''s trade chain from vessel or flight arrival until it leaves the port or airport gate.
+
+    **How it is calculated.** gate_out_at minus arrived_at per consignment, then median and percentiles over consignments that left in the period.
+
+    **Where it comes from.** `consignments, stage_events`.
+
+    **How to read it.** Compare with the published baseline (18-21 days), the target (under 7 days by end 2026) and peers; split into digital and physical stages.
+
+    **Why the NSW cares.** It is the public yardstick of the programme and drives demurrage and trader cost.
+
+    **Caveats.** Synthetic data. Clearance time is shorter (declaration to release).'
+  needs:
+  - speed
+  short: Days a consignment spends in Nigeria's trade chain from vessel or flight arrival until it leaves the port or airport gate.
+  sources:
+  - consignments
+  - stage_events
+entity_tile:
+  label: Entity tile
+  long: '**What it is.** Collections, status and trend for one agency.
+
+    **How it is calculated.** Assessed in the period, RAG from the scorecard, sparkline of daily paid.
+
+    **Where it comes from.** `scorecard`.
+
+    **How to read it.** Click to open the Entity Explorer.
+
+    **Why the NSW cares.** Portfolio view of agencies.
+
+    **Caveats.** RAG is illustrative.'
+  needs:
+  - supervision
+  short: Collections, status and trend for one agency.
+  sources:
+  - scorecard
+events_per_minute:
+  label: Events per minute
+  long: '**What it is.** How busy the feed is.
+
+    **How it is calculated.** Count of events in each minute.
+
+    **Where it comes from.** `live_events`.
+
+    **How to read it.** Spikes follow incidents.
+
+    **Why the NSW cares.** Activity level at a glance.
+
+    **Caveats.** Synthetic rate.'
+  needs:
+  - speed
+  short: How busy the feed is.
+  sources:
+  - live_events
+exceptions_table:
+  label: Exceptions
+  long: '**What it is.** Items that break the four-way match.
+
+    **How it is calculated.** Rows classified as unpaid, settled late, duplicate, orphan, mismatch, part-paid or overpaid.
+
+    **Where it comes from.** `reconciliation`.
+
+    **How to read it.** Select a row to trace or raise a review.
+
+    **Why the NSW cares.** Turns discrepancies into work items.
+
+    **Caveats.** Timing items are excluded.'
+  needs:
+  - trust
+  - supervision
+  short: Items that break the four-way match.
+  sources:
+  - reconciliation
+expected_amount:
+  label: Expected amount
+  long: '**What it is.** What the fee rule says should be charged for the consignment.
+
+    **How it is calculated.** Fee rule applied to the consignment''s value, weight, mode and origin (including country sensitivity and FX).
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** Compare with assessed.
+
+    **Why the NSW cares.** Gives a neutral benchmark for assessment accuracy.
+
+    **Caveats.** Rules are simulated.'
+  needs:
+  - trust
+  short: What the fee rule says should be charged for the consignment.
+  sources:
+  - fee_assessments
+export_csv:
+  label: Export CSV bundle
+  long: '**What it is.** Download every table as CSV in one zip.
+
+    **How it is calculated.** Each report table written as a file with the disclaimer.
+
+    **Where it comes from.** `report`.
+
+    **How to read it.** Use in other tools.
+
+    **Why the NSW cares.** Open data format.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: Download every table as CSV in one zip.
+  sources:
+  - report
+export_excel:
+  label: Export Excel
+  long: '**What it is.** Download one sheet per section plus metadata.
+
+    **How it is calculated.** Written from the computed report; disclaimer on each sheet.
+
+    **Where it comes from.** `report`.
+
+    **How to read it.** Open in Excel.
+
+    **Why the NSW cares.** Analysis outside the app.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: Download one sheet per section plus metadata.
+  sources:
+  - report
+export_html:
+  label: Export HTML
+  long: '**What it is.** Download a self-contained web page of the report.
+
+    **How it is calculated.** Rendered with the disclaimer and watermark.
+
+    **Where it comes from.** `report`.
+
+    **How to read it.** Open in any browser.
+
+    **Why the NSW cares.** Easy sharing.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: Download a self-contained web page of the report.
+  sources:
+  - report
+export_pdf:
+  label: Export PDF
+  long: '**What it is.** Download the report as a watermarked PDF.
+
+    **How it is calculated.** Rendered from the computed report with the disclaimer on every page.
+
+    **Where it comes from.** `report`.
+
+    **How to read it.** Print or share.
+
+    **Why the NSW cares.** Board-ready output.
+
+    **Caveats.** Tables are truncated for length.'
+  needs:
+  - trust
+  short: Download the report as a watermarked PDF.
+  sources:
+  - report
+fee_code:
+  label: Fee code
+  long: '**What it is.** Identifier of a fee type (for example NCS-DUTY).
+
+    **How it is calculated.** Defined in each agency profile.
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** One revenue account per fee.
+
+    **Why the NSW cares.** Lets statements trace to fee types.
+
+    **Caveats.** Simulated names.'
+  needs:
+  - trust
+  short: Identifier of a fee type (for example NCS-DUTY).
+  sources:
+  - fee_assessments
+filter_commodity:
+  label: Commodity group
+  long: '**What it is.** Goods groups to include.
+
+    **How it is calculated.** Filters by commodity group.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Leave empty for all.
+
+    **Why the NSW cares.** Commodity drives permits.
+
+    **Caveats.** Not applicable to expenses.'
+  needs:
+  - trust
+  short: Goods groups to include.
+  sources:
+  - filters
+filter_entities:
+  label: Entities
+  long: '**What it is.** Agencies to include.
+
+    **How it is calculated.** Filters by entity on every query that has an entity.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Leave empty for all.
+
+    **Why the NSW cares.** Focus on one agency.
+
+    **Caveats.** Some measures have no entity.'
+  needs:
+  - trust
+  short: Agencies to include.
+  sources:
+  - filters
+filter_mode:
+  label: Mode
+  long: '**What it is.** Sea or air.
+
+    **How it is calculated.** Filters by transport mode.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Leave empty for both.
+
+    **Why the NSW cares.** Sea and air behave differently.
+
+    **Caveats.** Not applicable to some ledger views.'
+  needs:
+  - trust
+  short: Sea or air.
+  sources:
+  - filters
+filter_origin:
+  label: Origin country
+  long: '**What it is.** Countries of origin to include.
+
+    **How it is calculated.** Filters consignments, assessments, payments and ledger lines.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Leave empty for all.
+
+    **Why the NSW cares.** Compare origins.
+
+    **Caveats.** Not applicable to expenses.'
+  needs:
+  - trust
+  short: Countries of origin to include.
+  sources:
+  - filters
+filter_period:
+  label: Period
+  long: '**What it is.** Time range for every page that can use it.
+
+    **How it is calculated.** Presets or a custom range, in WAT.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Use Compare to see the previous period.
+
+    **Why the NSW cares.** Consistent period across pages.
+
+    **Caveats.** Some pages ignore it (stated on the page).'
+  needs:
+  - trust
+  short: Time range for every page that can use it.
+  sources:
+  - filters
+filter_port:
+  label: Port / airport
+  long: '**What it is.** Specific ports or airports.
+
+    **How it is calculated.** Filters by port code.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Apapa and Tin Can carry most sea volume.
+
+    **Why the NSW cares.** Locate bottlenecks.
+
+    **Caveats.** Not applicable to ledger.'
+  needs:
+  - trust
+  short: Specific ports or airports.
+  sources:
+  - filters
+filter_process:
+  label: Process / fee type
+  long: '**What it is.** Agency process or fee code.
+
+    **How it is calculated.** Filters fee assessments and payments by process or fee.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Leave empty for all.
+
+    **Why the NSW cares.** Link money to work.
+
+    **Caveats.** Not applicable to consignment counts.'
+  needs:
+  - trust
+  short: Agency process or fee code.
+  sources:
+  - filters
+filter_severity:
+  label: Severity
+  long: '**What it is.** Alert severities to show.
+
+    **How it is calculated.** Filters alerts.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Start with high.
+
+    **Why the NSW cares.** Prioritisation.
+
+    **Caveats.** Only on alert views.'
+  needs:
+  - supervision
+  short: Alert severities to show.
+  sources:
+  - filters
+filter_status:
+  label: Status
+  long: '**What it is.** Alert or review status.
+
+    **How it is calculated.** Filters alerts by state.
+
+    **Where it comes from.** `filters`.
+
+    **How to read it.** Open items first.
+
+    **Why the NSW cares.** Work queue.
+
+    **Caveats.** Only on alert views.'
+  needs:
+  - supervision
+  short: Alert or review status.
+  sources:
+  - filters
+four_way_match:
+  label: Four-way match
+  long: '**What it is.** Checks each charge from assessment to payment to settlement to remittance and flags where money stops.
+
+    **How it is calculated.** For each fee assessment we link its payment allocation, settlement and remittance share and compute the difference at each step; differences are classified.
+
+    **Where it comes from.** `fee_assessments, payment_allocations, settlements, remittances`.
+
+    **How to read it.** Each step should be no larger than the one before, apart from timing; large drops show where to investigate.
+
+    **Why the NSW cares.** It turns ''do the numbers agree?'' into a precise, auditable list of exceptions.
+
+    **Caveats.** Timing differences are shown as in transit, not errors.'
+  needs:
+  - trust
+  - supervision
+  short: Checks each charge from assessment to payment to settlement to remittance and flags where money stops.
+  sources:
+  - fee_assessments
+  - payment_allocations
+  - settlements
+  - remittances
+funds_in_transit:
+  label: Funds in transit
+  long: '**What it is.** Ledger account holding paid money until settlement.
+
+    **How it is calculated.** Account 1105: debits on payment confirmation, credits on settlement.
+
+    **Where it comes from.** `journal_lines`.
+
+    **How to read it.** Balance approximates in-transit money.
+
+    **Why the NSW cares.** Ties payments to settlements in the ledger.
+
+    **Caveats.** Balances per entity.'
+  needs:
+  - trust
+  short: Ledger account holding paid money until settlement.
+  sources:
+  - journal_lines
+fx_effect:
+  label: FX effect
+  long: '**What it is.** Change in naira collections caused by exchange-rate movement on foreign-currency fees.
+
+    **How it is calculated.** Foreign-currency fee amounts multiplied by the day''s USD/NGN rate versus a constant rate; realised differences post to FX gains and losses.
+
+    **Where it comes from.** `fee_assessments, fx_rates, journal_lines`.
+
+    **How to read it.** A weaker naira raises naira value of USD fees.
+
+    **Why the NSW cares.** Shows how currency moves change agency income.
+
+    **Caveats.** FX path is simulated within configured bounds.'
+  needs:
+  - trust
+  short: Change in naira collections caused by exchange-rate movement on foreign-currency fees.
+  sources:
+  - fee_assessments
+  - fx_rates
+  - journal_lines
+glossary:
+  label: Glossary
+  long: '**What it is.** Searchable definitions of terms used in the app.
+
+    **How it is calculated.** Generated from the tooltip file.
+
+    **Where it comes from.** `tooltips`.
+
+    **How to read it.** Search by word.
+
+    **Why the NSW cares.** Shared language.
+
+    **Caveats.** Synthetic data.'
+  needs:
+  - trust
+  short: Searchable definitions of terms used in the app.
+  sources:
+  - tooltips
+handoff_wait:
+  label: Hand-off wait
+  long: '**What it is.** Time lost between one party finishing and the next starting.
+
+    **How it is calculated.** Median wait before each stage.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Large values show coordination gaps.
+
+    **Why the NSW cares.** Hand-off accountability across agencies.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - speed
+  short: Time lost between one party finishing and the next starting.
+  sources:
+  - stage_events
+hs_code:
+  label: HS code
+  long: '**What it is.** Harmonised System code classifying the goods (8 digits with dots).
+
+    **How it is calculated.** Chosen from the commodity group''s list.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Used for duty and permits.
+
+    **Why the NSW cares.** Classification drives revenue.
+
+    **Caveats.** Simulated.'
+  needs:
+  - trust
+  short: Harmonised System code classifying the goods (8 digits with dots).
+  sources:
+  - consignments
+in_transit:
+  label: In transit
+  long: '**What it is.** Money paid by traders but not yet settled to the agencies.
+
+    **How it is calculated.** Sum of payment allocations in the period that have no completed settlement as of the data time.
+
+    **Where it comes from.** `payment_allocations`.
+
+    **How to read it.** Normal values are about one day of collections; larger values point to a slow bank.
+
+    **Why the NSW cares.** It is the float the settlement rail is holding.
+
+    **Caveats.** Timing item, not an error, until it is older than two days.'
+  needs:
+  - trust
+  short: Money paid by traders but not yet settled to the agencies.
+  sources:
+  - payment_allocations
+journal_entry:
+  label: Journal entry
+  long: '**What it is.** One balanced accounting posting linked to a source document.
+
+    **How it is calculated.** Debit and credit lines with equal totals, tagged with origin country and process.
+
+    **Where it comes from.** `journal_entries, journal_lines`.
+
+    **How to read it.** Open the entry to see its source documents.
+
+    **Why the NSW cares.** Every figure rests on entries like this.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: One balanced accounting posting linked to a source document.
+  sources:
+  - journal_entries
+  - journal_lines
+kpi_consignments:
+  label: Consignments
+  long: '**What it is.** Consignments manifested in the period.
+
+    **How it is calculated.** Count of consignments with manifest time in the period.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Seasonality and holidays move it.
+
+    **Why the NSW cares.** Volume context.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - speed
+  short: Consignments manifested in the period.
+  sources:
+  - consignments
+kpi_open_alerts:
+  label: Open high alerts
+  long: '**What it is.** High-severity alerts not yet resolved.
+
+    **How it is calculated.** Count of alerts with high severity and an open state.
+
+    **Where it comes from.** `alerts`.
+
+    **How to read it.** Aim for zero.
+
+    **Why the NSW cares.** Immediate supervision workload.
+
+    **Caveats.** As of the data time.'
+  needs:
+  - supervision
+  short: High-severity alerts not yet resolved.
+  sources:
+  - alerts
+leakage_indicator:
+  label: Leakage indicator
+  long: '**What it is.** Where assessed amounts fall short of what the fee rule expects, by commodity and origin.
+
+    **How it is calculated.** (Expected minus assessed) divided by expected, for each commodity and origin pair with enough assessments.
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** Red cells above 8% over three days raise rule R-FEE-01.
+
+    **Why the NSW cares.** It is the revenue-assurance early warning.
+
+    **Caveats.** Needs at least 15 assessments per cell.'
+  needs:
+  - trust
+  short: Where assessed amounts fall short of what the fee rule expects, by commodity and origin.
+  sources:
+  - fee_assessments
+ledger_trial_balance:
+  label: Trial balance
+  long: '**What it is.** All accounts with debit and credit totals; they must balance.
+
+    **How it is calculated.** Sum of journal line debits and credits by account up to the date.
+
+    **Where it comes from.** `journal_lines`.
+
+    **How to read it.** Debits equal credits.
+
+    **Why the NSW cares.** A basic integrity test of the ledger.
+
+    **Caveats.** Per entity or consolidated.'
+  needs:
+  - trust
+  short: All accounts with debit and credit totals; they must balance.
+  sources:
+  - journal_lines
+live_feed:
+  label: Live feed
+  long: '**What it is.** Real-time operational events from the Single Window.
+
+    **How it is calculated.** Events written by the engine, rules and the model; newest first.
+
+    **Where it comes from.** `live_events`.
+
+    **How to read it.** Click a reference to trace it.
+
+    **Why the NSW cares.** Shows the channel is live and observable.
+
+    **Caveats.** Backfilled history is sampled.'
+  needs:
+  - speed
+  short: Real-time operational events from the Single Window.
+  sources:
+  - live_events
+live_speed:
+  label: Live speed
+  long: '**What it is.** Time-lapse factor for the live simulation.
+
+    **How it is calculated.** The simulated clock advances at this multiple of real time (capped).
+
+    **Where it comes from.** `service`.
+
+    **How to read it.** 1 is real time.
+
+    **Why the NSW cares.** Makes short demos busier.
+
+    **Caveats.** Every live event is flagged with the factor.'
+  needs:
+  - speed
+  short: Time-lapse factor for the live simulation.
+  sources:
+  - service
+llm_vs_fallback:
+  label: Model vs fallback
+  long: '**What it is.** Share of generated rows that came from the language model versus deterministic fallback.
+
+    **How it is calculated.** Counts of plans and rows by source.
+
+    **Where it comes from.** `generation_runs`.
+
+    **How to read it.** Higher model share means more variation.
+
+    **Why the NSW cares.** Shows resilience and provenance.
+
+    **Caveats.** Warm-up weeks use fallback.'
+  needs:
+  - trust
+  short: Share of generated rows that came from the language model versus deterministic fallback.
+  sources:
+  - generation_runs
+methodology:
+  label: Methodology
+  long: '**What it is.** How the numbers are produced and what is simulated.
+
+    **How it is calculated.** Deterministic simulation guided by language-model plans, validated by code.
+
+    **Where it comes from.** `design`.
+
+    **How to read it.** Read the simulated-ness list.
+
+    **Why the NSW cares.** Honest about limits.
+
+    **Caveats.** Not official.'
+  needs:
+  - trust
+  short: How the numbers are produced and what is simulated.
+  sources:
+  - design
+onboarding_score:
+  label: Onboarding score
+  long: '**What it is.** How much of an agency''s activity arrives digitally.
+
+    **How it is calculated.** Share of stage records captured digitally rather than manually.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Below 80% raises R-ONB-01.
+
+    **Why the NSW cares.** Tracks agency adoption.
+
+    **Caveats.** Simulated improvement path.'
+  needs:
+  - supervision
+  short: How much of an agency's activity arrives digitally.
+  sources:
+  - stage_events
+origin_country:
+  label: Origin country
+  long: '**What it is.** Country the cargo comes from (or that supplies the funds).
+
+    **How it is calculated.** Tag on each consignment, assessment, payment and ledger line.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Compare countries by value and fee yield.
+
+    **Why the NSW cares.** Policy and risk differ by origin.
+
+    **Caveats.** Twenty origin countries are modelled.'
+  needs:
+  - trust
+  short: Country the cargo comes from (or that supplies the funds).
+  sources:
+  - consignments
+orphan_payment:
+  label: Orphan payment
+  long: '**What it is.** A payment that matches no open assessment.
+
+    **How it is calculated.** Confirmed payments whose reference is unmatched and not yet refunded.
+
+    **Where it comes from.** `payments`.
+
+    **How to read it.** Usually mistyped references.
+
+    **Why the NSW cares.** Needs manual matching or refund.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: A payment that matches no open assessment.
+  sources:
+  - payments
+outstanding:
+  label: Outstanding
+  long: '**What it is.** Assessed amounts not yet paid.
+
+    **How it is calculated.** Assessed minus paid, per assessment, summed over assessments raised in the period.
+
+    **Where it comes from.** `fee_assessments, payment_allocations`.
+
+    **How to read it.** A small figure that is mostly recent assessments is normal; old unpaid items are exceptions.
+
+    **Why the NSW cares.** It shows revenue at risk of leakage.
+
+    **Caveats.** Recent assessments are timing items, not errors; ageing shows the difference.'
+  needs:
+  - trust
+  short: Assessed amounts not yet paid.
+  sources:
+  - fee_assessments
+  - payment_allocations
+overpaid:
+  label: Overpaid
+  long: '**What it is.** Assessments paid for more than the assessed naira amount.
+
+    **How it is calculated.** Paid above 100.5% of assessed for naira-denominated fees.
+
+    **Where it comes from.** `v_assessed_vs_paid`.
+
+    **How to read it.** Should be rare.
+
+    **Why the NSW cares.** Overpayments create refund work.
+
+    **Caveats.** FX differences are not counted.'
+  needs:
+  - trust
+  short: Assessments paid for more than the assessed naira amount.
+  sources:
+  - v_assessed_vs_paid
+p50:
+  label: Median (p50)
+  long: '**What it is.** The middle value: half of consignments are faster, half slower.
+
+    **How it is calculated.** 50th percentile of the metric.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Use with p90 to see predictability.
+
+    **Why the NSW cares.** Typical experience of a trader.
+
+    **Caveats.** Percentiles use completed consignments only.'
+  needs:
+  - speed
+  short: 'The middle value: half of consignments are faster, half slower.'
+  sources:
+  - consignments
+p90:
+  label: p90
+  long: '**What it is.** Nine in ten consignments are faster than this.
+
+    **How it is calculated.** 90th percentile of the metric.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** A big gap to the median means unpredictable clearance.
+
+    **Why the NSW cares.** Predictability matters as much as the average.
+
+    **Caveats.** Completed consignments only.'
+  needs:
+  - speed
+  short: Nine in ten consignments are faster than this.
+  sources:
+  - consignments
+paid:
+  label: Paid
+  long: '**What it is.** Money confirmed as received against assessed fees in the period.
+
+    **How it is calculated.** Sum of payment allocations whose payment was confirmed in the period; each allocation ties a payment to one assessment.
+
+    **Where it comes from.** `payments, payment_allocations`.
+
+    **How to read it.** Paid should track Assessed with a lag of a day or two; foreign-currency fees can differ slightly because payers pay at the payment-day rate.
+
+    **Why the NSW cares.** It shows how quickly traders fund their assessments through the single window.
+
+    **Caveats.** Duplicate and unmatched payments are excluded; they appear as exceptions.'
+  needs:
+  - trust
+  short: Money confirmed as received against assessed fees in the period.
+  sources:
+  - payments
+  - payment_allocations
+part_paid:
+  label: Part paid
+  long: '**What it is.** Assessments paid for less than the assessed naira amount.
+
+    **How it is calculated.** Paid below 99.5% of assessed for naira-denominated fees.
+
+    **Where it comes from.** `v_assessed_vs_paid`.
+
+    **How to read it.** Should be rare.
+
+    **Why the NSW cares.** Part payments hold cargo.
+
+    **Caveats.** FX-denominated fees are tolerated within 5%.'
+  needs:
+  - trust
+  short: Assessments paid for less than the assessed naira amount.
+  sources:
+  - v_assessed_vs_paid
+partner_country:
+  label: Partner country
+  long: '**What it is.** Country of the partner facility funding an agency.
+
+    **How it is calculated.** Tag on grant and concessional-loan receipts.
+
+    **Where it comes from.** `funding_receipts`.
+
+    **How to read it.** Compare by partner.
+
+    **Why the NSW cares.** Shows external support.
+
+    **Caveats.** Generic facility names.'
+  needs:
+  - trust
+  short: Country of the partner facility funding an agency.
+  sources:
+  - funding_receipts
+partner_grants:
+  label: Partner grants
+  long: '**What it is.** Funding from partner facilities, tagged by partner country.
+
+    **How it is calculated.** Sum of grant and concessional-loan receipts, grouped by partner country.
+
+    **Where it comes from.** `funding_receipts`.
+
+    **How to read it.** Quarterly lumps are normal.
+
+    **Why the NSW cares.** Shows which partner countries support which agencies.
+
+    **Caveats.** Facility names are generic and simulated.'
+  needs:
+  - trust
+  short: Funding from partner facilities, tagged by partner country.
+  sources:
+  - funding_receipts
+peer_benchmarks:
+  label: Peer benchmarks
+  long: '**What it is.** Published clearance times of comparable ports and countries.
+
+    **How it is calculated.** Reference values (Ghana 5-7 days, Benin about 4, global about 4, Rwanda about 1.5).
+
+    **Where it comes from.** `published figures`.
+
+    **How to read it.** Shows the gap to leaders.
+
+    **Why the NSW cares.** Gives context for the target.
+
+    **Caveats.** Published figure, verify before quoting.'
+  needs:
+  - speed
+  short: Published clearance times of comparable ports and countries.
+  sources:
+  - published figures
+process_code:
+  label: Process
+  long: '**What it is.** The agency process that a fee belongs to (for example valuation or wharfage).
+
+    **How it is calculated.** Process code on the fee rule.
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** Group by process to see yield.
+
+    **Why the NSW cares.** Links money to the work that earns it.
+
+    **Caveats.** Process names are simulated.'
+  needs:
+  - trust
+  short: The agency process that a fee belongs to (for example valuation or wharfage).
+  sources:
+  - fee_assessments
+projection_method:
+  label: Projection method
+  long: '**What it is.** How the date to reach the target is estimated.
+
+    **How it is calculated.** Least-squares line through the last eight complete weekly medians, extrapolated; 95% band from residual error.
+
+    **Where it comes from.** `weekly medians`.
+
+    **How to read it.** Treat as a guide, not a forecast.
+
+    **Why the NSW cares.** Gives a reproducible, transparent estimate.
+
+    **Caveats.** Assumes the recent pace continues; ignores seasonality and incidents.'
+  needs:
+  - speed
+  short: How the date to reach the target is estimated.
+  sources:
+  - weekly medians
+refunds:
+  label: Refunds
+  long: '**What it is.** Fees returned or adjusted after assessment.
+
+    **How it is calculated.** Sum of fee refunds posted in the period (refunds of unapplied receipts are balance-sheet only).
+
+    **Where it comes from.** `refunds`.
+
+    **How to read it.** Small and steady is normal.
+
+    **Why the NSW cares.** Large refunds suggest assessment errors.
+
+    **Caveats.** Synthetic adjustments.'
+  needs:
+  - trust
+  short: Fees returned or adjusted after assessment.
+  sources:
+  - refunds
+release_to_exit:
+  label: Release to exit
+  long: '**What it is.** Days from customs release to gate-out.
+
+    **How it is calculated.** gate_out_at minus released_at.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Dominated by terminal and haulage.
+
+    **Why the NSW cares.** Shows delay after customs has finished.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - speed
+  short: Days from customs release to gate-out.
+  sources:
+  - consignments
+remittance_lateness:
+  label: Remittance lateness
+  long: '**What it is.** Days after the due date that a remittance was paid, or has been outstanding.
+
+    **How it is calculated.** Paid date minus due date; unpaid items are measured to now.
+
+    **Where it comes from.** `remittances`.
+
+    **How to read it.** More than 3 days raises R-REM-01.
+
+    **Why the NSW cares.** Timely remittance protects Treasury cash flow.
+
+    **Caveats.** Simulated due dates.'
+  needs:
+  - supervision
+  short: Days after the due date that a remittance was paid, or has been outstanding.
+  sources:
+  - remittances
+remittance_monitor:
+  label: Remittance monitor
+  long: '**What it is.** Due versus paid remittances by agency.
+
+    **How it is calculated.** Due date, paid date and days late from remittances.
+
+    **Where it comes from.** `remittances`.
+
+    **How to read it.** Late items are red.
+
+    **Why the NSW cares.** Treasury cash-flow control.
+
+    **Caveats.** Simulated rules.'
+  needs:
+  - supervision
+  short: Due versus paid remittances by agency.
+  sources:
+  - remittances
+remittance_payable:
+  label: Remittance payable
+  long: '**What it is.** Amount an agency owes the Treasury but has not yet paid.
+
+    **How it is calculated.** Account 2300: credited when the obligation is recognised at period end, debited when paid.
+
+    **Where it comes from.** `journal_lines, remittances`.
+
+    **How to read it.** Rises at month end and falls on payment.
+
+    **Why the NSW cares.** Shows liabilities to the Treasury.
+
+    **Caveats.** Simulated rules.'
+  needs:
+  - supervision
+  short: Amount an agency owes the Treasury but has not yet paid.
+  sources:
+  - journal_lines
+  - remittances
+remitted:
+  label: Remitted
+  long: '**What it is.** Amounts agencies have paid on to the Treasury (Federation Account) in the period.
+
+    **How it is calculated.** Sum of remittances paid in the period, per each agency''s simulated remittance rule (monthly or quarterly share).
+
+    **Where it comes from.** `remittances`.
+
+    **How to read it.** Remittances follow settlements by weeks; compare the due date with the paid date to see punctuality.
+
+    **Why the NSW cares.** Timely remittance protects government cash flow.
+
+    **Caveats.** Remittance rules are simulated approximations.'
+  needs:
+  - supervision
+  short: Amounts agencies have paid on to the Treasury (Federation Account) in the period.
+  sources:
+  - remittances
+report_fingerprint:
+  label: Report fingerprint
+  long: '**What it is.** A code that identifies exactly what a report contained.
+
+    **How it is calculated.** SHA-256 of the report parameters, as-of time, row counts and totals.
+
+    **Where it comes from.** `report`.
+
+    **How to read it.** Same inputs at the same as-of give the same fingerprint.
+
+    **Why the NSW cares.** Lets anyone reproduce a number later.
+
+    **Caveats.** Changes if any input changes.'
+  needs:
+  - trust
+  short: A code that identifies exactly what a report contained.
+  sources:
+  - report
+report_narrative:
+  label: Narrative
+  long: '**What it is.** Optional executive summary written by the language model.
+
+    **How it is calculated.** The model receives computed facts only; a verifier removes any sentence with unmatched numbers.
+
+    **Where it comes from.** `report`.
+
+    **How to read it.** Check the verified status.
+
+    **Why the NSW cares.** Plain-language summary without numeric risk.
+
+    **Caveats.** Needs the model to be available.'
+  needs:
+  - trust
+  short: Optional executive summary written by the language model.
+  sources:
+  - report
+report_params:
+  label: Report parameters
+  long: '**What it is.** Choose period, entities, sections and comparison.
+
+    **How it is calculated.** Parameters are fixed into the fingerprint.
+
+    **Where it comes from.** `report`.
+
+    **How to read it.** Compute to run.
+
+    **Why the NSW cares.** Reproducible reports.
+
+    **Caveats.** Open current day included.'
+  needs:
+  - trust
+  short: Choose period, entities, sections and comparison.
+  sources:
+  - report
+review_queue:
+  label: Review queue
+  long: '**What it is.** Work items awaiting action with age.
+
+    **How it is calculated.** Open alerts, raised exceptions and unsigned reports.
+
+    **Where it comes from.** `alerts, reviews`.
+
+    **How to read it.** Oldest first.
+
+    **Why the NSW cares.** Keeps accountability visible.
+
+    **Caveats.** SLA age in hours.'
+  needs:
+  - supervision
+  short: Work items awaiting action with age.
+  sources:
+  - alerts
+  - reviews
+review_states:
+  label: Review states
+  long: '**What it is.** Open, acknowledged, under review, resolved or dismissed.
+
+    **How it is calculated.** Moves forward through role-permitted actions; every move is logged.
+
+    **Where it comes from.** `reviews, audit_log`.
+
+    **How to read it.** Open items age until acted on.
+
+    **Why the NSW cares.** Accountability for each alert.
+
+    **Caveats.** Demo roles, no real login.'
+  needs:
+  - supervision
+  short: Open, acknowledged, under review, resolved or dismissed.
+  sources:
+  - reviews
+  - audit_log
+risk_lane:
+  label: Risk lane
+  long: '**What it is.** Customs risk-based channel: green, yellow, red or blue.
+
+    **How it is calculated.** Assigned at manifest from origin risk and commodity risk probabilities.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** Red lanes need physical examination.
+
+    **Why the NSW cares.** Lane mix drives examination workload.
+
+    **Caveats.** Probabilities are simulated.'
+  needs:
+  - speed
+  short: 'Customs risk-based channel: green, yellow, red or blue.'
+  sources:
+  - consignments
+roles:
+  label: Roles
+  long: '**What it is.** Analyst, Supervisor and Director with different permissions.
+
+    **How it is calculated.** Analyst acknowledges and comments; Supervisor assigns and resolves; Director signs off reports.
+
+    **Where it comes from.** `reviews`.
+
+    **How to read it.** Switch roles in the sidebar.
+
+    **Why the NSW cares.** Shows segregation of duties.
+
+    **Caveats.** No real authentication in the demo.'
+  needs:
+  - supervision
+  short: Analyst, Supervisor and Director with different permissions.
+  sources:
+  - reviews
+scanner_utilisation:
+  label: Scanner status
+  long: '**What it is.** How many scanners are working at each port.
+
+    **How it is calculated.** Total scanners minus those offline (beats and injected incidents).
+
+    **Where it comes from.** `incidents`.
+
+    **How to read it.** Fewer working scanners lengthen exam waits.
+
+    **Why the NSW cares.** Physical capacity limits clearance speed.
+
+    **Caveats.** Simulated capacity.'
+  needs:
+  - speed
+  short: How many scanners are working at each port.
+  sources:
+  - incidents
+score_completeness:
+  label: Completeness
+  long: '**What it is.** Share of an agency''s stage records that have all fields.
+
+    **How it is calculated.** Records with a start time divided by all records, last seven days.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Drops show data gaps.
+
+    **Why the NSW cares.** 40% of the confidence score.
+
+    **Caveats.** Fee-only agencies default to 100%.'
+  needs:
+  - trust
+  short: Share of an agency's stage records that have all fields.
+  sources:
+  - stage_events
+score_consistency:
+  label: Consistency
+  long: '**What it is.** Whether assessments tie to payments, settlements and the fee rule.
+
+    **How it is calculated.** Half the share fully paid and settled, half the share within 1% of expected.
+
+    **Where it comes from.** `fee_assessments`.
+
+    **How to read it.** Higher is better.
+
+    **Why the NSW cares.** 20% of the confidence score.
+
+    **Caveats.** Uses assessments 3 to 14 days old.'
+  needs:
+  - trust
+  short: Whether assessments tie to payments, settlements and the fee rule.
+  sources:
+  - fee_assessments
+score_punctuality:
+  label: Remittance punctuality
+  long: '**What it is.** Share of remittances paid within a day of the due date.
+
+    **How it is calculated.** Remittances paid with at most one day late, last 120 days.
+
+    **Where it comes from.** `remittances`.
+
+    **How to read it.** Higher is better.
+
+    **Why the NSW cares.** 15% of the confidence score.
+
+    **Caveats.** Few remittances per period.'
+  needs:
+  - supervision
+  short: Share of remittances paid within a day of the due date.
+  sources:
+  - remittances
+score_timeliness:
+  label: Timeliness
+  long: '**What it is.** Share of records processed within the service level.
+
+    **How it is calculated.** One minus the SLA breach rate, last seven days.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Higher is better.
+
+    **Why the NSW cares.** 25% of the confidence score.
+
+    **Caveats.** Agencies with no SLA stages default to 100%.'
+  needs:
+  - supervision
+  short: Share of records processed within the service level.
+  sources:
+  - stage_events
+settled:
+  label: Settled
+  long: '**What it is.** Net amount released from the collection account to agencies after collection costs.
+
+    **How it is calculated.** Sum of settled allocation amounts (paid minus collection cost) whose settlement batch completed in the period.
+
+    **Where it comes from.** `payment_allocations, settlements, settlement_batches`.
+
+    **How to read it.** Settled trails Paid by the bank settlement lag (about one day); a growing gap means money is held up at a bank.
+
+    **Why the NSW cares.** Agencies only see cash when settlement completes, so lag directly affects their operations.
+
+    **Caveats.** Net of collection costs; gross settled is shown on the reconciliation page.'
+  needs:
+  - trust
+  short: Net amount released from the collection account to agencies after collection costs.
+  sources:
+  - payment_allocations
+  - settlements
+  - settlement_batches
+settlement_lag:
+  label: Settlement lag
+  long: '**What it is.** Hours from a bank''s daily batch closing to its completion.
+
+    **How it is calculated.** Completed minus closed time per batch.
+
+    **Where it comes from.** `settlement_batches`.
+
+    **How to read it.** About one day is normal; more than 48 hours raises R-SET-01.
+
+    **Why the NSW cares.** Slow banks hold agency cash.
+
+    **Caveats.** Simulated bank lags.'
+  needs:
+  - supervision
+  short: Hours from a bank's daily batch closing to its completion.
+  sources:
+  - settlement_batches
+situation_board:
+  label: Situation board
+  long: '**What it is.** Active incidents, scanners, permit queues and settlement lags.
+
+    **How it is calculated.** Engine incidents plus recent queue and lag statistics.
+
+    **Where it comes from.** `incidents, stage_events, settlement_batches`.
+
+    **How to read it.** Red items need attention.
+
+    **Why the NSW cares.** One-glance operational picture.
+
+    **Caveats.** Simulated.'
+  needs:
+  - supervision
+  short: Active incidents, scanners, permit queues and settlement lags.
+  sources:
+  - incidents
+  - stage_events
+  - settlement_batches
+sla_breach_rate:
+  label: SLA breach rate
+  long: '**What it is.** Share of stage records that took longer than the service level.
+
+    **How it is calculated.** Records with processing time above the stage SLA divided by all records with an SLA.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Under 15% is healthy; above raises R-SLA-01.
+
+    **Why the NSW cares.** Measures agency timeliness.
+
+    **Caveats.** SLA hours are simulated.'
+  needs:
+  - speed
+  - supervision
+  short: Share of stage records that took longer than the service level.
+  sources:
+  - stage_events
+stage_wait:
+  label: Stage wait
+  long: '**What it is.** Time a consignment waits before an agency or operator starts a stage.
+
+    **How it is calculated.** started_at minus ready_at for a stage, in hours.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Long waits mean queues.
+
+    **Why the NSW cares.** Waiting, not processing, is most of the delay.
+
+    **Caveats.** Waits are sampled by the simulation.'
+  needs:
+  - speed
+  short: Time a consignment waits before an agency or operator starts a stage.
+  sources:
+  - stage_events
+stage_waterfall:
+  label: Stage waterfall
+  long: '**What it is.** Median hours per stage, split digital and physical.
+
+    **How it is calculated.** Median of wait plus duration per stage for the period.
+
+    **Where it comes from.** `stage_events`.
+
+    **How to read it.** Tall physical bars are the last mile.
+
+    **Why the NSW cares.** Shows where time is lost.
+
+    **Caveats.** Medians do not add to the median dwell.'
+  needs:
+  - speed
+  short: Median hours per stage, split digital and physical.
+  sources:
+  - stage_events
+synthetic_data:
+  label: Synthetic data
+  long: '**What it is.** All data in this demo is invented.
+
+    **How it is calculated.** Generated by a simulation guided by a language model and checked by code.
+
+    **Where it comes from.** `simulation`.
+
+    **How to read it.** Never quote as real agency performance.
+
+    **Why the NSW cares.** Avoids any implication about real agencies.
+
+    **Caveats.** Fee names, rates and IDs are simulated.'
+  needs:
+  - trust
+  short: All data in this demo is invented.
+  sources:
+  - simulation
+target_tracker:
+  label: Target tracker
+  long: '**What it is.** Weekly median dwell against the published baseline, target and peers.
+
+    **How it is calculated.** Median dwell by gate-out week with a trend projection.
+
+    **Where it comes from.** `consignments`.
+
+    **How to read it.** A falling line approaching the target is progress.
+
+    **Why the NSW cares.** Lets leaders prove progress towards the end-2026 goal.
+
+    **Caveats.** Published figures: verify before quoting.'
+  needs:
+  - speed
+  short: Weekly median dwell against the published baseline, target and peers.
+  sources:
+  - consignments
+ties_out_check:
+  label: Ties out
+  long: '**What it is.** Confirms a line equals the sum of what is behind it at every level.
+
+    **How it is calculated.** Line total compared with the sum of accounts, journal entries and source documents.
+
+    **Where it comes from.** `journal_lines, source tables`.
+
+    **How to read it.** Green means exact agreement to the kobo.
+
+    **Why the NSW cares.** Proves figures are traceable.
+
+    **Caveats.** Checked for each level shown.'
+  needs:
+  - trust
+  short: Confirms a line equals the sum of what is behind it at every level.
+  sources:
+  - journal_lines
+  - source tables
+trace_levels:
+  label: Trace levels
+  long: '**What it is.** The path from a statement line down to a consignment.
+
+    **How it is calculated.** L0 line, L1 accounts, L2 journal entries, L3 source documents, L4 consignment.
+
+    **Where it comes from.** `ledger and source tables`.
+
+    **How to read it.** Totals at each level sum to the level above.
+
+    **Why the NSW cares.** Shows any number can be defended.
+
+    **Caveats.** Entries are paged.'
+  needs:
+  - trust
+  short: The path from a statement line down to a consignment.
+  sources:
+  - ledger and source tables
+unpaid:
+  label: Unpaid
+  long: '**What it is.** Assessments older than 72 hours with no payment.
+
+    **How it is calculated.** Assessed amount where paid is zero and age exceeds 72 hours.
+
+    **Where it comes from.** `v_assessed_vs_paid`.
+
+    **How to read it.** Few and recent is normal.
+
+    **Why the NSW cares.** Unpaid items are potential leakage.
+
+    **Caveats.** Synthetic.'
+  needs:
+  - trust
+  short: Assessments older than 72 hours with no payment.
+  sources:
+  - v_assessed_vs_paid
+variance:
+  label: Variance
+  long: '**What it is.** Difference between two steps of the reconciliation chain.
+
+    **How it is calculated.** Amount at one step minus amount at the next, for the same assessments.
+
+    **Where it comes from.** `reconciliation chain`.
+
+    **How to read it.** Explained variances are timing or rule-based; unexplained ones are exceptions.
+
+    **Why the NSW cares.** It pinpoints where money is delayed or lost.
+
+    **Caveats.** Computed on the filtered cohort.'
+  needs:
+  - trust
+  short: Difference between two steps of the reconciliation chain.
+  sources:
+  - reconciliation chain
+variance_bridge:
+  label: Variance bridge
+  long: '**What it is.** Waterfall from assessed to remitted explaining each gap.
+
+    **How it is calculated.** Unpaid, in transit, collection cost, retained share and awaiting remittance are subtracted in turn.
+
+    **Where it comes from.** `reconciliation`.
+
+    **How to read it.** Each step is a named category.
+
+    **Why the NSW cares.** Shows exactly where money sits.
+
+    **Caveats.** Retained share follows the simulated rule.'
+  needs:
+  - trust
+  short: Waterfall from assessed to remitted explaining each gap.
+  sources:
+  - reconciliation
+verified_answer_badge:
+  label: Verified badge
+  long: '**What it is.** Shows whether every number in an assistant answer came from a tool.
+
+    **How it is calculated.** Numbers in the answer are matched to tool outputs within 0.5%.
+
+    **Where it comes from.** `assistant tool results`.
+
+    **How to read it.** Verified means all numbers matched; partial lists the unmatched ones.
+
+    **Why the NSW cares.** Builds trust in conversational answers.
+
+    **Caveats.** Rounded values are matched within tolerance.'
+  needs:
+  - trust
+  short: Shows whether every number in an assistant answer came from a tool.
+  sources:
+  - assistant tool results
+why_raised:
+  label: Why was this raised?
+  long: '**What it is.** The supporting rows and numbers behind an alert.
+
+    **How it is calculated.** Metric, threshold, window and the records that caused it.
+
+    **Where it comes from.** `alerts`.
+
+    **How to read it.** Follow the links to trace.
+
+    **Why the NSW cares.** Evidence for every alert.
+
+    **Caveats.** First 25 rows shown.'
+  needs:
+  - supervision
+  - trust
+  short: The supporting rows and numbers behind an alert.
+  sources:
+  - alerts

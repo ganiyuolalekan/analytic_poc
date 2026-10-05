@@ -248,11 +248,26 @@ def reader(as_of: str | None = None) -> sqlite3.Connection:
     return conn
 
 
+def avp(as_of: str | None = None) -> tuple[sqlite3.Connection, str]:
+    """Reader connection plus the name of a TEMP table materialising ``v_assessed_vs_paid`` for this as_of (built once per as_of;
+    it turns the heavy assessed-paid-settled join into an indexed scan for the reconciliation queries)."""
+    conn = reader(as_of)
+    asof = conn.execute("SELECT v FROM as_of_ctx").fetchone()[0]
+    if getattr(_tls, "avp_asof", None) != asof:
+        conn.execute("DROP TABLE IF EXISTS t_avp")
+        conn.execute("CREATE TEMP TABLE t_avp AS SELECT * FROM v_assessed_vs_paid")
+        conn.execute("CREATE INDEX temp.ix_avp_occ ON t_avp(occurred_at)")
+        conn.execute("CREATE INDEX temp.ix_avp_ent ON t_avp(entity_id, occurred_at)")
+        _tls.avp_asof = asof
+    return conn, "t_avp"
+
+
 def close_reader() -> None:
     conn = getattr(_tls, "conn", None)
     if conn is not None:
         conn.close()
         _tls.conn = None
+        _tls.avp_asof = None
 
 
 def log_llm_call(conn: sqlite3.Connection | None, call_id: str, role: str, model: str, tokens_in: int,
