@@ -1,0 +1,17 @@
+streamlit>=1.40
+pandas>=2.1
+numpy>=1.26
+plotly>=5.20
+pydantic>=2.5
+openai>=1.50
+tenacity>=8.2
+python-dotenv>=1.0
+pyyaml>=6.0
+holidays>=0.50
+faker>=24.0
+reportlab>=4.0
+openpyxl>=3.1
+pytest>=8.0
+ruff>=0.5
+filelock>=3.13
+matplotlib>=3.8

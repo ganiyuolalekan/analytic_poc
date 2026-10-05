@@ -1,0 +1,186 @@
+# Reference data (SIMULATED approximations; used for illustration only)
+countries:
+  CN: {name: China, region: Asia, currency: CNY, risk_tier: 3, ecowas: 0, transit_days: 34, doc_issue_rate: 0.085, weight: 0.27}
+  IN: {name: India, region: Asia, currency: INR, risk_tier: 2, ecowas: 0, transit_days: 26, doc_issue_rate: 0.07,  weight: 0.09}
+  NL: {name: Netherlands, region: Europe, currency: EUR, risk_tier: 1, ecowas: 0, transit_days: 18, doc_issue_rate: 0.03, weight: 0.07}
+  US: {name: United States, region: North America, currency: USD, risk_tier: 1, ecowas: 0, transit_days: 24, doc_issue_rate: 0.035, weight: 0.08}
+  GB: {name: United Kingdom, region: Europe, currency: GBP, risk_tier: 1, ecowas: 0, transit_days: 16, doc_issue_rate: 0.03, weight: 0.05}
+  DE: {name: Germany, region: Europe, currency: EUR, risk_tier: 1, ecowas: 0, transit_days: 19, doc_issue_rate: 0.025, weight: 0.05}
+  AE: {name: United Arab Emirates, region: Middle East, currency: AED, risk_tier: 2, ecowas: 0, transit_days: 22, doc_issue_rate: 0.06, weight: 0.07}
+  TR: {name: Turkiye, region: Europe/Asia, currency: EUR, risk_tier: 2, ecowas: 0, transit_days: 21, doc_issue_rate: 0.055, weight: 0.04}
+  BR: {name: Brazil, region: South America, currency: USD, risk_tier: 2, ecowas: 0, transit_days: 20, doc_issue_rate: 0.05, weight: 0.03}
+  ZA: {name: South Africa, region: Africa, currency: USD, risk_tier: 1, ecowas: 0, transit_days: 14, doc_issue_rate: 0.04, weight: 0.03}
+  BE: {name: Belgium, region: Europe, currency: EUR, risk_tier: 1, ecowas: 0, transit_days: 17, doc_issue_rate: 0.03, weight: 0.04}
+  FR: {name: France, region: Europe, currency: EUR, risk_tier: 1, ecowas: 0, transit_days: 17, doc_issue_rate: 0.03, weight: 0.03}
+  IT: {name: Italy, region: Europe, currency: EUR, risk_tier: 1, ecowas: 0, transit_days: 18, doc_issue_rate: 0.035, weight: 0.02}
+  ES: {name: Spain, region: Europe, currency: EUR, risk_tier: 1, ecowas: 0, transit_days: 15, doc_issue_rate: 0.03, weight: 0.02}
+  JP: {name: Japan, region: Asia, currency: USD, risk_tier: 1, ecowas: 0, transit_days: 33, doc_issue_rate: 0.02, weight: 0.03}
+  KR: {name: South Korea, region: Asia, currency: USD, risk_tier: 1, ecowas: 0, transit_days: 30, doc_issue_rate: 0.025, weight: 0.02}
+  GH: {name: Ghana, region: Africa, currency: USD, risk_tier: 2, ecowas: 1, transit_days: 4, doc_issue_rate: 0.06, weight: 0.01}
+  BJ: {name: Benin Republic, region: Africa, currency: EUR, risk_tier: 3, ecowas: 1, transit_days: 3, doc_issue_rate: 0.09, weight: 0.01}
+  CI: {name: Cote d'Ivoire, region: Africa, currency: EUR, risk_tier: 2, ecowas: 1, transit_days: 6, doc_issue_rate: 0.06, weight: 0.01}
+  SA: {name: Saudi Arabia, region: Middle East, currency: USD, risk_tier: 2, ecowas: 0, transit_days: 21, doc_issue_rate: 0.05, weight: 0.03}
+
+# commodity affinity multipliers by origin (default 1.0). Used by the deterministic fallback flow plan.
+country_commodity_affinity:
+  CN: {Electronics: 1.7, "Machinery & parts": 1.4, Textiles: 1.6, "Consumer goods": 1.4, "Building materials": 1.2}
+  IN: {"Pharma & cosmetics": 2.2, "Food & agro": 1.5, Textiles: 1.3, "Machinery & parts": 1.1}
+  NL: {"Food & agro": 1.3, Chemicals: 1.4, "Vehicles & parts": 1.1}
+  US: {"Vehicles & parts": 1.5, "Machinery & parts": 1.2, "Food & agro": 1.2}
+  GB: {"Vehicles & parts": 1.4, "Pharma & cosmetics": 1.3, "Consumer goods": 1.1}
+  DE: {"Vehicles & parts": 1.8, "Machinery & parts": 1.6, Chemicals: 1.2}
+  AE: {"Consumer goods": 1.4, "Petroleum & lubricants": 2.0, "Building materials": 1.3}
+  TR: {Textiles: 1.6, "Building materials": 1.4, "Consumer goods": 1.2}
+  BR: {"Food & agro": 2.2}
+  ZA: {"Machinery & parts": 1.3, "Food & agro": 1.2}
+  BE: {"Vehicles & parts": 1.8, Chemicals: 1.3}
+  FR: {"Pharma & cosmetics": 1.5, "Food & agro": 1.2}
+  IT: {"Machinery & parts": 1.5, Textiles: 1.2}
+  ES: {"Food & agro": 1.3, "Building materials": 1.2}
+  JP: {"Vehicles & parts": 2.0, Electronics: 1.3}
+  KR: {Electronics: 1.6, "Vehicles & parts": 1.3}
+  GH: {"Food & agro": 1.5}
+  BJ: {"Vehicles & parts": 2.2, "Consumer goods": 1.4}
+  CI: {"Food & agro": 1.6}
+  SA: {"Petroleum & lubricants": 2.0, Chemicals: 1.4}
+
+commodity_groups:
+  "Food & agro":
+    share: 0.17
+    hs: ["1006.30.00", "1101.00.00", "0402.21.00", "1511.10.00", "1701.99.00", "0303.89.00", "2106.90.00"]
+    cif_usd_median: 14000
+    cif_sigma: 0.9
+    weight_kg_median: 24000
+    permits: {NAFDAC: 0.95, NAQS: 0.40, SON: 0.15}
+    air_share: 0.03
+  "Pharma & cosmetics":
+    share: 0.07
+    hs: ["3004.90.00", "3003.90.00", "3304.99.00", "3305.10.00", "3006.10.00"]
+    cif_usd_median: 26000
+    cif_sigma: 1.0
+    weight_kg_median: 3500
+    permits: {NAFDAC: 1.0}
+    air_share: 0.45
+  "Electronics":
+    share: 0.12
+    hs: ["8517.13.00", "8528.72.00", "8471.30.00", "8516.60.00", "8504.40.00"]
+    cif_usd_median: 30000
+    cif_sigma: 1.0
+    weight_kg_median: 4200
+    permits: {SON: 0.90, NESREA: 0.10}
+    air_share: 0.35
+  "Machinery & parts":
+    share: 0.12
+    hs: ["8429.52.00", "8413.70.00", "8431.49.00", "8483.40.00", "8412.21.00"]
+    cif_usd_median: 38000
+    cif_sigma: 1.05
+    weight_kg_median: 16000
+    permits: {SON: 0.50, NESREA: 0.15}
+    air_share: 0.12
+  "Vehicles & parts":
+    share: 0.10
+    hs: ["8703.23.00", "8704.21.00", "8708.99.00", "8711.20.00", "4011.10.00"]
+    cif_usd_median: 24000
+    cif_sigma: 0.8
+    weight_kg_median: 9000
+    permits: {SON: 0.70, NESREA: 0.35}
+    air_share: 0.04
+  "Chemicals":
+    share: 0.08
+    hs: ["2807.00.00", "3402.20.00", "2915.21.00", "3808.91.00", "3905.12.00"]
+    cif_usd_median: 22000
+    cif_sigma: 0.9
+    weight_kg_median: 22000
+    permits: {NESREA: 0.80, SON: 0.30}
+    air_share: 0.06
+  "Textiles":
+    share: 0.08
+    hs: ["5208.12.00", "6109.10.00", "5407.61.00", "6203.42.00", "6304.19.00"]
+    cif_usd_median: 15000
+    cif_sigma: 0.85
+    weight_kg_median: 14000
+    permits: {SON: 0.40}
+    air_share: 0.08
+  "Building materials":
+    share: 0.09
+    hs: ["2523.29.00", "7214.20.00", "6908.90.00", "3925.20.00", "7308.30.00"]
+    cif_usd_median: 17000
+    cif_sigma: 0.85
+    weight_kg_median: 26000
+    permits: {SON: 0.80}
+    air_share: 0.01
+  "Consumer goods":
+    share: 0.14
+    hs: ["9403.60.00", "3924.10.00", "6911.10.00", "9503.00.00", "8509.40.00"]
+    cif_usd_median: 12000
+    cif_sigma: 0.85
+    weight_kg_median: 9000
+    permits: {SON: 0.70, NAFDAC: 0.10}
+    air_share: 0.12
+  "Petroleum & lubricants":
+    share: 0.03
+    hs: ["2710.19.00", "2710.12.00", "2711.12.00", "3403.19.00", "2713.20.00"]
+    cif_usd_median: 60000
+    cif_sigma: 0.9
+    weight_kg_median: 30000
+    permits: {NESREA: 0.50, SON: 0.40}
+    air_share: 0.0
+
+ports:
+  sea:
+    NGAPP: {name: Apapa, share: 0.40, scanners: 4}
+    NGTIN: {name: Tin Can Island, share: 0.30, scanners: 3}
+    NGLEK: {name: Lekki Deep Sea, share: 0.12, scanners: 3}
+    NGONN: {name: Onne, share: 0.10, scanners: 2}
+    NGPHC: {name: Port Harcourt, share: 0.08, scanners: 2}
+  air:
+    LOS: {name: Lagos (Murtala Muhammed), share: 0.62, scanners: 2}
+    ABV: {name: Abuja (Nnamdi Azikiwe), share: 0.20, scanners: 1}
+    PHC: {name: Port Harcourt, share: 0.10, scanners: 1}
+    KAN: {name: Kano (Mallam Aminu Kano), share: 0.08, scanners: 1}
+
+banks:
+  A: {name: "Bank A", share: 0.22}
+  B: {name: "Bank B", share: 0.20}
+  C: {name: "Bank C", share: 0.18}
+  D: {name: "Bank D", share: 0.16}
+  E: {name: "Bank E", share: 0.14}
+  F: {name: "Bank F", share: 0.10}
+
+# fictional carriers (SCAC-style 4-letter codes; container owner codes end in U)
+shipping_lines:
+  - {code: AMLU, name: "Atlantic Meridian Lines"}
+  - {code: BRNU, name: "Bright Nautical Shipping"}
+  - {code: CSLU, name: "Coastal Sable Lines"}
+  - {code: DOLU, name: "Delta Ocean Lines"}
+  - {code: ECAU, name: "Equator Cargo Africa"}
+  - {code: FJRU, name: "Fjord Reach Container Line"}
+  - {code: GALU, name: "Galleon Atlantic"}
+  - {code: HRZU, name: "Horizon Bulk and Box"}
+  - {code: ISLU, name: "Isle Route Shipping"}
+  - {code: JVLU, name: "Javelin Marine"}
+  - {code: KNTU, name: "Kestrel Navigation"}
+  - {code: LUMU, name: "Lumen Sea Freight"}
+airlines:
+  - {code: SHC, name: "Sahel Air Cargo"}
+  - {code: GLF, name: "Gulf Meridian Cargo"}
+  - {code: ZEN, name: "Zenith Freight Air"}
+  - {code: NIL, name: "Nile Wing Cargo"}
+  - {code: ORB, name: "Orbit Express Cargo"}
+  - {code: PLM, name: "Palm Coast Air Freight"}
+  - {code: RDG, name: "Ridge Line Air Cargo"}
+  - {code: TWD, name: "Trade Winds Cargo"}
+
+# generic (non-real) expense vendors by category
+vendors:
+  Personnel: ["Staff payroll (consolidated)", "Allowances and overtime", "Pension contributions", "Training provider"]
+  Operations: ["Fleet and logistics services", "Field operations contractor", "Facility services", "Security services"]
+  ICT: ["Data centre hosting", "Network services provider", "Software licences", "Systems integrator"]
+  Maintenance: ["Equipment maintenance contractor", "Scanner service agreement", "Building maintenance", "Vehicle servicing"]
+partner_countries: [GB, DE, JP, KR, NL, FR, CN, US]
+name_words:
+  prefix: [Adaeze, Bola, Chuka, Dayo, Efe, Femi, Gozie, Halima, Ife, Jide, Kunle, Lola, Musa, Ngozi, Obi, Peju, Remi, Sade, Tunde, Uche, Yemi, Zainab]
+  middle: [Coastal, Heritage, Prime, Apex, Sahel, Delta, Lagoon, Meridian, Union, Pinnacle, Crest, Harbour, Ridge, Summit, Vantage, Zenith, Trident, Anchor]
+  sector: [Trading, Imports, Logistics, Industries, Enterprises, Supplies, Merchants, Distributors, Holdings, Ventures]
+  suffix: [Ltd, Limited, Nig. Ltd, Nigeria Ltd, Ltd.]
+agent_words: [Swift, Clear, Gateway, Anchor, Beacon, Bridge, Compass, Dock, Express, Freight, Link, Route, Sail, Tidal, Wharf]

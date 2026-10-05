@@ -1,0 +1,65 @@
+# Demo "story beats" (Section 7.7). Offsets are in days from SIM_START (1 July = day 0) so they stay valid
+# if SIM_START moves. The ENGINE (not the model) enforces the magnitudes; the LLM may only colour the wording.
+beats:
+  B1:
+    name: Dwell-time improvement trend
+    start_day: 0
+    end_day: 96
+    params: {dwell_median_days: [15.0, 10.5], digital_share: [0.38, 0.18]}
+    detected_by: [R-TGT-01]
+    detector_note: Target tracker / clearance page (projection vs end-2026 target)
+  B2:
+    name: Scanner outage at Apapa
+    start_day: 42        # 12 Aug
+    end_day: 46          # through 15 Aug inclusive
+    params: {port: NGAPP, scanners_total: 4, scanners_offline: 2, s06_wait_mult: 2.5}
+    detected_by: [R-PHYS-01]
+  B3:
+    name: NAFDAC permit backlog
+    start_day: 54        # 24 Aug
+    end_day: 62          # through 31 Aug inclusive
+    params: {entity: NAFDAC, approval_time_mult: 2.0, queue_pressure: 2.2}
+    detected_by: [R-SLA-01]
+  B4:
+    name: FX movement (NGN weakens ~6% over 5 days)
+    start_day: 63        # 2 Sep
+    end_day: 68
+    params: {total_move: 0.06, daily_split: [0.08, 0.40, 0.28, 0.14, 0.10]}
+    detected_by: [R-FX-01]
+  B5:
+    name: Late remittance (one regulator, 9 days late)
+    start_day: 71        # due 10 Sep
+    end_day: 81
+    params: {entity: SON, period: "2026-08", days_late: 9}
+    detected_by: [R-REM-01]
+  B6:
+    name: Under-assessment cluster (leakage indicator)
+    start_day: 69        # 8 Sep
+    end_day: 75          # 6 days
+    params: {entity: NCS, fee_code: NCS-DUTY, commodity_group: Electronics, origin_country: CN, shortfall: 0.12}
+    detected_by: [R-FEE-01]
+  B7:
+    name: Settlement lag at one bank
+    start_day: 78        # 17 Sep
+    end_day: 81          # through 19 Sep inclusive
+    params: {bank: C, lag_hours: 72}
+    detected_by: [R-SET-01]
+  B8:
+    name: Duplicate payments burst
+    start_day: 93        # 2 Oct
+    end_day: 94
+    params: {count: 14}
+    detected_by: [R-DUP-01]
+  B9:
+    name: Data-quality gap (FAAN timestamps missing)
+    start_day: 89        # 28 Sep
+    end_day: 91          # 28-29 Sep
+    params: {entity: FAAN, missing_share: 0.40}
+    detected_by: [R-DQ-01]
+  B10:
+    name: Holiday effect (Independence Day)
+    start_day: 92        # 1 Oct
+    end_day: 93
+    params: {arrival_factor: 0.30}
+    detected_by: []
+    detector_note: Visible in the volume chart (no alert)

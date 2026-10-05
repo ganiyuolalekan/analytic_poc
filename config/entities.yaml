@@ -1,0 +1,125 @@
+# Entity cards (Section 5.1). Codes are used everywhere. SIMULATED fee names / rates / remittance rules.
+entities:
+  NCS:
+    name: Nigeria Customs Service
+    type: collector
+    colour: "#0B5D3B"
+    aliases: [customs, ncs, nigeriacustoms]
+    mandate: "Assesses and collects import and export duties and levies, controls risk-based examination and releases cargo."
+    processes: {DECL: Declaration & assessment, VAL: Valuation, EXAM: Risk-based examination, REL: Release, ENF: Enforcement and penalties}
+    revenue_streams: [Import duty (ad valorem by HS group and origin), Levies and surcharges, Examination fees, Penalties and fines]
+    typical_costs: [Personnel, Scanner operations and maintenance, ICT, Patrols, Collection cost]
+    remittance: "Net duties to the Federation Account less a statutory cost-of-collection share; monthly, due by the 10th."
+  NRS:
+    name: Nigeria Revenue Service
+    type: collector
+    colour: "#2F5D9B"
+    aliases: [nrs, firs, federalinlandrevenue, federalinlandrevenueservice, revenue]
+    mandate: "Collects VAT on imports, withholding tax on trade services and issues trader tax-compliance clearance (successor to FIRS)."
+    processes: {VAT: Import VAT collection, WHT: Withholding tax, TCC: Trader tax-compliance clearance}
+    revenue_streams: [VAT on imports, WHT on trade services, Compliance fees]
+    typical_costs: [Personnel, ICT, Field operations]
+    remittance: "Net collections to the Federation Account less a cost-of-collection share; monthly, due by the 10th."
+  NPA:
+    name: Nigerian Ports Authority
+    type: operator
+    colour: "#B7791F"
+    aliases: [npa, portsauthority, nigerianportsauthority]
+    mandate: "Operates and regulates the ports; berthing, pilotage, cargo handling, terminal concessions and gate call-up."
+    processes: {BERTH: Vessel berthing, PILOT: Pilotage, WHARF: Cargo handling and wharfage, CONC: Terminal concession, GATE: Gate and truck call-up}
+    revenue_streams: [Port dues, Wharfage, Berthing, Pilotage, Concession fees, Storage share]
+    typical_costs: [Marine operations, Dredging, Personnel, Maintenance, ICT]
+    remittance: "Share of operating surplus, quarterly, rule-based."
+  NIMASA:
+    name: Nigerian Maritime Administration and Safety Agency
+    type: regulator
+    colour: "#1F7A8C"
+    aliases: [nimasa, maritime]
+    mandate: "Registers and certifies vessels and seafarers and enforces cabotage compliance."
+    processes: {REG: Vessel registration and certification, CAB: Cabotage compliance, SEA: Seafarer certification}
+    revenue_streams: [Cabotage and vessel levies, Registration fees, Certification fees]
+    typical_costs: [Personnel, Safety operations, ICT]
+    remittance: "Percentage of internally generated revenue, monthly."
+  SON:
+    name: Standards Organisation of Nigeria
+    type: regulator
+    colour: "#7D3C98"
+    aliases: [son, standards, standardsorganisation]
+    mandate: "Conformity assessment, inspection and laboratory testing of regulated imports."
+    processes: {CoC: Product conformity assessment, INSP: Inspection, LAB: Laboratory testing}
+    revenue_streams: [Conformity certificate fees, Inspection fees, Laboratory fees]
+    typical_costs: [Laboratory operations, Inspectors, ICT]
+    remittance: "Percentage of internally generated revenue, monthly."
+  NAFDAC:
+    name: National Agency for Food and Drug Administration and Control
+    type: regulator
+    colour: "#CA6F1E"
+    aliases: [nafdac, fooddrug]
+    mandate: "Import permits, product registration and border inspection for foods, drugs and cosmetics."
+    processes: {PERMIT: Import permit, REGP: Product registration, INSP: Border inspection}
+    revenue_streams: [Permit fees, Registration fees, Inspection fees]
+    typical_costs: [Laboratory analytics, Field operations, Personnel]
+    remittance: "Percentage of internally generated revenue, monthly."
+  NAQS:
+    name: Nigeria Agricultural Quarantine Service
+    type: regulator
+    colour: "#6B8E23"
+    aliases: [naqs, quarantine, agriculturalquarantine]
+    mandate: "Phytosanitary inspection and quarantine permits for agricultural imports."
+    processes: {PHYTO: Phytosanitary inspection, QPERMIT: Quarantine permit}
+    revenue_streams: [Inspection fees, Quarantine permit fees]
+    typical_costs: [Field operations, Laboratories, Personnel]
+    remittance: "Percentage of internally generated revenue, monthly."
+  NESREA:
+    name: National Environmental Standards and Regulations Enforcement Agency
+    type: regulator
+    colour: "#148F77"
+    aliases: [nesrea, environmental]
+    mandate: "Environmental compliance permits and hazardous-goods screening."
+    processes: {ENVP: Environmental compliance permit, HAZ: Hazardous goods screening}
+    revenue_streams: [Permit fees, Compliance fees]
+    typical_costs: [Field operations, Personnel]
+    remittance: "Percentage of internally generated revenue, monthly."
+  FAAN:
+    name: Federal Airports Authority of Nigeria
+    type: operator
+    colour: "#34495E"
+    aliases: [faan, airports, federalairportsauthority]
+    mandate: "Operates airports; air cargo handling, landing and parking, cargo terminal concessions."
+    processes: {ACH: Air cargo handling, LAND: Landing and parking, CTC: Cargo terminal concession}
+    revenue_streams: [Cargo handling charges, Landing and parking, Concession fees]
+    typical_costs: [Airport operations, Security, Maintenance]
+    remittance: "Percentage of operating surplus, quarterly."
+  CBN:
+    name: Central Bank of Nigeria
+    type: settlement
+    colour: "#7F8C8D"
+    aliases: [cbn, centralbank, centralbankofnigeria]
+    mandate: "Settlement and foreign-exchange rail; holds the settlement ledger and reports batches, conversions and lags."
+    processes: {PCONF: Payment confirmation, SETTLE: Settlement, FX: FX conversion}
+    revenue_streams: []
+    typical_costs: []
+    remittance: "n/a"
+  NSW:
+    name: NSW Secretariat
+    type: platform
+    colour: "#00796B"
+    aliases: [nsw, nationalsinglewindow, secretariat, nswsecretariat]
+    mandate: "Runs the National Single Window platform: transaction processing, agency onboarding and support."
+    processes: {TXN: Platform transaction processing, ONB: Onboarding, SUP: Support}
+    revenue_streams: [Platform and transaction fees per permit, declaration and manifest]
+    typical_costs: [ICT hosting, Personnel, Support]
+    remittance: "Retained per rule (simulated)."
+  MOF-FA:
+    name: Ministry of Finance / Federation Account
+    type: treasury
+    colour: "#5D4037"
+    aliases: [mof, mofa, financeministry, ministryoffinance, federationaccount]
+    mandate: "Receives remittances into the Federation Account (sink in this model)."
+    processes: {RCPT: Receipt of remittances}
+    revenue_streams: []
+    typical_costs: []
+    remittance: "n/a"
+
+# Entities whose ledger is excluded from the 'All NSW entities' consolidation (settlement rail and sink).
+consolidation_excludes: [CBN, MOF-FA]

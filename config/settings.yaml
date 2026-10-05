@@ -1,0 +1,97 @@
+# NSW Intelligence Console - settings (SYNTHETIC / SIMULATED parameters throughout)
+timezone: Africa/Lagos
+sim_start: auto_july_1          # July 1 of the current year; or an ISO date (e.g. 2026-07-01)
+warmup_days: 28                 # engine runs this long before sim_start so the pipeline is in steady state
+tick_seconds: 2
+live_speed: 1
+live_max_ahead_hours: 6         # time-lapse (LIVE_SPEED>1) may not run further ahead of the wall clock
+director_interval_seconds: 45
+consignments_per_day: 450
+sea_share: 0.8
+fx_usd_ngn: {start: 1480, min: 1450, max: 1650, daily_vol: 0.004}
+
+llm:
+  # The user asked for OpenAI's GPT-5.5. On AWS Bedrock it is served as an inference profile
+  # on the bedrock-runtime OpenAI-compatible route (the bare model id is rejected). The probe tries
+  # model_candidates x base_url candidates and records the first working pair.
+  preferred_model: gpt-5.5
+  model_candidates: ["us.openai.gpt-5.5", "global.openai.gpt-5.5", "openai.gpt-5.5"]
+  runtime_base_url_template: "https://bedrock-runtime.{region}.amazonaws.com/openai/v1"
+  default_region: us-east-1
+  concurrency: 6
+  max_calls_per_minute: 120
+  timeout_data_s: 60
+  timeout_chat_s: 90
+  reasoning_effort_data: low
+  reasoning_effort_chat: medium
+  # GPT-5.x spends output tokens on hidden reasoning, so completion budgets are the spec caps
+  # multiplied by this factor (the visible JSON is still capped by the prompt, not the factor).
+  reasoning_token_headroom: 3.0
+  budget_tokens_per_run: 1200000     # hard stop for the data role (then fallback)
+  budget_tokens_per_day: 3000000
+  chat_reserved_tokens: 150000
+  max_tokens: {profile: 2500, flow_plan: 2500, ops_plan: 1500, director: 800, feed_items: 600, narrator: 900, chat: 700, storyline: 2500, paraphrase: 400}
+  llm_prices_per_mtok: {}            # optional: {model_id: {in: x, out: y}} to show estimated cost
+  retry_max: 4
+
+plausibility:
+  count_multiplier_range: [0.3, 3.0]
+  share_sum_tolerance: 0.01
+
+monthly_targets_ngn_bn:
+  NCS: [38, 55]
+  NRS: [20, 30]
+  NPA: [6, 9]
+  NIMASA: [1.0, 1.8]
+  SON: [0.8, 1.4]
+  NAFDAC: [0.9, 1.6]
+  NAQS: [0.3, 0.6]
+  NESREA: [0.1, 0.3]
+  FAAN: [1.2, 2.2]
+  NSW: [0.4, 0.8]
+calibration_tolerance: 0.15
+
+sla_hours: {S02_permit: 48, S04_assessment: 12, S05_payment: 24, S06_exam: 36, S07_release: 6, S09_evacuation: 48}
+
+benchmarks:
+  baseline_days: [18, 21]
+  target_days: 7
+  target_date: "2026-12-31"
+  aspiration_hours: [24, 48]
+  peers_days: {Ghana: [5, 7], Benin: 4, Global: 4, Rwanda: 1.5}
+  note: "Published figures; verify before quoting."
+
+# ---------------- simulation engine parameters (simulated approximations) ----------------
+sim:
+  seed: 20260701
+  holiday_arrival_factor: 0.35
+  weekend_arrival_factor: 0.55
+  hourly_shape: [0.2,0.15,0.12,0.12,0.15,0.3,0.6,1.0,1.4,1.6,1.7,1.6,1.4,1.5,1.6,1.5,1.3,1.1,0.9,0.7,0.55,0.45,0.35,0.25]
+  progress_days: 96             # day offset (from sim_start) at which the improvement path reaches its end state
+  lane_probs: {green: 0.48, yellow: 0.20, red: 0.27, blue: 0.05}
+  payment_failure_rate: 0.02
+  duplicate_rate: 0.0004
+  orphan_payments_per_week: 3
+  assessment_noise: {prob: 0.04, sd: 0.012}
+  manifest_lead_hours: {sea: [14, 60], air: [2, 8]}
+  # Stage parameters: median hours at progress p=0 (start of July) and p=1 (end state).
+  # wait = hand-off wait before work starts; dur = processing time (what SLAs measure).
+  stages:
+    S02: {type: D, wait: [14, 4],   dur: [20, 8],   sw: 0.55, sd: 0.55, office: true}
+    S03: {type: D, wait: [30, 9],   dur: [3, 1.5],  sw: 0.6,  sd: 0.4,  office: false}
+    S04: {type: D, wait: [10, 3],   dur: [8, 3.5],  sw: 0.5,  sd: 0.45, office: true}
+    S05: {type: D, wait: [20, 6],   dur: [14, 6],   sw: 0.6,  sd: 0.5,  office: false}
+    S06: {type: P, wait: [60, 54],  dur: [18, 15],  sw: 0.55, sd: 0.5,  office: false}
+    S07: {type: D, wait: [3, 1.5],  dur: [3, 2],    sw: 0.5,  sd: 0.4,  office: true}
+    S08: {type: P, wait: [54, 50],  dur: [10, 9],   sw: 0.5,  sd: 0.45, office: false}
+    S09: {type: P, wait: [92, 84],  dur: [24, 22],  sw: 0.5,  sd: 0.5,  office: false}
+  port_factor: {NGAPP: 1.12, NGTIN: 1.10, NGONN: 0.9, NGLEK: 0.75, NGPHC: 0.95, LOS: 1.0, ABV: 0.9, KAN: 0.9, PHC: 0.9}
+  air_physical_factor: 0.3
+  lane_exam_factor: {yellow: 0.45, red: 1.0, blue: 0.0}
+  banks: {A: 20, B: 22, C: 24, D: 26, E: 28, F: 30}        # baseline settlement lag (hours)
+  batch_cutoff_hour_wat: 17
+  collection_cost_rate_default: 0.007
+  onboarding_digital_share: {NCS: [0.96, 0.99], NRS: [0.93, 0.98], NPA: [0.92, 0.97], NIMASA: [0.86, 0.95], SON: [0.88, 0.96], NAFDAC: [0.85, 0.95], NAQS: [0.80, 0.93], NESREA: [0.72, 0.86], FAAN: [0.90, 0.97], NSW: [0.99, 0.99], CBN: [0.97, 0.99]}
+
+rollups:
+  minute_retention_days: 3

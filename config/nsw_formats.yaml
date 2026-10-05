@@ -1,0 +1,78 @@
+# Identifier patterns (SIMULATED). The mapping layer lets real NSW field names be swapped in later.
+patterns:
+  nsw_ref:      {template: "NSW-{YYYYMM}-{PORT}-{seq7}", example: "NSW-202608-NGAPP-0001423", note: "Primary trace key"}
+  rotation_no:  {template: "ROT/{YYYY}/{seq6}", example: "ROT/2026/001234"}
+  form_m:       {template: "MF{YYYY}{seq7}", example: "MF20260012345"}
+  paar:         {template: "PAAR{YYYY}{seq8}", example: "PAAR202600012345"}
+  declaration:  {template: "C{seq6}/{YY}", example: "C012345/26"}
+  bill_of_lading: {template: "{SCAC4}{seq10}", example: "AMLU0123456789"}
+  container:    {template: "ISO 6346 with valid check digit", example: "MSCU1234565"}
+  vessel_imo:   {template: "IMO 7 digits with valid check digit", example: "9074729"}
+  payment_ref:  {template: "12 digits, unique", example: "123456789012"}
+  settlement_batch: {template: "STL-{YYYYMMDD}-{BANK}-{seq3}", example: "STL-20260901-C-001"}
+  tin:          {template: "{8digits}-{4digits}", example: "12345678-0001"}
+  rc_number:    {template: "RC{6-7 digits}", example: "RC123456"}
+  hs_code:      {template: "8-digit with dots", example: "8517.13.00"}
+  permit:
+    NAFDAC: "NAFDAC/IP/{YYYY}/{seq6}"
+    SON: "SONCAP/CoC/{YYYY}/{seq7}"
+    NAQS: "NAQS/PHY/{YYYY}/{seq6}"
+    NESREA: "NESREA/EP/{YYYY}/{seq5}"
+    NPA: "NPA/PD/{PORT}/{YYYY}/{seq6}"
+    FAAN: "FAAN/CH/{APT}/{YYYY}/{seq6}"
+  remittance:   {template: "REM-{ENTITY}-{YYYYMM}-{seq3}", example: "REM-NCS-202609-001"}
+  journal_entry: {template: "JE-{ENTITY}-{YYYYMMDD}-{seq6}", example: "JE-NCS-20260901-000123"}
+  alert:        {template: "ALT-{YYYYMMDD}-{seq5}", example: "ALT-20261002-00001"}
+locations:
+  sea_ports: {NGAPP: Apapa, NGTIN: Tin Can Island, NGONN: Onne, NGLEK: Lekki Deep Sea, NGPHC: Port Harcourt}
+  airports: {LOS: Lagos, ABV: Abuja, KAN: Kano, PHC: Port Harcourt}
+  currencies: [NGN, USD, EUR, GBP, CNY, AED, INR]
+  timestamp: "ISO 8601 with +01:00 (Africa/Lagos) at API/display layer; stored UTC"
+# internal field -> external (real NSW) field name. Replace the right-hand side when real schemas are known.
+field_mapping:
+  consignment.nsw_ref: nswReference
+  consignment.rotation_no: rotationNumber
+  consignment.form_m: formMNumber
+  consignment.paar: paarNumber
+  consignment.declaration_no: declarationNumber
+  consignment.bl_no: billOfLadingNumber
+  consignment.container_no: containerNumber
+  consignment.hs_code: hsCode
+  consignment.cif_value_minor: cifValue
+  consignment.origin_country: countryOfOrigin
+  payment.payment_ref: rrr
+  payment.amount_ngn_minor: amountPaid
+  settlement.batch_id: settlementBatchId
+  stage_event.occurred_at: eventTimestamp
+event_types:
+  - nsw.manifest.submitted
+  - nsw.manifest.accepted
+  - nsw.arrival.recorded
+  - nsw.permit.applied
+  - nsw.permit.approved
+  - nsw.permit.rejected
+  - nsw.permit.queried
+  - nsw.declaration.filed
+  - nsw.declaration.assessed
+  - nsw.payment.initiated
+  - nsw.payment.confirmed
+  - nsw.payment.failed
+  - nsw.payment.duplicate
+  - nsw.settlement.batch_closed
+  - nsw.settlement.completed
+  - nsw.exam.queued
+  - nsw.exam.started
+  - nsw.exam.completed
+  - nsw.release.granted
+  - nsw.gate.out
+  - nsw.remittance.due
+  - nsw.remittance.paid
+  - nsw.remittance.late
+  - ops.scanner.offline
+  - ops.scanner.restored
+  - ops.congestion.alert
+  - ops.incident.injected
+  - supervision.alert.raised
+  - supervision.alert.resolved
+  - system.llm.degraded
+  - system.llm.restored
