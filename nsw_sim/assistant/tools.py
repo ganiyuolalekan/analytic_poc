@@ -215,6 +215,17 @@ def _metric_value(metric: str, groups: list[str], f: Filters, as_of: str):
         d["value"] = 100 * d["value_c"] / d["value_s"].where(d["value_s"] > 0)
         d["rows"] = d["rows_c"]
         return d[[*groups, "value", "rows"]], "naira_per_100", "100 x collection cost divided by gross settled amount"
+    if metric in ("dwell_p50", "dwell_p90", "clearance_p50") and groups in (["week"], ["month"]):
+        done = clearance.completed(f, as_of)
+        col = "clearance_h" if metric == "clearance_p50" else "dwell_h"
+        if done.empty:
+            return pd.DataFrame(columns=[groups[0], "value", "rows"]), "days", metric
+        t = pd.to_datetime(done["gate_out_at"], utc=True).dt.tz_convert("Africa/Lagos").dt.tz_localize(None)
+        key = t.dt.to_period("W-SUN").dt.start_time.dt.strftime("%Y-%m-%d") if groups[0] == "week" else t.dt.strftime("%Y-%m")
+        d = (done[col] / 24.0).groupby(key)
+        q = 0.9 if metric == "dwell_p90" else 0.5
+        out = pd.DataFrame({groups[0]: d.quantile(q).index, "value": d.quantile(q).values, "rows": d.size().values})
+        return out, "days", f"{metric} by gate-out {groups[0]} (Monday-start weeks, WAT): percentile of dwell days for consignments that left in that {groups[0]}"
     if metric in ("dwell_p50", "dwell_p90", "clearance_p50"):
         by = {"port": "port", "mode": "mode", "commodity": "commodity_group", "origin_country": "origin_country"}.get(groups[0]) if groups else None
         t = clearance.dwell_table(f, by, as_of)
@@ -278,12 +289,26 @@ def aggregate(metric: str, group_by: list[str] | None = None, filters: dict | No
         return _err(f"{type(e).__name__}: {e}", as_of)
 
 
-def top_n(metric: str, dimension: str, n: int = 5, period: dict | str | None = None, filters: dict | None = None, as_of: str | None = None, **_) -> dict:
-    r = aggregate(metric, [dimension], filters, period, None, as_of)
+def top_n(metric: str, dimension: str, n: int = 5, period: dict | str | None = None, filters: dict | None = None, as_of: str | None = None,
+          compare_period: dict | str | None = None, rank_by: str = "value", **_) -> dict:
+    """Rank a dimension by a metric. With ``compare_period`` each row also carries the previous value, the change and change_pct (computed in code);
+    ``rank_by`` = value | change | change_pct (use change_pct for 'grew the most')."""
+    r = aggregate(metric, [dimension], filters, period, compare_period, as_of)
     if not r["ok"]:
         return r
     rows = [x for x in r["data"]["rows"] if x.get("value") is not None]
-    rows.sort(key=lambda x: x["value"], reverse=True)
+    if compare_period is not None:
+        prev = {x[dimension]: x for x in r["data"].get("compare_rows", [])}
+        for x in rows:
+            p = prev.get(x[dimension], {}).get("value")
+            x["previous_value"] = p
+            if p is not None:
+                x["change"] = round(x["value"] - p, 2)
+                x["change_pct"] = round((x["value"] - p) / abs(p) * 100, 4) if p else None
+        r["data"].pop("compare_rows", None)
+    key = rank_by if rank_by in ("value", "change", "change_pct") else "value"
+    rows = [x for x in rows if x.get(key) is not None]
+    rows.sort(key=lambda x: x[key], reverse=True)
     r["data"]["rows"] = [{"rank": i + 1, **x} for i, x in enumerate(rows[: max(1, min(int(n), 50))])]
     r["data"]["total_groups"] = len(rows)
     r["row_count"] = len(r["data"]["rows"])
@@ -422,9 +447,17 @@ def trace(reference: str, as_of: str | None = None, **_) -> dict:
     return _ok(data, len(fees), "consignment trace: stage events, fee assessments, payments, settlements", as_of)
 
 
+RULE_ALIASES = {"duplicatepayment": "R-DUP-01", "duplicatepayments": "R-DUP-01", "duplicate": "R-DUP-01", "dup": "R-DUP-01", "sla": "R-SLA-01", "slabreach": "R-SLA-01", "physical": "R-PHYS-01",
+                "physicalbottleneck": "R-PHYS-01", "exam": "R-PHYS-01", "examwait": "R-PHYS-01", "scanner": "R-PHYS-01", "fee": "R-FEE-01", "feeshortfall": "R-FEE-01", "underassessment": "R-FEE-01",
+                "settlementlag": "R-SET-01", "settlement": "R-SET-01", "paidnotsettled": "R-REC-01", "remittance": "R-REM-01", "lateremittance": "R-REM-01", "fx": "R-FX-01", "fxmove": "R-FX-01",
+                "dataquality": "R-DQ-01", "completeness": "R-DQ-01", "onboarding": "R-ONB-01", "collectioncost": "R-CASH-01", "target": "R-TGT-01"}
+
+
 def list_alerts(status: str | None = None, severity: str | None = None, entity: str | None = None, period: dict | str | None = None, rule: str | None = None, as_of: str | None = None, **_) -> dict:
     as_of = as_of or queries.watermark() or queries.now_iso()
     f, p = _filters(period or {"start": None, "end": as_of, "label": "all time"}, None, as_of)
+    if rule:
+        rule = RULE_ALIASES.get(re.sub(r"[^a-z]", "", rule.lower()), rule.upper())
     st = (status,) if isinstance(status, str) and status != "open_all" else (("open", "acknowledged", "under_review") if status == "open_all" else ())
     df = queries.alerts(f, as_of, st, (severity,) if severity else (), (ENTITY_ALIASES.get(entity.lower(), entity.upper()),) if entity else (), (rule,) if rule else ())
     rows = [{"alert_id": r.alert_id, "rule": r.rule_code, "severity": r.severity, "entity": r.entity, "subject": r.subject, "detected_at": r.detected_at, "status": r.status, "metric": round(float(r.metric_value), 4),
@@ -524,17 +557,18 @@ def specs() -> list[dict]:
            {"metric": {"type": "string"}, "group_by": {"type": "array", "items": {"type": "string"}}, "filters": _FLT, "period": _PER, "compare_period": _PER}, ["metric"]),
         fn("get_statement", "Financial statement from the ledger: performance | position | cash_flow | collection for an entity code or 'all' (consolidated).",
            {"entity": {"type": "string"}, "statement": {"type": "string"}, "period": _PER, "compare_period": _PER}, ["entity", "statement"]),
-        fn("top_n", "Rank a dimension by a metric.", {"metric": {"type": "string"}, "dimension": {"type": "string"}, "n": {"type": "integer"}, "period": _PER, "filters": _FLT}, ["metric", "dimension"]),
+        fn("top_n", "Rank a dimension by a metric. For growth between two periods pass compare_period (the earlier period) and rank_by='change_pct' (or 'change'); change and change_pct are computed in code.",
+           {"metric": {"type": "string"}, "dimension": {"type": "string"}, "n": {"type": "integer"}, "period": _PER, "filters": _FLT, "compare_period": _PER, "rank_by": {"type": "string"}}, ["metric", "dimension"]),
         fn("trend", "Time series of a metric with growth statistics (grain hour|day|week|month).", {"metric": {"type": "string"}, "grain": {"type": "string"}, "period": _PER, "filters": _FLT}, ["metric"]),
         fn("compare", "Side-by-side comparison with differences computed in code. by=entity|origin_country|port|mode|commodity or 'period' (items are period phrases).",
            {"metric": {"type": "string"}, "items": {"type": "array", "items": {"type": "string"}}, "period": _PER, "by": {"type": "string"}, "filters": _FLT}, ["metric", "items"]),
         fn("get_reconciliation", "Four-way match funnel, exception summary, in-transit by bank and the largest assessment shortfall.", {"period": _PER, "filters": _FLT}),
-        fn("get_clearance_stats", "Dwell/clearance percentiles, stage medians, digital share, largest delay stage. With stage (S02..S09) returns a percentile of wait_h or dur_h (queued=true uses queue-entry planned values).",
+        fn("get_clearance_stats", "Dwell/clearance percentiles, stage medians, digital share of time, and largest_delay_stage (the stage contributing most to delay, mean hours per consignment): use this for any clearance, dwell, delay or digital-vs-physical question. With stage (S02..S09) returns a percentile of wait_h or dur_h (queued=true uses queue-entry planned values).",
            {"period": _PER, "filters": _FLT, "stage": {"type": "string"}, "percentile": {"type": "number"}, "column": {"type": "string"}, "queued": {"type": "boolean"}}),
         fn("trace", "Trace one consignment by NSW reference, declaration, payment reference or container: agencies, fees, payments, stages.", {"reference": {"type": "string"}}, ["reference"]),
-        fn("list_alerts", "List alerts. status: open|acknowledged|under_review|resolved|dismissed|open_all.", {"status": {"type": "string"}, "severity": {"type": "string"}, "entity": {"type": "string"}, "period": _PER, "rule": {"type": "string"}}),
+        fn("list_alerts", "List alerts raised in the period. OMIT status to include every status (use status only when the user asks for open/unresolved/resolved ones; open_all = open+acknowledged+under_review). rule is a code (R-SLA-01 SLA, R-PHYS-01 exam/scanner wait, R-FEE-01 fee shortfall, R-REC-01 paid-not-settled, R-SET-01 settlement lag, R-REM-01 late remittance, R-DUP-01 duplicate payments, R-FX-01 FX move, R-DQ-01 data completeness, R-CASH-01 cost spike, R-TGT-01 dwell target, R-ONB-01 onboarding) or a short name.", {"status": {"type": "string"}, "severity": {"type": "string"}, "entity": {"type": "string"}, "period": _PER, "rule": {"type": "string"}}),
         fn("get_live_snapshot", "Collections, events and incidents in the last N minutes.", {"minutes": {"type": "integer"}}),
-        fn("compute", "Safe decimal calculator. Use for ANY arithmetic (differences, ratios, percentages). Pass numbers from earlier tool results as variables.", {"expression": {"type": "string"}, "variables": {"type": "object"}}, ["expression"]),
+        fn("compute", "Safe decimal calculator for ANY arithmetic (differences, ratios, percentages). ONE expression per call using only numbers, the variable names you pass, + - * / ** % and parentheses (and abs/round/min/max); no dicts, lists or strings. Example: expression '(a-b)/b*100', variables {'a': 120, 'b': 100}.", {"expression": {"type": "string"}, "variables": {"type": "object"}}, ["expression"]),
         fn("query_readonly", f"Read-only SELECT over these views only: {', '.join(sorted(guardrails.ALLOWED_VIEWS))}. Use when no specific tool fits. Row cap 500; amounts in *_minor are kobo.", {"sql": {"type": "string"}}, ["sql"]),
     ]
 
@@ -553,3 +587,26 @@ def call(name: str, args: dict, as_of: str | None) -> dict:
         out = _err(f"{type(e).__name__}: {e}", as_of)
     out["duration_ms"] = int((time.time() - t0) * 1000)
     return out
+
+
+_SCHEMA_CACHE: dict = {}
+
+
+def schema_catalog() -> str:
+    """Compact catalogue of the read-only views (columns) plus enumerations, injected into the assistant's system prompt so SQL uses real names."""
+    if "txt" in _SCHEMA_CACHE:
+        return _SCHEMA_CACHE["txt"]
+    conn = db.reader(queries.watermark() or queries.now_iso())
+    lines = []
+    for v in sorted(guardrails.ALLOWED_VIEWS):
+        cols = [r[1] for r in conn.execute(f"PRAGMA table_info({v})")]
+        if v in ("v_journal_entries",):
+            continue
+        lines.append(f"{v}({', '.join(cols)})")
+    enums = ("Enumerations: entity codes " + ", ".join(entity_cards()) + "; stage codes S01..S09 (S02 permits, S03 declaration, S04 assessment, S05 payment, S06 exam, S07 release, S08 terminal, S09 evacuation); stage status done|manual|queued; "
+             "fee_assessments/collections have entity_id, fee_code (e.g. NCS-DUTY, NPA-PORTDUES), process_code, origin_country (ISO2), commodity_group, mode (sea|air), port (NGAPP, NGTIN, NGLEK, NGONN, NGPHC, LOS, ABV, KAN, PHC); "
+             "funding source_type appropriation|grant|concessional_loan; payments status confirmed|failed|duplicate and is_duplicate 0/1 (nsw_ref starting UNMATCHED = unmatched payment); alerts severity high|medium|low|info, "
+             "status open|acknowledged|under_review|resolved|dismissed; alert rule codes R-SLA-01, R-PHYS-01, R-FEE-01, R-REC-01, R-SET-01, R-REM-01, R-DUP-01, R-FX-01, R-DQ-01, R-CASH-01, R-TGT-01, R-ONB-01; banks are the single letters A, B, C, D, E, F (bank column values are 'A'..'F', never 'Bank A'); "
+             "all *_minor amounts are kobo (divide by 100); timestamps are UTC ISO text (WAT = UTC+1; day columns are WAT dates).")
+    _SCHEMA_CACHE["txt"] = "Views available to query_readonly:\n" + "\n".join(lines) + "\n" + enums
+    return _SCHEMA_CACHE["txt"]

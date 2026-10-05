@@ -99,8 +99,9 @@ def _close(v: float, p: float, decimals: int, scale: float = 1.0) -> bool:
 
 
 def matches(claim: Claim, pool: list[float]) -> bool:
-    v = claim.value
-    for p in pool:
+    """Magnitudes are compared (the wording 'lower', 'fell', 'decrease' carries the sign of a difference)."""
+    v = abs(claim.value)
+    for p in (abs(x) for x in pool):
         if claim.kind == "money":
             scale = 1e12 if "tn" in claim.text.lower() or "trillion" in claim.text.lower() else 1e9 if re.search(r"bn|billion", claim.text, re.I) else 1e6 if re.search(r"\dm\b|million", claim.text, re.I) else 1e3 if re.search(r"\dk\b", claim.text, re.I) else 1.0
             if _close(v, p, claim.decimals, scale):
