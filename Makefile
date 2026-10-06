@@ -2,11 +2,11 @@ PY ?= .venv/bin/python
 PYTEST ?= .venv/bin/python -m pytest
 STREAMLIT ?= .venv/bin/streamlit
 
-.PHONY: db-status db-unindexed db-index run-local cost setup probe estimate-cost seed run run-live live-on live-off live-status share unshare test test-all eval snapshot restore-demo reset logos lint report variants
+.PHONY: db-package db-publish db-status db-unindexed db-index run-local cost setup probe estimate-cost seed run run-live live-on live-off live-status share unshare test test-all eval snapshot restore-demo reset logos lint report variants
 
 setup:
 	uv venv --python 3.12 .venv
-	uv pip install --python $(PY) -r requirements.txt
+	uv pip install --python $(PY) -r requirements-dev.txt
 	@test -f .env || (cp .env.example .env && echo "Created .env from .env.example - add your key")
 
 probe:
@@ -37,6 +37,13 @@ db-unindexed:
 
 db-index:
 	$(PY) scripts/db_index.py index
+
+# Publish the database to a PRIVATE Hugging Face dataset so a new host can fetch it (see DEPLOY.md). db-package needs no account; db-publish needs a WRITE token and NSW_DB_REPO.
+db-package:
+	$(PY) scripts/publish_db.py build
+
+db-publish:
+	$(PY) scripts/publish_db.py upload
 
 run-local:
 	NSW_DB_PATH=data/nsw_unindexed.db $(STREAMLIT) run app/main.py --server.port 8599

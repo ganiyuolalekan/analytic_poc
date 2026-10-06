@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -12,8 +13,12 @@ import streamlit as st  # noqa: E402
 
 st.set_page_config(layout="wide", page_title="NSW Intelligence Console", initial_sidebar_state="expanded")
 
+from app.components import cloud  # noqa: E402
+
+cloud.secrets_to_env()          # on Streamlit Community Cloud the settings arrive as secrets: make them environment variables before anything reads them
+
 from app.components import filters, gate, header, qa, state  # noqa: E402
-from nsw_sim import db  # noqa: E402
+from nsw_sim import db, dbfetch  # noqa: E402
 from nsw_sim.config import db_path  # noqa: E402
 
 PAGES = [("screens/00_home.py", "Home"), ("screens/01_command_center.py", "Command Center"), ("screens/02_clearance.py", "Clearance Journey"), ("screens/03_entities.py", "Entity Explorer"),
@@ -21,6 +26,22 @@ PAGES = [("screens/00_home.py", "Home"), ("screens/01_command_center.py", "Comma
          ("screens/07_reports.py", "Reports"), ("screens/08_assistant.py", "Assistant"), ("screens/09_data_quality.py", "Data Quality & Onboarding"),
          ("screens/10_architecture.py", "Architecture & Integration"), ("screens/11_admin.py", "Admin / Generation Control"), ("screens/12_methodology.py", "Methodology & Glossary")]
 SECTIONS = {"screens/00_home.py", "screens/03_entities.py", "screens/04_trace.py", "screens/06_supervision.py"}          # all a reviewer sees in the sidebar; the other pages are for the presenter ("More pages")
+
+
+def _fetch_screen() -> None:
+    """Shown while a new host downloads and prepares the database from the private dataset (first start only)."""
+    s = dbfetch.status()
+    st.title("Getting the data ready")
+    if s["state"] == "error":
+        st.error(s["message"])
+        if st.button("Try again", type="primary"):
+            dbfetch.retry()
+            st.rerun()
+        return
+    st.progress(min(1.0, s["fraction"]), text=s["label"] + "…")
+    st.caption("The first start on a new host takes a minute or two. This page refreshes by itself.")
+    time.sleep(2)
+    st.rerun()
 
 
 def _bootstrap_screen() -> bool:
@@ -53,9 +74,12 @@ def _bootstrap_screen() -> bool:
 
 
 header.ribbon()
+dbfetch.start()          # a new host starts fetching its database as soon as anyone opens the app, even before the access code is entered (does nothing unless NSW_DB_REPO is set)
 if not gate.passed():
     st.stop()
-if _bootstrap_screen():
+if dbfetch.needed():
+    _fetch_screen()
+elif _bootstrap_screen():
     filters.sidebar()
     header.top_bar()
     if not state.view_only():          # the presenter's own machine only: a shared review link has no way to reveal the technical pages
