@@ -18,5 +18,14 @@ Live service verified headless (watermark advances, director writes llm feed ite
 
 ## ALL PHASES DONE (0-9). Final state
 - Tests: see reports/test_summary.md (all passing); assistant eval 62/62 base, paraphrases ~92%; share report in reports/share/ (bundle + md + pdf); acceptance evidence in reports/acceptance.md.
-- Run the app: `make run` (http://localhost:8501) or `.venv/bin/streamlit run app/main.py --server.port 8599`; the service starts on first page load; `data/nsw.db` is ~1.6 GB (`make seed` / `scripts/seed.py --rebuild` rebuilds it).
+- Run the app: `make run` (http://localhost:8501) or `.venv/bin/streamlit run app/main.py --server.port 8599`. **Live generation is OFF by default** (data frozen at its last data time): flip it from the top-bar toggle or `make live-on` / `make live-off` / `make live-status`; `make run-live` starts it ON (see ASSUMPTIONS 23); `data/nsw.db` is ~1.6 GB (`make seed` / `scripts/seed.py --rebuild` rebuilds it).
 - Possible follow-ups: Playwright screenshots for the share report; browser-level URL-filter test; dark-mode check; an Admin button for DB snapshot.
+
+## Alert lookup and episode questions (2026-10-06)
+- A question that quotes a figure ("12.1% below expectation") or names an alert is about a specific window, not the UI period. New tools `shortfall_episodes` (WHEN a slice was under-assessed, shortfall over the episode and over the whole period) and `get_alert` (any alert by id); the agent re-prompts once when a figure quoted in the question appears in no tool result and otherwise marks the answer *Partially verified* with a note (ASSUMPTIONS 24).
+- Supervision > Alert board: "Find an alert by ID" (all statuses, ignores the filters) and `/supervision?alert=ALT-...` deep links; fee-shortfall alerts show a day-by-day evidence chart and table. Resolved alerts stay hidden on the default board (add them to Status).
+- Golden questions Q63-Q65 added (episode, alert, nonexistent figure). Verified live: Q63-Q65 plus a 19-question regression subset passed 22/22 (`reports/assistant_eval_partial.md`); the full 62-question run in `reports/assistant_eval.md` pre-dates them and was not repeated.
+
+## Sharing and R-TGT-01 (2026-10-06)
+- `make share` serves the app from this machine through ngrok (access code, view-only, token cap; ASSUMPTIONS 26). The ngrok leg itself has not been started or tested end to end.
+- R-TGT-01 no longer fires without a real projection and its metric is the fitted dwell days; the spurious ALT-20261005-00001 was dismissed with an audit entry (ASSUMPTIONS 25). The share report (`make report`, uses the model) still says 16 alerts and B1 detected 02 Jul; regenerate it if those figures must match the corrected history.

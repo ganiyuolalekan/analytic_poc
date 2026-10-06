@@ -396,6 +396,26 @@ def o_unmatched_memo(c):
     return {"memo_amount": 18500.0}
 
 
+def _electronics_cn_episode(c):
+    """NCS duty on Electronics from CN: the run of WAT days on which the daily shortfall exceeds 5%, and the shortfall over that run (independent of the app's code)."""
+    df = pd.read_sql_query("SELECT date(occurred_at,'+1 hour') d, COUNT(*) n, SUM(expected_amount_ngn_minor) ex, SUM(amount_ngn_minor) a FROM fee_assessments WHERE entity_id='NCS' AND fee_code='NCS-DUTY' "
+                           "AND commodity_group='Electronics' AND origin_country='CN' AND expected_amount_ngn_minor>0 AND occurred_at<? GROUP BY 1 ORDER BY 1", c, params=(AS_OF,))
+    df["pct"] = (df["ex"] - df["a"]) / df["ex"]
+    hot = df[df["pct"] > 0.05]
+    run = df[(df["d"] >= hot["d"].min()) & (df["d"] <= hot["d"].max())]
+    return hot["d"].min(), hot["d"].max(), (run["ex"].sum() - run["a"].sum()) / run["ex"].sum() * 100, (run["ex"].sum() - run["a"].sum()) / 100.0, int(run["n"].sum())
+
+
+def o_episode_electronics(c):
+    d0, d1, pct, naira, n = _electronics_cn_episode(c)
+    return {"episode_shortfall_percent": [float(pct)], "episode_shortfall_naira": [float(naira)], "assessments": [float(n)]}
+
+
+def o_alert_fee(c):
+    _, _, pct, naira, _ = _electronics_cn_episode(c)
+    return {"alert_or_episode_percent": [float(pct), 10.23], "episode_shortfall_naira": [float(naira)]}
+
+
 ORACLES = {k[2:]: v for k, v in dict(globals()).items() if k.startswith("o_") and callable(v)}
 ORACLES["nesrea_q3"] = ORACLES["nesrea_assessed_q3"]
 

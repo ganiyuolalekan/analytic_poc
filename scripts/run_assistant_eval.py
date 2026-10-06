@@ -119,7 +119,8 @@ def main() -> int:
     summary = {"as_of": a.as_of, "questions": len(base), "pass_rate": rate, "variant_pass_rate": vrate, "variants": len(var), "median_latency_s": sorted(r["latency_s"] for r in base)[len(base) // 2] if base else None,
                "slow_over_20s": [r["id"] for r in base if r["latency_s"] > 20], "passing_with_unverified_numbers": unverified_pass, "model": llm.cfg.model_chat}
     REPORTS_DIR.mkdir(exist_ok=True)
-    md = ["# Assistant evaluation\n", f"As of `{a.as_of}` · model `{summary['model']}` · {len(base)} base questions" + (f" + {len(var)} paraphrases" if var else "") + "\n",
+    part = "_partial" if (a.ids or a.limit) else ""          # a subset run must never overwrite the full-evaluation evidence
+    md = ["# Assistant evaluation" + (" (partial run: selected questions only)" if part else "") + "\n", f"As of `{a.as_of}` · model `{summary['model']}` · {len(base)} base questions" + (f" + {len(var)} paraphrases" if var else "") + "\n",
           f"**Pass rate: {rate:.1%}** (target ≥ 95%)" + (f" · paraphrase robustness: {vrate:.1%}" if vrate is not None else "") + f" · median latency {summary['median_latency_s']} s\n",
           "\n| id | question | expected | tools used (expected) | status | verdict |\n|---|---|---|---|---|---|"]
     for r in results:
@@ -130,10 +131,10 @@ def main() -> int:
         md.append("\n## Failures\n")
         for r in fails:
             md.append(f"### {r['id']} ({r['kind']})\n- Q: {r['question']}\n- Missing expected: {r['missing']}\n- Unmatched numbers: {r['unmatched']}\n- Tools: {r['tools_called']} (expected one of each group {r['tools_expected']})\n- Answer: {r['answer'][:600]}\n- Trace: {json.dumps([(t['name'], t['arguments']) for t in r['trace']], default=str)[:600]}\n")
-    (REPORTS_DIR / "assistant_eval.md").write_text("\n".join(md))
-    (REPORTS_DIR / "assistant_eval.json").write_text(json.dumps({"summary": summary, "results": results}, indent=1, default=str))
+    (REPORTS_DIR / f"assistant_eval{part}.md").write_text("\n".join(md))
+    (REPORTS_DIR / f"assistant_eval{part}.json").write_text(json.dumps({"summary": summary, "results": results}, indent=1, default=str))
     rows = "".join(f"<tr class='{'ok' if r['passed'] else 'bad'}'><td>{r['id']}</td><td>{html.escape(r['question'])}</td><td>{html.escape(str(r['expected'])[:160])}</td><td>{', '.join(r['tools_called'])}</td><td>{r['status']}</td><td>{'PASS' if r['passed'] else 'FAIL'}</td></tr>" for r in results)
-    (REPORTS_DIR / "assistant_eval.html").write_text(f"<html><body style='font-family:sans-serif'><h1>Assistant evaluation</h1><p>Synthetic data. Pass rate {rate:.1%}</p><table border=1 cellpadding=4>{rows}</table></body></html>")
+    (REPORTS_DIR / f"assistant_eval{part}.html").write_text(f"<html><body style='font-family:sans-serif'><h1>Assistant evaluation</h1><p>Synthetic data. Pass rate {rate:.1%}</p><table border=1 cellpadding=4>{rows}</table></body></html>")
     print(json.dumps(summary, indent=1))
     return 0 if rate >= 0.95 else 1
 

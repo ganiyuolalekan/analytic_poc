@@ -40,6 +40,8 @@ for m in ss["chat"]:
             st.markdown(f"<span style='color:{col};font-weight:700' title='{hint}'>{label}</span> · {meta.get('period') or 'period as stated'} · {meta['latency_ms'] / 1000:.1f}s", unsafe_allow_html=True)
             if meta["unmatched"]:
                 st.warning("Figures not matched to a tool result: " + ", ".join(meta["unmatched"]))
+            if meta.get("unreconciled"):
+                st.warning("Your question quotes " + ", ".join(meta["unreconciled"]) + ", which no tool result reproduced. The answer may describe a different period or slice than you mean.")
             if meta["tool_trace"]:
                 with st.expander(tooltips.label("assistant_basis")):
                     st.caption(tooltips.tip("assistant_basis"))
@@ -65,6 +67,6 @@ if q:
             else:
                 final = payload
         box.markdown(final.text)
-    ss["chat"].append({"role": "assistant", "content": final.text, "meta": {"status": final.status, "unmatched": final.unmatched, "tool_trace": final.tool_trace, "period": final.period, "latency_ms": final.latency_ms}})
+    ss["chat"].append({"role": "assistant", "content": final.text, "meta": {"status": final.status, "unmatched": final.unmatched, "tool_trace": final.tool_trace, "period": final.period, "latency_ms": final.latency_ms, "unreconciled": final.unreconciled}})
     st.rerun()
 cards.disclaimer_footer()

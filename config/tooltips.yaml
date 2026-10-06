@@ -1345,6 +1345,24 @@ live_feed:
   short: Real-time operational events from the Single Window.
   sources:
   - live_events
+live_generation:
+  label: Live generation
+  long: '**What it is.** Whether the simulation is producing new activity in real time; off by default, and when off the data stays frozen at the data time shown.
+
+    **How it is calculated.** A switch shared by the top bar and the terminal commands `make live-on` and `make live-off`. Switching on first catches the history up to the current time, then adds new activity every few seconds; switching off stops the engine, the live director and every model call made for generation.
+
+    **Where it comes from.** `service`.
+
+    **How to read it.** Off: nothing changes and every figure stays at the data time in the top bar. On: the green pulse beats and the feed streams.
+
+    **Why the NSW cares.** A frozen data set makes a demo repeatable and spends no model tokens.
+
+    **Caveats.** Switching on after a long pause spends a short while catching up first. The assistant still works while generation is off.'
+  needs:
+  - speed
+  short: Whether the simulation is producing new activity in real time; off by default, and when off the data stays frozen at the data time shown.
+  sources:
+  - service
 live_speed:
   label: Live speed
   long: '**What it is.** Time-lapse factor for the live simulation.

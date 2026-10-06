@@ -130,6 +130,27 @@ def verify(text: str, tool_outputs: list, allow: list[float] | None = None) -> V
     return Verdict("partial" if len(unmatched) < len(claims) else "unverified", claims, unmatched)
 
 
+def question_figures(question: str) -> list[Claim]:
+    """Percentages and naira amounts the user quotes in the QUESTION (for example '12.1% below expectation'). They are the user's reference points:
+    an answer that never reproduces them has probably looked at the wrong slice or window. Years, dates and small counts are not figures."""
+    out: list[Claim] = []
+    for m in _MONEY.finditer(question):
+        raw = m.group(1)
+        out.append(Claim(m.group(0), _f(raw) * _SCALE[(m.group(2) or "").lower() or None], "money", _dec(raw)))
+    for m in _PCT.finditer(_MONEY.sub(" ", question)):
+        out.append(Claim(m.group(0), _f(m.group(1)), "pct", _dec(m.group(1))))
+    return out
+
+
+def unreconciled_question_figures(question: str, tool_outputs: list) -> list[Claim]:
+    """Figures quoted in the question that appear nowhere in the tool results the answer was built from."""
+    figs = question_figures(question)
+    if not figs:
+        return []
+    pool = collect_numbers(tool_outputs)
+    return [c for c in figs if not matches(c, pool)]
+
+
 def strip_unverified_sentences(text: str, pool_source: list, allow: list[float] | None = None) -> tuple[str, list[str]]:
     """Remove sentences containing numbers that cannot be matched (used for report narratives and digests)."""
     parts = re.split(r"(?<=[.!?])\s+|\n+", text)

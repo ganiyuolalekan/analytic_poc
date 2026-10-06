@@ -2,7 +2,7 @@ PY ?= .venv/bin/python
 PYTEST ?= .venv/bin/python -m pytest
 STREAMLIT ?= .venv/bin/streamlit
 
-.PHONY: cost setup probe estimate-cost seed run test test-all eval snapshot restore-demo reset logos lint report variants
+.PHONY: cost setup probe estimate-cost seed run run-live live-on live-off live-status share unshare test test-all eval snapshot restore-demo reset logos lint report variants
 
 setup:
 	uv venv --python 3.12 .venv
@@ -23,6 +23,30 @@ seed:
 
 run:
 	$(STREAMLIT) run app/main.py
+
+# Live generation is OFF whenever the app starts; run-live starts it ON. Flip it any time from the top bar or with the targets below.
+run-live:
+	NSW_LIVE_ON_START=1 $(STREAMLIT) run app/main.py
+
+live-on:
+	@$(PY) scripts/live.py on
+
+live-off:
+	@$(PY) scripts/live.py off
+
+live-status:
+	@$(PY) scripts/live.py status
+
+# Share this machine's app with reviewers through ngrok: access code, view-only, daily token cap (see scripts/share.sh)
+share:
+	@bash scripts/share.sh
+
+# Stop sharing: closes the ngrok tunnel and the shared app (your normal `make run` instance is left running)
+unshare:
+	-@pkill -f "scripts/share.sh"
+	-@pkill -f "ngrok http"
+	-@pkill -f "streamlit run app/main.py --server.address 127.0.0.1"
+	@echo "sharing stopped"
 
 test:
 	$(PYTEST) -q -m "not slow"

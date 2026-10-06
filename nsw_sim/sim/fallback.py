@@ -171,7 +171,7 @@ def fallback_country_sensitivity(code: str) -> dict[str, CountrySens]:
     for iso2, c in ref()["countries"].items():
         r = _seeded("cs", code, iso2)
         tier = c["risk_tier"]
-        jitter = lambda s: 1 + r.uniform(-s, s)  # noqa: E731
+        jitter = lambda s: 1 + r.uniform(-s, s)  # noqa: E731, B023 (used within the same iteration)
         fee = {"NCS": 1 + 0.035 * (tier - 1), "NPA": 1 + (0.03 if c["region"] == "Asia" else 0.0), "SON": 1.0 + 0.02 * tier}.get(code, 1.0)
         insp = {1: 0.8, 2: 1.1, 3: 1.5}[tier] * (1.15 if code in ("NAFDAC", "NAQS") and c["region"] in ("Asia", "Africa") else 1)
         out[iso2] = CountrySens(

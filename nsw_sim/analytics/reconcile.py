@@ -1,7 +1,7 @@
 """Four-way reconciliation (Assessed -> Paid -> Settled -> Remitted), exception classification and leakage indicators."""
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import date, timedelta
 
 import pandas as pd
 
@@ -126,6 +126,56 @@ def leakage_heatmap(f: Filters, as_of: str | None = None, min_n: int = 15, fee_c
     df["shortfall_pct"] = (df["expected"] - df["assessed"]) / df["expected"].where(df["expected"] > 0)
     df["shortfall_minor"] = df["expected"] - df["assessed"]
     return df.sort_values("shortfall_pct", ascending=False).reset_index(drop=True)
+
+
+def slice_daily(entity: str, fee_code: str, commodity: str, origin: str, start: str, end: str, as_of: str | None = None) -> pd.DataFrame:
+    """Daily assessed vs expected for one entity / fee / commodity / origin slice (WAT days; ``start`` inclusive, ``end`` exclusive, UTC ISO)."""
+    df = pd.read_sql_query("SELECT date(occurred_at,'+1 hour') AS day, COUNT(*) n, SUM(expected_amount_ngn_minor) expected, SUM(amount_ngn_minor) assessed FROM v_assessments "
+                           "WHERE entity_id=? AND fee_code=? AND commodity_group=? AND origin_country=? AND occurred_at>=? AND occurred_at<? AND expected_amount_ngn_minor>0 "
+                           "GROUP BY 1 ORDER BY 1", db.reader(as_of), params=[entity, fee_code, commodity, origin, start, end])
+    df["shortfall_minor"] = df["expected"] - df["assessed"]
+    df["shortfall_pct"] = df["shortfall_minor"] / df["expected"].where(df["expected"] > 0)
+    return df
+
+
+def shortfall_episodes(f: Filters, as_of: str | None = None, fee_code: str | None = None, min_pct: float = 0.05, min_daily_n: int = 3, min_days: int = 2,
+                       limit: int = 10) -> pd.DataFrame:
+    """WHEN an entity / fee / commodity / origin slice stood out as under-assessed: runs of consecutive WAT days (one quiet day inside a run is bridged) on which the
+    slice was assessed more than ``min_pct`` below the fee-rule expectation. The figures are recomputed over the whole run, so ``shortfall_pct`` is the episode's own
+    shortfall (not diluted by the weeks around it). Positive = under-assessed; sorted by naira shortfall."""
+    w, p = _where(f)
+    if fee_code:
+        w += " AND fee_code=?"
+        p.append(fee_code)
+    days = pd.read_sql_query("SELECT entity_id, fee_code, commodity_group, origin_country, date(occurred_at,'+1 hour') AS day, COUNT(*) n FROM v_assessments"
+                             f"{w} AND expected_amount_ngn_minor>0 GROUP BY 1,2,3,4,5 HAVING n>=? AND (SUM(expected_amount_ngn_minor)-SUM(amount_ngn_minor)) > ?*SUM(expected_amount_ngn_minor)",
+                             db.reader(as_of), params=[*p, min_daily_n, min_pct])
+    cols = ["entity_id", "fee_code", "commodity_group", "origin_country", "start_day", "end_day", "days", "n", "expected_minor", "assessed_minor", "shortfall_minor", "shortfall_pct"]
+    if days.empty:
+        return pd.DataFrame(columns=cols)
+    runs: list[tuple] = []
+    for key, g in days.sort_values("day").groupby(["entity_id", "fee_code", "commodity_group", "origin_country"]):
+        ds = [date.fromisoformat(d) for d in g["day"]]
+        first = prev = ds[0]
+        for d in ds[1:]:
+            if (d - prev).days > 2:                      # more than one quiet day between flagged days: a new episode
+                runs.append((*key, first, prev))
+                first = d
+            prev = d
+        runs.append((*key, first, prev))
+    out = []
+    for ent, fee, com, org, d0, d1 in runs:
+        if (d1 - d0).days + 1 < min_days:
+            continue
+        sl = slice_daily(ent, fee, com, org, clock.day_bounds(d0)[0], clock.day_bounds(d1)[1], as_of)
+        ex, ass = float(sl["expected"].sum()), float(sl["assessed"].sum())
+        if ex <= 0:
+            continue
+        out.append({"entity_id": ent, "fee_code": fee, "commodity_group": com, "origin_country": org, "start_day": d0.isoformat(), "end_day": d1.isoformat(),
+                    "days": (d1 - d0).days + 1, "n": int(sl["n"].sum()), "expected_minor": int(ex), "assessed_minor": int(ass), "shortfall_minor": int(ex - ass), "shortfall_pct": (ex - ass) / ex})
+    if not out:
+        return pd.DataFrame(columns=cols)
+    return pd.DataFrame(out, columns=cols).sort_values("shortfall_minor", ascending=False).head(limit).reset_index(drop=True)
 
 
 def unpaid_ageing(f: Filters, as_of: str | None = None) -> pd.DataFrame:

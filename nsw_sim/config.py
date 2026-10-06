@@ -48,7 +48,11 @@ def offline_forced() -> bool:
 @lru_cache(maxsize=1)
 def settings() -> dict[str, Any]:
     with open(CONFIG_DIR / "settings.yaml", encoding="utf-8") as fh:
-        return yaml.safe_load(fh)
+        s = yaml.safe_load(fh)
+    cap = os.environ.get("NSW_TOKEN_BUDGET_DAY", "").strip()      # shared deployments cap the day's model spend (see scripts/share.sh)
+    if cap.isdigit():
+        s["llm"]["budget_tokens_per_day"] = int(cap)
+    return s
 
 
 @cache

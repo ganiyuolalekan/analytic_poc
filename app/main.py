@@ -12,7 +12,7 @@ import streamlit as st  # noqa: E402
 
 st.set_page_config(layout="wide", page_title="NSW Intelligence Console", initial_sidebar_state="expanded")
 
-from app.components import chat, filters, header, state  # noqa: E402
+from app.components import chat, filters, gate, header, state  # noqa: E402
 from nsw_sim import db  # noqa: E402
 from nsw_sim.config import db_path  # noqa: E402
 
@@ -23,29 +23,37 @@ PAGES = [("pages/01_command_center.py", "Command Center"), ("pages/02_clearance.
 
 
 def _bootstrap_screen() -> bool:
-    """Progress screen while the database is empty / catching up. Returns True when the UI may render."""
+    """Gate screen while the database has no data yet. Returns True when the UI may render."""
     svc = state.service()
-    ready = db_path().exists()
     wm = None
-    if ready:
+    if db_path().exists():
         try:
             wm = state.as_of() if db.kv_get(db.reader(), "watermark_utc") else None
         except Exception:  # noqa: BLE001
             wm = None
-    if wm is None or svc.mode in ("starting",) and not wm:
-        stt = svc.status()
-        st.title("Preparing the simulated NSW channel")
-        st.progress(min(1.0, stt["progress"]["fraction"]), text=stt["progress"]["label"] or "Starting…")
-        st.caption("First start builds the world (profiles, plans, history). Run `make seed` ahead of a meeting to do this in advance.")
-        st.fragment(lambda: None)()
-        import time
-        time.sleep(2)
-        st.rerun()
+    if wm is not None:
+        return True
+    stt = svc.status()
+    if not stt["enabled"]:
+        st.title("No simulated data yet")
+        st.info("Live generation is off and the database is empty. Build the history from a terminal with `make seed` (a few minutes; cached model plans are free), "
+                "or build it here, which switches live generation on.")
+        if st.button("Build the data now (switches live generation on)", type="primary"):
+            svc.set_live(True, "app")
+            st.rerun()
         return False
-    return True
+    st.title("Preparing the simulated NSW channel")
+    st.progress(min(1.0, stt["progress"]["fraction"]), text=stt["progress"]["label"] or "Starting…")
+    st.caption("First start builds the world (profiles, plans, history). Run `make seed` ahead of a meeting to do this in advance.")
+    import time
+    time.sleep(2)
+    st.rerun()
+    return False
 
 
 header.ribbon()
+if not gate.passed():
+    st.stop()
 if _bootstrap_screen():
     filters.sidebar()
     header.top_bar()

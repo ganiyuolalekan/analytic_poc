@@ -18,6 +18,16 @@ svc = state.service()
 stt = svc.status()
 if not state.presenter():
     st.info("Switch on **Presenter mode** (top right) to use the controls on this page. Status is always visible.")
+live = stt["mode"] == "live"
+if state.view_only():
+    st.info("This deployment is **view-only**: generation, catch-up, speed, offline mode and incident controls are disabled. The presenter controls them from the host machine.")
+if live:
+    st.success("Live generation is **ON**. Switch it off with the toggle in the top bar or `make live-off`; the data then freezes at its last data time.")
+elif stt["mode"] == "catching_up":
+    st.info("Live generation is starting: the data is being caught up to the current time. The controls below unlock when it is live.")
+else:
+    st.warning("Live generation is **OFF**: the data is frozen and nothing is generated. Switch it on with the toggle in the top bar or `make live-on`. "
+               "The engine controls below (catch-up, speed, incidents) need it on.")
 tooltips.title("admin_controls")
 c = st.columns(5)
 c[0].markdown(f"**Service**<br>{stt['mode']}", unsafe_allow_html=True)
@@ -27,13 +37,14 @@ c[3].markdown(f"**LLM**<br>{'offline' if stt['offline'] else stt['llm']['state']
 c[4].markdown(f"**Model**<br>{stt['model_data']}", unsafe_allow_html=True)
 if stt["errors"]:
     st.warning("Recent service errors: " + " | ".join(stt["errors"]))
-locked = not state.presenter()
+locked = not state.presenter() or state.view_only()
+engine_locked = locked or not live          # catch-up, speed and incidents act on the running engine
 a, b, c3, d = st.columns(4)
-if a.button("Re-run catch-up", disabled=locked, help="Advance the simulation to the current time."):
+if a.button("Re-run catch-up", disabled=engine_locked, help="Advance the simulation to the current time."):
     svc.rerun_catchup()
     st.toast("Catch-up queued")
-sp = b.selectbox("LIVE_SPEED", [1, 5, 20], index=[1, 5, 20].index(int(stt["speed"])) if int(stt["speed"]) in (1, 5, 20) else 0, disabled=locked, help=tooltips.tip("live_speed"))
-if sp != stt["speed"] and not locked:
+sp = b.selectbox("LIVE_SPEED", [1, 5, 20], index=[1, 5, 20].index(int(stt["speed"])) if int(stt["speed"]) in (1, 5, 20) else 0, disabled=engine_locked, help=tooltips.tip("live_speed"))
+if sp != stt["speed"] and not engine_locked:
     svc.set_speed(sp)
 off = c3.toggle("Offline mode (fallback only)", value=stt["offline"], disabled=locked, help=tooltips.tip("degraded_mode"))
 if off != stt["offline"] and not locked:
@@ -47,7 +58,7 @@ st.caption("Injected incidents are real engine inputs: the feed, the situation b
 cols = st.columns(6)
 for col, (kind, label) in zip(cols, [("scanner_outage", "Scanner outage at Apapa"), ("permit_backlog", "NAFDAC permit backlog"), ("bank_delay", "Bank settlement delay"), ("fx_shock", "FX shock"),
                                      ("late_remittance", "Late remittance"), ("duplicate_burst", "Duplicate payments burst")]):
-    if col.button(label, disabled=locked, key=f"inj_{kind}", width="stretch"):
+    if col.button(label, disabled=engine_locked, key=f"inj_{kind}", width="stretch"):
         svc.inject(kind)
         st.toast(f"Injected: {label}")
 if stt["directive"]:

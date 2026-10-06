@@ -22,14 +22,31 @@ make probe        # capability probe: chooses base URL + model, tests JSON mode,
 make estimate-cost# expected model calls/tokens for pending work (cached calls are free)
 make seed         # profiles + weekly plans (model) then ~125 simulated days of history (~3 min after plans exist); builds data/nsw.db (~1.6 GB)
 make test         # fast tests (stub LLM, no network)       | make test-all  # + slow tests against the seeded database
-make eval         # live assistant evaluation (62 golden questions, independent oracle) -> reports/assistant_eval.md
-make run          # streamlit run app/main.py  (starts the background simulation service; catches up to now, then live)
+make eval         # live assistant evaluation (65 golden questions, independent oracle) -> reports/assistant_eval.md (a subset run via --ids writes assistant_eval_partial.* instead)
+make run          # streamlit run app/main.py  (live generation starts OFF: the data stays frozen at its last data time)
+make run-live     # same, but starts with live generation ON (catches up to now, then keeps generating)
+make live-on      # switch live generation ON in a running app (from any terminal)
+make live-off     # switch it OFF again: no generation, no model calls for it
+make live-status  # switch state, whether an app is running, and how old the data is
 make cost         # model usage ledger (tokens by role/model/day)
 ```
 Other targets: `make snapshot` / `make restore-demo` (emergency restore of a known-good DB), `make logos` (logo matching report), `make report` (share report), `make lint`, `make reset`.
 
 Offline: `NSW_OFFLINE=1 make run` works end to end (deterministic fallback for every model role). Rebuild facts without re-spending model tokens:
 `.venv/bin/python scripts/seed.py --rebuild`.
+
+## Sharing the app for review (free, from your own machine)
+The database (1.6 GB) stays on your machine, so there is nothing to upload or rebuild. `make share` starts the app and an ngrok tunnel together:
+```
+make share                                         # asks for an access code (hidden), starts the app, then ngrok
+NGROK_DOMAIN=your-name.ngrok-free.app make share    # your free static dev domain, so the link never changes
+TOKEN_CAP=300000 make share                        # daily model-token cap for the Assistant (default 1,000,000)
+```
+Give reviewers the `https://...ngrok-free.app` link and the access code. On the free plan they click ngrok's one-time "Visit Site" page; the plan allows 1 GB and 20,000 requests a month.
+Shared mode is deliberately locked down: the app listens on 127.0.0.1 only (reachable only through the tunnel); an **access code** is required on every page, including direct page URLs;
+it is **view-only** (viewers cannot switch live generation on or use the Admin catch-up/speed/incident controls; you still can with `make live-on`); and the model has a **daily token cap**.
+Reviewers can still use the Assistant (within the cap) and act on alerts (acknowledge, resolve), which writes to the shared demo database. Keep the terminal open and the Mac awake (the script holds it awake while running); Ctrl+C stops the tunnel and the app.
+Running `make run` for your own use is unchanged: no code, full controls. Environment switches behind this: `NSW_ACCESS_CODE`, `NSW_VIEW_ONLY=1`, `NSW_TOKEN_BUDGET_DAY`.
 
 ## Pages
 | # | Page | Need | One line |
@@ -57,7 +74,7 @@ Offline: `NSW_OFFLINE=1 make run` works end to end (deterministic fallback for e
 7. **Reports (speed, trust):** "Since 1 July", compute in seconds, show the fingerprint, export PDF.
 8. **Assistant (all):** ask three questions, open "How I computed this", note the Verified badge. Finish on **Architecture**: "read-only, no disruption".
 
-Before the meeting (30 minutes ahead): `make probe` > `make seed` > `make logos` > `make test` > `make run`; header should show LLM `live`, the watermark advancing and logos present. Keep `data/demo_snapshot.db` (`make snapshot`) for emergencies.
+Before the meeting (30 minutes ahead): `make probe` > `make seed` > `make logos` > `make test` > `make run`; header should show LLM `live`, "Data frozen at …" (generation is off by default) and logos present. Use the top-bar toggle or `make live-on` if you want the data time advancing live, and switch it off again to keep the numbers still while presenting. Keep `data/demo_snapshot.db` (`make snapshot`) for emergencies.
 
 ## Story beats (the engine guarantees these exist and detectors fire)
 B1 dwell 15 to about 10.5 days, digital share 38% to 18% · B2 Apapa scanner outage 12-15 Aug (R-PHYS-01) · B3 NAFDAC permit backlog 24-31 Aug (R-SLA-01) · B4 FX +6% over 5 days early Sep (R-FX-01) ·

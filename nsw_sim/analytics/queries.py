@@ -314,6 +314,29 @@ def alerts(f: Filters, as_of: str | None = None, statuses: tuple = (), severitie
                              f"cleared_at, details_json FROM v_alerts{w} ORDER BY detected_at DESC LIMIT {int(limit)}", db.reader(as_of), params=p)
 
 
+def alert_by_id(alert_id: str, as_of: str | None = None) -> dict | None:
+    """One alert of any status (open or resolved) by its id, case-insensitive and tolerant of surrounding spaces; None if it is unknown or not yet detected at ``as_of``."""
+    df = pd.read_sql_query("SELECT alert_id, rule_code, severity, entity_id AS entity, subject, detected_at, window_start, window_end, metric_value, threshold, status, assigned_to, "
+                           "cleared_at, details_json FROM v_alerts WHERE UPPER(alert_id)=UPPER(?)", db.reader(as_of), params=[(alert_id or "").strip()])
+    return None if df.empty else df.iloc[0].to_dict()
+
+
+def alert_reviews(alert_id: str, as_of: str | None = None) -> list[dict]:
+    """Review decisions on one alert, oldest first (decision states only: free-text comments are not returned)."""
+    rows = db.reader(as_of).execute("SELECT created_at, role, decision FROM reviews WHERE target_type='alert' AND target_id=? AND created_at<=? ORDER BY created_at",
+                                    (alert_id, as_of or now_iso())).fetchall()
+    return [{"at": r[0], "role": r[1], "decision": r[2]} for r in rows]
+
+
+def assessment_refs(assessment_ids: list[str], as_of: str | None = None) -> dict[str, str]:
+    """Consignment reference (nsw_ref) of each assessment id, so alert evidence can be opened in the Trace Workbench."""
+    ids = [str(i) for i in assessment_ids if i][:200]
+    if not ids:
+        return {}
+    rows = db.reader(as_of).execute(f"SELECT assessment_id, nsw_ref FROM v_assessments WHERE assessment_id IN ({','.join('?' * len(ids))})", ids).fetchall()
+    return {a: r for a, r in rows}
+
+
 def trial_balance_accounts(as_of: str | None = None) -> pd.DataFrame:
     return pd.read_sql_query("SELECT entity_id, account_code, name, class FROM chart_of_accounts", db.reader(as_of))
 

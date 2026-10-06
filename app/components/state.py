@@ -1,6 +1,7 @@
 """Session state, the as_of instant, cached data access, and the background service."""
 from __future__ import annotations
 
+import os
 import types
 from datetime import timedelta
 
@@ -15,17 +16,26 @@ ROLES = ["Analyst", "Supervisor", "Director"]
 
 @st.cache_resource(show_spinner=False)
 def service():
-    """Start the simulation service once per process (guarded by a file lock: other processes become read-only followers)."""
-    import os
+    """Start the simulation service once per process. Live generation starts OFF (``NSW_LIVE_ON_START=1``, i.e. ``make run-live``, starts it
+    ON); the switch can then be flipped from the top bar or with ``make live-on`` / ``make live-off``. Only one process generates at a time
+    (file lock); the others are read-only followers."""
+    from nsw_sim.sim import control
     from nsw_sim.sim.service import get_service
     svc = get_service()
     if os.environ.get("NSW_NO_SERVICE") != "1":          # tests set this so they never start a writer against a real database
+        control.reset_for_start(on=os.environ.get("NSW_LIVE_ON_START") == "1")
         svc.start()
     return svc
 
 
 def role() -> str:
     return st.session_state.get("role", "Supervisor")
+
+
+def view_only() -> bool:
+    """Shared review deployments (``NSW_VIEW_ONLY=1``): viewers cannot switch live generation on or use the engine controls on the Admin page.
+    The presenter still can from a terminal (``make live-on``)."""
+    return os.environ.get("NSW_VIEW_ONLY") == "1"
 
 
 def presenter() -> bool:

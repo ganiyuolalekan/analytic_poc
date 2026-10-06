@@ -465,6 +465,58 @@ def list_alerts(status: str | None = None, severity: str | None = None, entity: 
     return _ok({"period": p["label"], "count": int(len(df)), "alerts": rows}, len(df), "alerts table filtered by status/severity/entity/period", as_of)
 
 
+def _episode_row(r, f_period: Filters, as_of: str) -> dict:
+    """One under-assessment episode as a tool row, with the same slice's shortfall over the whole period for comparison (dilution)."""
+    whole = reconcile.slice_daily(r.entity_id, r.fee_code, r.commodity_group, r.origin_country, f_period.start or "0000", f_period.end or as_of, as_of)
+    ex, ass = float(whole["expected"].sum()), float(whole["assessed"].sum())
+    return {"entity": r.entity_id, "fee_code": r.fee_code, "commodity": r.commodity_group, "origin_country": r.origin_country, "first_day": r.start_day, "last_day": r.end_day,
+            "days": int(r.days), "assessments": int(r.n), "expected": _money(r.expected_minor), "assessed": _money(r.assessed_minor), "shortfall": _money(r.shortfall_minor),
+            "shortfall_percent": round(float(r.shortfall_pct) * 100, 2),
+            "whole_period_shortfall_percent": round((ex - ass) / ex * 100, 2) if ex > 0 else None, "whole_period_shortfall": _money(ex - ass) if ex > 0 else None}
+
+
+def shortfall_episodes(period: dict | str | None = None, filters: dict | None = None, min_pct: float = 5.0, as_of: str | None = None, **_) -> dict:
+    as_of = as_of or queries.watermark() or queries.now_iso()
+    f, p = _filters(period, filters, as_of)
+    f = _norm_entities(f)
+    df = reconcile.shortfall_episodes(f, as_of, None, float(min_pct) / 100.0)
+    rows = [_episode_row(r, f, as_of) for r in df.itertuples()]
+    note = ("Each episode is a run of consecutive WAT days on which the slice was assessed more than the threshold below the fee-rule expectation; shortfall_percent and shortfall "
+            "are computed over the episode itself, whole_period_* over the same slice for the whole period (the episode is diluted there).")
+    return _ok({"period": p["label"], "threshold_percent": float(min_pct), "episodes": rows}, len(rows), "daily assessed vs expected per entity/fee/commodity/origin; runs of days over threshold", as_of, note)
+
+
+def get_alert(alert_id: str, as_of: str | None = None, **_) -> dict:
+    as_of = as_of or queries.watermark() or queries.now_iso()
+    a = queries.alert_by_id(alert_id, as_of)
+    if a is None:
+        return _err(f"No alert with id {alert_id!r} has been raised as of the data time. Use list_alerts to browse alerts.", as_of)
+    det = json.loads(a["details_json"] or "{}")
+    data = {"alert_id": a["alert_id"], "rule": a["rule_code"], "severity": a["severity"], "entity": a["entity"], "subject": a["subject"], "status": a["status"], "assigned_to": a["assigned_to"],
+            "detected_at_wat": clock.fmt_wat(a["detected_at"]), "window_start_wat": clock.fmt_wat(a["window_start"]), "window_end_wat": clock.fmt_wat(a["window_end"]),
+            "condition_cleared_at_wat": clock.fmt_wat(a["cleared_at"]) if isinstance(a["cleared_at"], str) else None,
+            "metric": round(float(a["metric_value"]), 4), "threshold": a["threshold"], "summary": det.get("summary", ""), "supporting_records": det.get("n_supporting"), "drill": det.get("drill"),
+            "where_to_find_it": "Supervision page > Alert board: search the alert id (resolved alerts are included)"}
+    try:
+        data["review_history"] = [{"at_wat": clock.fmt_wat(h["at"]), "role": h["role"], "decision": h["decision"]} for h in queries.alert_reviews(a["alert_id"], as_of)[-8:]]
+    except Exception:  # noqa: BLE001 - review history is a courtesy; the alert itself is the answer
+        pass
+    drill = det.get("drill") or {}
+    if a["rule_code"] == "R-FEE-01" and drill.get("view") == "assessments":
+        t0 = clock.to_dt(a["detected_at"])
+        lo, hi = clock.iso(t0 - timedelta(days=14)), min(as_of, clock.iso(t0 + timedelta(days=14)))
+        f = Filters(start=lo, end=hi, entities=(drill["entity"],), fee_codes=(drill["fee_code"],), commodities=(drill["commodity"],), origins=(drill["origin"],))
+        eps = reconcile.shortfall_episodes(f, as_of, None, 0.05)
+        if not eps.empty:
+            day = clock.wat_day(a["detected_at"])
+            inside = eps[(eps["start_day"] <= day) & (eps["end_day"] >= day)]
+            r = (inside if not inside.empty else eps).iloc[0]
+            data["episode"] = _episode_row(r, Filters(start=clock.iso(clock.sim_start()), end=as_of), as_of)
+            data["metric_note"] = ("'metric' is the shortfall (as a fraction) over the rule's trailing window when the alert first fired; 'episode' is the whole run of days on which "
+                                   "the shortfall persisted, so its percentage can differ.")
+    return _ok(data, 1, "alerts table by id; review history; episode via daily assessed vs expected for the alert's slice", as_of)
+
+
 def get_live_snapshot(minutes: int = 15, as_of: str | None = None, **_) -> dict:
     as_of = as_of or queries.watermark() or queries.now_iso()
     end = clock.to_dt(as_of)
@@ -539,7 +591,8 @@ def query_readonly(sql: str, as_of: str | None = None, **_) -> dict:
 # =============================================================================== registry + OpenAI tool specs
 TOOLS = {"resolve_period": lambda **k: _ok(resolve_period(k.get("text", ""), k.get("as_of")), 1, "deterministic date parser (WAT)", k.get("as_of")), "list_entities": list_entities,
          "get_entity_profile": get_entity_profile, "aggregate": aggregate, "get_statement": get_statement, "top_n": top_n, "trend": trend, "compare": compare,
-         "get_reconciliation": get_reconciliation, "get_clearance_stats": get_clearance_stats, "trace": trace, "list_alerts": list_alerts, "get_live_snapshot": get_live_snapshot,
+         "get_reconciliation": get_reconciliation, "shortfall_episodes": shortfall_episodes, "get_clearance_stats": get_clearance_stats, "trace": trace, "list_alerts": list_alerts,
+         "get_alert": get_alert, "get_live_snapshot": get_live_snapshot,
          "compute": compute, "query_readonly": query_readonly}
 
 _FLT = {"type": "object", "description": "Optional filters: entities[], origins[] (ISO2), modes[] (sea|air), ports[], commodities[], processes[], fee_codes[]", "additionalProperties": True}
@@ -563,10 +616,16 @@ def specs() -> list[dict]:
         fn("compare", "Side-by-side comparison with differences computed in code. by=entity|origin_country|port|mode|commodity or 'period' (items are period phrases).",
            {"metric": {"type": "string"}, "items": {"type": "array", "items": {"type": "string"}}, "period": _PER, "by": {"type": "string"}, "filters": _FLT}, ["metric", "items"]),
         fn("get_reconciliation", "Four-way match funnel, exception summary, in-transit by bank and the largest assessment shortfall.", {"period": _PER, "filters": _FLT}),
+        fn("shortfall_episodes", "WHEN was something under-assessed: finds episodes (runs of consecutive days) on which an entity/fee/commodity/origin slice was assessed more than min_pct percent below the fee-rule expectation, "
+           "with the shortfall computed over the episode itself and, for comparison, over the whole period. Use for ANY question about a shortfall, under-assessment or leakage that 'stood out' or that quotes a "
+           "percentage below expectation: the episode's own window is the right basis, not the whole period. Pass the broadest period that could contain it (e.g. 'since July').",
+           {"period": _PER, "filters": _FLT, "min_pct": {"type": "number", "description": "daily shortfall threshold in percent (default 5)"}}),
         fn("get_clearance_stats", "Dwell/clearance percentiles, stage medians, digital share of time, and largest_delay_stage (the stage contributing most to delay, mean hours per consignment): use this for any clearance, dwell, delay or digital-vs-physical question. With stage (S02..S09) returns a percentile of wait_h or dur_h (queued=true uses queue-entry planned values).",
            {"period": _PER, "filters": _FLT, "stage": {"type": "string"}, "percentile": {"type": "number"}, "column": {"type": "string"}, "queued": {"type": "boolean"}}),
         fn("trace", "Trace one consignment by NSW reference, declaration, payment reference or container: agencies, fees, payments, stages.", {"reference": {"type": "string"}}, ["reference"]),
         fn("list_alerts", "List alerts raised in the period. OMIT status to include every status (use status only when the user asks for open/unresolved/resolved ones; open_all = open+acknowledged+under_review). rule is a code (R-SLA-01 SLA, R-PHYS-01 exam/scanner wait, R-FEE-01 fee shortfall, R-REC-01 paid-not-settled, R-SET-01 settlement lag, R-REM-01 late remittance, R-DUP-01 duplicate payments, R-FX-01 FX move, R-DQ-01 data completeness, R-CASH-01 cost spike, R-TGT-01 dwell target, R-ONB-01 onboarding) or a short name.", {"status": {"type": "string"}, "severity": {"type": "string"}, "entity": {"type": "string"}, "period": _PER, "rule": {"type": "string"}}),
+        fn("get_alert", "Everything about ONE alert by its id (for example ALT-20260910-00001), of any status: rule, status, when it was detected, the rule's window, metric vs threshold, drill filters, review history "
+           "and, for fee-shortfall alerts, the episode over which the shortfall ran. Use whenever the user names an alert id.", {"alert_id": {"type": "string"}}, ["alert_id"]),
         fn("get_live_snapshot", "Collections, events and incidents in the last N minutes.", {"minutes": {"type": "integer"}}),
         fn("compute", "Safe decimal calculator for ANY arithmetic (differences, ratios, percentages). ONE expression per call using only numbers, the variable names you pass, + - * / ** % and parentheses (and abs/round/min/max); no dicts, lists or strings. Example: expression '(a-b)/b*100', variables {'a': 120, 'b': 100}.", {"expression": {"type": "string"}, "variables": {"type": "object"}}, ["expression"]),
         fn("query_readonly", f"Read-only SELECT over these views only: {', '.join(sorted(guardrails.ALLOWED_VIEWS))}. Use when no specific tool fits. Row cap 500; amounts in *_minor are kobo.", {"sql": {"type": "string"}}, ["sql"]),

@@ -177,12 +177,14 @@ def r_tgt(c, t: float, cfg: dict, live: bool) -> list[Firing]:
     f = Filters(start=clock.iso(clock.sim_start()), end=clock.iso(t))
     wk = clearance.weekly_dwell(f, clock.iso(t))
     proj = forecast.project_to_target(wk.iloc[:-1] if len(wk) > 1 else wk)
-    if proj.get("projected_date") is None or not proj.get("reaches_target", False):
-        pdte = proj.get("projected_date")
-        return [_firing("NSW", "dwell-target", float(proj.get("current_fit_days") or 0), float(proj["target_days"]), (clock.iso(t - 56 * 86400), clock.iso(t)),
-                        f"On the current trend median dwell reaches {proj['target_days']} days " + (f"around {pdte}, after the {proj['target_date']} target date." if pdte else "not at all within the projection horizon."),
-                        [pdte or "none"], {"view": "target_tracker"})]
-    return []
+    # Only a real projection can miss the target. With too little data ("insufficient data") there is nothing to project and so no basis for an alert;
+    # an earlier version raised one anyway, with a placeholder metric of 0 (ALT-20261005-00001).
+    if proj.get("status") not in ("not on current trend", "behind trend"):
+        return []
+    pdte, fit = proj.get("projected_date"), float(proj["current_fit_days"])
+    return [_firing("NSW", "dwell-target", fit, float(proj["target_days"]), (clock.iso(t - 56 * 86400), clock.iso(t)),
+                    f"On the current trend median dwell ({fit:.1f} days now) reaches {proj['target_days']} days " + (f"around {pdte}, after the {proj['target_date']} target date." if pdte else "not at all within the projection horizon."),
+                    [pdte or "none"], {"view": "target_tracker"})]
 
 
 def r_onb(c, t: float, cfg: dict, live: bool) -> list[Firing]:

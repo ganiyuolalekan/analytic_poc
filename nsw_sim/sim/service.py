@@ -1,7 +1,12 @@
 """Background simulation service (Section 7.6): catch-up to now, then live ticks. One writer guarded by a file lock.
 
+Live generation is OFF by default. The service thread always runs but idles until the shared switch (``sim/control.py``, flipped by
+the app or ``make live-on``) is turned on; it then takes the writer lock, catches the database up to the current time and ticks live.
+Turning the switch off stops the engine, the director and all generation calls and releases the lock; the database stays a valid
+resume point because every tick is flushed.
+
 The UI reads ``Service.status()`` and the database; it never touches the engine. Presenter controls (inject incident,
-LIVE_SPEED, offline toggle) are queued as commands and applied on the service thread."""
+LIVE_SPEED, offline toggle) are queued as commands and applied on the service thread while live."""
 from __future__ import annotations
 
 import json
@@ -14,9 +19,9 @@ from datetime import date, timedelta
 from filelock import FileLock, Timeout
 
 from nsw_sim import clock, db
-from nsw_sim.config import data_dir, db_path, get_logger, settings
+from nsw_sim.config import db_path, get_logger, settings
 from nsw_sim.llm.client import LLM, STATUS
-from nsw_sim.sim import backfill, planners
+from nsw_sim.sim import backfill, control, planners
 from nsw_sim.sim.conditions import Incident
 from nsw_sim.sim.director import Prefetcher
 from nsw_sim.sim.engine import Engine
@@ -34,13 +39,17 @@ INCIDENT_DEFAULTS = {
 
 
 class Service:
+    POLL_S = 1.0          # how often the idle service looks at the switch
+    BEAT_S = 2.0          # heartbeat interval (lets ``make live-status`` see that an app is running)
+
     def __init__(self, llm: LLM | None = None) -> None:
         self.llm = llm or LLM()
         self.thread: threading.Thread | None = None
+        self.beat_thread: threading.Thread | None = None
         self.lock: FileLock | None = None
         self.stop_flag = threading.Event()
         self.cmds: queue.Queue = queue.Queue()
-        self.mode = "stopped"
+        self.mode = "stopped"             # stopped | off | follower | catching_up | live | stopping | error
         self.progress = {"label": "", "fraction": 0.0}
         self.engine: Engine | None = None
         self.speed = float(settings()["live_speed"])
@@ -50,35 +59,48 @@ class Service:
         self.rules = None
         self.prefetch: Prefetcher | None = None
         self.last_directive: dict = {}
+        self._planning_thread: threading.Thread | None = None
         STATUS.on_change.append(self._on_llm_status)
         self._status_events: list[tuple[str, str, str]] = []
 
     # ------------------------------------------------------------------ lifecycle
     def start(self) -> str:
-        """Start once. Returns 'writer' if this process owns the simulation, else 'follower' (read-only)."""
+        """Start the service thread once. It idles (mode 'off') until live generation is switched on."""
         if self.thread and self.thread.is_alive():
             return self.mode
-        self.lock = FileLock(str(db_path()) + ".sim.lock")      # one lock per database file: exactly one writer per DB, whatever the data dir
-        try:
-            self.lock.acquire(timeout=0.2)
-        except Timeout:
-            self.mode = "follower"
-            return "follower"
         self.stop_flag.clear()
+        self.mode = "off"
         self.thread = threading.Thread(target=self._run, name="nsw-sim-service", daemon=True)
-        self.mode = "starting"
         self.thread.start()
-        return "writer"
+        self.beat_thread = threading.Thread(target=self._beat_loop, name="nsw-sim-heartbeat", daemon=True)
+        self.beat_thread.start()
+        return self.mode
 
     def stop(self) -> None:
         self.stop_flag.set()
         if self.prefetch:
             self.prefetch.shutdown()
         if self.thread:
-            self.thread.join(timeout=10)
-        if self.lock and self.lock.is_locked:
-            self.lock.release()
+            self.thread.join(timeout=15)        # the service thread releases the writer lock itself
+        if self.beat_thread:
+            self.beat_thread.join(timeout=3)
         self.mode = "stopped"
+        control.clear_beat()
+
+    def set_live(self, flag: bool, by: str = "app") -> dict:
+        """Switch live generation on or off (the service thread reacts within about a second)."""
+        return control.set_enabled(flag, by)
+
+    def _wanted(self) -> bool:
+        return not self.stop_flag.is_set() and control.is_enabled()
+
+    def _beat_loop(self) -> None:
+        while not self.stop_flag.is_set():
+            try:
+                control.beat(self.mode, self.progress)
+            except OSError:
+                pass
+            self.stop_flag.wait(self.BEAT_S)
 
     # ------------------------------------------------------------------ commands (presenter controls)
     def inject(self, kind: str, **overrides) -> None:
@@ -100,8 +122,10 @@ class Service:
             wm = db.kv_get(c, "watermark_utc")
         except Exception:  # noqa: BLE001
             pass
-        recent = [n for t, n in self.event_rate if time.time() - t < 60]
-        return {"mode": self.mode, "watermark": wm, "last_tick_at": self.last_tick_at, "progress": dict(self.progress),
+        recent = [n for t, n in self.event_rate if time.time() - t < 60] if self.mode == "live" else []
+        sw = control.read()
+        return {"mode": self.mode, "enabled": sw["enabled"], "switched_by": sw["by"], "switched_at": sw["at"], "watermark": wm,
+                "last_tick_at": self.last_tick_at, "progress": dict(self.progress),
                 "events_per_min": sum(recent), "speed": self.speed, "llm": STATUS.snapshot(), "errors": self.errors[-3:],
                 "offline": self.llm.offline, "model_data": self.llm.cfg.model_data, "director_calls": getattr(self.prefetch, "calls", 0),
                 "directive": self.last_directive}
@@ -114,14 +138,75 @@ class Service:
         try:
             conn = db.connect()
             db.init_db(conn)
-            self._startup(conn)
-            self._live_loop(conn)
         except Exception as e:  # noqa: BLE001
-            log.exception("service crashed")
+            log.exception("service could not open the database")
             self.errors.append(f"{type(e).__name__}: {e}")
             self.mode = "error"
+            return
+        while not self.stop_flag.is_set():
+            if not control.is_enabled():
+                self._idle()
+                continue
+            if not self._acquire():
+                continue
+            log.info("live generation ON (switched by %s)", control.read()["by"])
+            try:
+                if self._startup(conn):
+                    self._live_loop(conn)
+            except Exception as e:  # noqa: BLE001 - fail closed: switch generation off rather than retry a broken start in a loop
+                log.exception("service crashed")
+                self.errors.append(f"{type(e).__name__}: {e}")
+                control.set_enabled(False, "service (error)")
+                self.mode = "error"
+            finally:
+                self._teardown()
+                log.info("live generation OFF")
 
-    def _startup(self, conn: sqlite3.Connection) -> None:
+    def _idle(self) -> None:
+        """Generation is off: nothing runs. Presenter commands that arrive now are dropped, not replayed later."""
+        if self.mode != "error":
+            self.mode = "off"
+        self.progress = {"label": "", "fraction": 0.0}
+        while not self.cmds.empty():
+            try:
+                self.cmds.get_nowait()
+            except queue.Empty:
+                break
+        self.stop_flag.wait(self.POLL_S)
+
+    def _acquire(self) -> bool:
+        """Take the single-writer lock for this database. If another process is generating, stay a read-only follower and retry."""
+        if self.lock is not None and self.lock.is_locked:
+            return True
+        self.lock = FileLock(str(db_path()) + ".sim.lock")      # one lock per database file: exactly one writer per DB, whatever the data dir
+        try:
+            self.lock.acquire(timeout=0.2)
+            return True
+        except Timeout:
+            self.mode = "follower"
+            self.stop_flag.wait(self.POLL_S * 3)
+            return False
+
+    def _teardown(self) -> None:
+        """Leave live mode: stop the director, let background planning finish, release the writer lock. Every tick was flushed, so the
+        database is already a consistent resume point."""
+        if self.mode != "error":
+            self.mode = "stopping"
+        if self.prefetch:
+            self.prefetch.shutdown()
+            if self.prefetch.thread:
+                self.prefetch.thread.join(timeout=5)
+            self.prefetch = None
+        if self._planning_thread and self._planning_thread.is_alive():
+            self._planning_thread.join(timeout=20)
+        if self.lock is not None and self.lock.is_locked:
+            self.lock.release()
+        self.progress = {"label": "", "fraction": 0.0}
+        if self.mode != "error":
+            self.mode = "off"
+
+    def _startup(self, conn: sqlite3.Connection) -> bool:
+        """Catch the database up to the current time. Returns True when the service reached live mode (False if switched off meanwhile)."""
         self.mode = "catching_up"
         now = clock.utcnow().timestamp()
         self.progress = {"label": "Preparing profiles and plans", "fraction": 0.0}
@@ -131,21 +216,29 @@ class Service:
         if fresh:
             db.drop_indexes(conn, db.BULK_INDEXES)
         self.engine = backfill.make_engine(conn, profiles, now, live_speed=self.speed)
-        total = max(1.0, now - self.engine.t)
         start_t = self.engine.t
-        while self.engine.t < now and not self.stop_flag.is_set():
-            day = clock.wat_day(self.engine.t)
-            day_end = min(now, clock.wat_midnight_utc(date.fromisoformat(day) + timedelta(days=1)).timestamp())
-            self.engine.advance(day_end)
-            self.engine.flush(day_end)
-            self.progress = {"label": f"Catching up: {clock.fmt_wat(self.engine.t, '%d %b')} → now", "fraction": (self.engine.t - start_t) / total}
-            self._run_rules(conn, replay_to=self.engine.t)
-        if fresh:
-            db.create_indexes(conn)
+        try:
+            while self._wanted():
+                now = clock.utcnow().timestamp()                  # re-read: a long catch-up must also close the gap it opened
+                if self.engine.t >= now - 1:
+                    break
+                total = max(1.0, now - start_t)
+                day = clock.wat_day(self.engine.t)
+                day_end = min(now, clock.wat_midnight_utc(date.fromisoformat(day) + timedelta(days=1)).timestamp())
+                self.engine.advance(day_end)
+                self.engine.flush(day_end)
+                self.progress = {"label": f"Catching up: {clock.fmt_wat(self.engine.t, '%d %b')} → now", "fraction": min(1.0, (self.engine.t - start_t) / total)}
+                self._run_rules(conn, replay_to=self.engine.t)
+        finally:
+            if fresh:
+                db.create_indexes(conn)
+        if not self._wanted():
+            return False
         self.progress = {"label": "Live", "fraction": 1.0}
         self.prefetch = Prefetcher(self.llm, db.connect, self.engine)
         self.prefetch.start()
         self.mode = "live"
+        return True
 
     def _run_rules(self, conn, replay_to: float | None = None) -> None:
         try:
@@ -163,8 +256,10 @@ class Service:
         max_ahead = float(settings()["live_max_ahead_hours"]) * 3600
         last_wall = time.time()
         n = 0
-        while not self.stop_flag.is_set():
-            time.sleep(tick)
+        while self._wanted():
+            self.stop_flag.wait(tick)
+            if not self._wanted():
+                break
             wall = time.time()
             self._drain_commands(conn)
             dt = wall - last_wall
@@ -190,7 +285,7 @@ class Service:
             except Exception as e:  # noqa: BLE001
                 log.exception("tick failed")
                 self.errors.append(f"tick: {type(e).__name__}: {e}")
-                time.sleep(2)
+                self.stop_flag.wait(2)
 
     def _drain_commands(self, conn) -> None:
         while True:
@@ -261,7 +356,8 @@ class Service:
                     finally:
                         self._planning = False
                         c.close()
-                threading.Thread(target=work, daemon=True).start()
+                self._planning_thread = threading.Thread(target=work, daemon=True)
+                self._planning_thread.start()
         except Exception:  # noqa: BLE001
             self._planning = False
 
