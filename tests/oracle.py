@@ -198,7 +198,8 @@ def o_shortfall_pair(c):
     top = df.sort_values("pct", ascending=False).iloc[0]
     ncs = pd.read_sql_query("SELECT SUM(expected_amount_ngn_minor) ex, SUM(amount_ngn_minor) a FROM fee_assessments WHERE fee_code='NCS-DUTY' AND commodity_group=? AND origin_country=? AND occurred_at>=? AND occurred_at<? AND occurred_at<=?",
                             c, params=(top["g"], top["o"], S, E_SEP, AS_OF)).iloc[0]
-    return {"shortfall_naira": [(top["ex"] - top["a"]) / 100.0, (ncs["ex"] - ncs["a"]) / 100.0]}
+    _, _, _, episode_naira, _ = _electronics_cn_episode(c)          # the assistant also (rightly) answers with the stretch where the pair was under-assessed
+    return {"shortfall_naira": [(top["ex"] - top["a"]) / 100.0, (ncs["ex"] - ncs["a"]) / 100.0, float(episode_naira)]}
 
 
 def o_dups_oct2(c):

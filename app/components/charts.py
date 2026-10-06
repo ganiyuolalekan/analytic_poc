@@ -5,8 +5,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from app.components import logos
-from nsw_sim.money import fmt_ngn
+from app.components import fmt, logos
 
 GREEN, AMBER, RED, BLUE, GREY = "#0B5D3B", "#B7791F", "#B03A2E", "#2F5D9B", "#6B7280"
 RAG = {"green": "#2E7D32", "amber": GREEN and AMBER, "red": RED, "grey": GREY}
@@ -27,10 +26,10 @@ def show(fig: go.Figure, key: str, height: int = 340, legend: bool = True) -> No
 
 def naira_axis(values: pd.Series) -> tuple[float, str]:
     m = float(values.abs().max() or 1)
-    return (1e11, "₦bn") if m >= 1e11 else ((1e8, "₦m") if m >= 1e8 else (100.0, "₦"))
+    return (1e11, "bn") if m >= 1e11 else ((1e8, "m") if m >= 1e8 else (100.0, ""))
 
 
-def entity_area(df: pd.DataFrame, x: str, y: str, color: str = "entity", unit_div: float = 1e11, title_unit: str = "₦bn") -> go.Figure:
+def entity_area(df: pd.DataFrame, x: str, y: str, color: str = "entity", unit_div: float = 1e11, title_unit: str = "bn") -> go.Figure:
     fig = go.Figure()
     for ent, g in df.groupby(color):
         fig.add_trace(go.Scatter(x=g[x], y=g[y] / unit_div, name=ent, mode="lines", stackgroup="one", line=dict(width=0.5, color=logos.colour(ent)),
@@ -39,11 +38,22 @@ def entity_area(df: pd.DataFrame, x: str, y: str, color: str = "entity", unit_di
     return fig
 
 
-def entity_bar(df: pd.DataFrame, x: str, y: str, unit_div: float = 1e11, title_unit: str = "₦bn", horizontal: bool = False) -> go.Figure:
+def entity_bar(df: pd.DataFrame, x: str, y: str, unit_div: float = 1e11, title_unit: str = "bn", horizontal: bool = False) -> go.Figure:
     colors = [logos.colour(e) for e in df[x]]
     fig = go.Figure(go.Bar(x=df[y] / unit_div if horizontal else df[x], y=df[x] if horizontal else df[y] / unit_div, marker_color=colors, orientation="h" if horizontal else "v",
-                           customdata=[fmt_ngn(v, exact=True) for v in df[y]], hovertemplate="%{x}<br>%{customdata}<extra></extra>" if not horizontal else "%{y}<br>%{customdata}<extra></extra>"))
+                           customdata=[fmt.ngn(v, exact=True) for v in df[y]], hovertemplate="%{x}<br>%{customdata}<extra></extra>" if not horizontal else "%{y}<br>%{customdata}<extra></extra>"))
     fig.update_yaxes(title=None if horizontal else title_unit)
+    return fig
+
+
+def money_in_out(coming_in: pd.DataFrame, going_out: pd.DataFrame, x: str = "when") -> go.Figure:
+    """Two lines over time: money coming in (paid) and going out (settled to the agencies). Frames carry ``x`` and ``value`` (kobo)."""
+    div, unit = naira_axis(pd.concat([coming_in["value"], going_out["value"]]))
+    fig = go.Figure()
+    for df, name, colour, fill in ((coming_in, "Coming in", GREEN, "rgba(11,93,59,0.12)"), (going_out, "Going out", BLUE, None)):
+        fig.add_trace(go.Scatter(x=df[x], y=df["value"] / div, name=name, mode="lines", line=dict(color=colour, width=3, shape="spline", smoothing=0.6), fill="tozeroy" if fill else None, fillcolor=fill,
+                                 hovertemplate=name + "<br>%{x|%d %b}<br>%{y:,.2f} " + unit + "<extra></extra>"))
+    fig.update_yaxes(title=unit)
     return fig
 
 

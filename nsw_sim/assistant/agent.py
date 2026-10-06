@@ -26,7 +26,9 @@ EXTRA = ("\n\nRules: call tools for every figure; never calculate yourself (use 
          "EPISODES: when the question describes something that 'stood out' or quotes a figure (for example '12.1% below expectation'), names an alert id, or refers to a spike, dip or incident, it is about a "
          "specific window, not the UI period. Find that window first (`get_alert` for an alert id; `shortfall_episodes` for under-assessment; `trend` by day otherwise), answer for that window and name it, "
          "and reproduce the quoted figure from tool results. If you also quote the whole-period figure, say it is lower because the episode is diluted by the rest of the period. "
-         "If the quoted figure cannot be reproduced, say so plainly instead of substituting another number. Give times in WAT (the app's time zone), never UTC.")
+         "If the quoted figure cannot be reproduced, say so plainly instead of substituting another number. Give times in WAT (the app's time zone), never UTC. "
+         "Write for a non-technical reader: short plain sentences, no jargon, and never mention tools, queries, SQL, tables, models or how you work; say 'the data' instead. "
+         "The 'Basis:' line names the period and any filter in plain words (for example 'Basis: 1 to 5 October 2026, NCS only'), never field names or codes such as entity=NCS or currency NGN.")
 TEXT_PROTOCOL = ("\n\nTool protocol (no native tool calling): reply with exactly one line `TOOL: {\"name\": \"<tool>\", \"arguments\": {...}}` to call a tool; the system answers `RESULT: {...}`. "
                  "Repeat as needed, then reply `FINAL: <answer>`. Tools: " + ", ".join(tools.TOOLS))
 
@@ -96,8 +98,8 @@ class Agent:
                 else:
                     res = payload
             if res is None or not res.ok:
-                msg = redact(res.error if res else "no response")
-                yield ("final", AnswerResult(f"The assistant model is unavailable ({msg[:80]}). Please try again, or switch to offline summaries.", "error", tool_trace=trace, latency_ms=int((time.time() - t0) * 1000), rounds=rounds))
+                log.warning("assistant model call failed: %s", redact(res.error if res else "no response")[:200])
+                yield ("final", AnswerResult("The AI assistant isn't available right now. Please try again in a moment.", "error", tool_trace=trace, latency_ms=int((time.time() - t0) * 1000), rounds=rounds))
                 return
             calls = res.tool_calls
             if not native:
@@ -181,7 +183,7 @@ class Agent:
         """No model available: a deterministic KPI summary built only from tool outputs (verified by construction)."""
         outs = [tools.call("aggregate", {"metric": m, "period": "month to date"}, as_of) for m in ("assessed", "paid", "settled")]
         cl = tools.call("get_clearance_stats", {"period": "month to date"}, as_of)
-        lines = [f"The assistant model is offline, so here is a deterministic month-to-date summary ({outs[0]['data']['period']}):"]
+        lines = [f"The AI assistant is offline, so here is a built-in month-to-date summary ({outs[0]['data']['period']}):"]
         for o in outs:
             r = o["data"]["rows"][0]
             lines.append(f"- {o['data']['metric'].title()}: {r['display']}")

@@ -7,10 +7,10 @@ import pandas as pd  # noqa: E402
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from app.components import cards, charts, header, state, tooltips  # noqa: E402
+from app.components import cards, charts, fmt, header, state, tooltips  # noqa: E402
 from nsw_sim.analytics import clearance, forecast  # noqa: E402
 from nsw_sim.config import settings  # noqa: E402
-from nsw_sim.money import fmt_days, fmt_ngn, fmt_pct  # noqa: E402
+from nsw_sim.money import fmt_days, fmt_pct  # noqa: E402
 
 header.page_header("Clearance Journey", "Speed: where time is lost between a vessel or flight arriving and the cargo leaving the gate. Digital stages are controlled by the NSW platform, "
                    "physical stages (scanners, terminals, trucks) are not. The target tracker shows progress towards the end-2026 goal.", ("Entities", "Process", "Currency"))
@@ -129,16 +129,16 @@ if not hw.empty:
 st.divider()
 tooltips.title("cost_of_delay")
 a1, a2, a3, a4 = st.columns(4)
-dem = a1.number_input("Demurrage ₦ per TEU-day", 0, 500_000, 28_000, 1000, key="cod_dem")
-sto = a2.number_input("Storage ₦ per tonne-day", 0, 100_000, 4_500, 500, key="cod_sto")
+dem = a1.number_input("Demurrage per TEU-day (in naira)", 0, 500_000, 28_000, 1000, key="cod_dem")
+sto = a2.number_input("Storage per tonne-day (in naira)", 0, 100_000, 4_500, 500, key="cod_sto")
 car = a3.number_input("Inventory carrying cost % a year", 0.0, 60.0, 18.0, 1.0, key="cod_car") / 100
 ref_d = a4.number_input("Reference dwell (days)", 1.0, 21.0, 7.0, 0.5, key="cod_ref")
 cod = state.cc(clearance.cost_of_delay, f, demurrage_per_teu_day=dem, storage_per_tonne_day=sto, carrying_pct_pa=car, reference_days=ref_d)
 c = st.columns(4)
-cards.kpi(c[0], "cost_of_delay", fmt_ngn(cod["total_ngn"] * 100), label="Illustrative cost of excess dwell")
-cards.kpi(c[1], "cost_of_delay", fmt_ngn(cod["demurrage_ngn"] * 100), label="of which demurrage")
-cards.kpi(c[2], "cost_of_delay", fmt_ngn(cod["storage_ngn"] * 100), label="of which storage")
-cards.kpi(c[3], "cost_of_delay", fmt_ngn(cod["carrying_ngn"] * 100), label="of which carrying cost")
+cards.kpi(c[0], "cost_of_delay", fmt.ngn(cod["total_ngn"] * 100), label="Illustrative cost of excess dwell")
+cards.kpi(c[1], "cost_of_delay", fmt.ngn(cod["demurrage_ngn"] * 100), label="of which demurrage")
+cards.kpi(c[2], "cost_of_delay", fmt.ngn(cod["storage_ngn"] * 100), label="of which storage")
+cards.kpi(c[3], "cost_of_delay", fmt.ngn(cod["carrying_ngn"] * 100), label="of which carrying cost")
 st.caption(f"Assumptions are illustrative and editable; {cod.get('n', 0):,} completed consignments, mean excess {cod.get('mean_excess_days', 0):.1f} days over {ref_d:g} days.")
 
 # ---- drill to consignments

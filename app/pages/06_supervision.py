@@ -9,11 +9,10 @@ import pandas as pd  # noqa: E402
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from app.components import cards, charts, header, logos, state, tooltips  # noqa: E402
+from app.components import cards, charts, fmt, header, logos, state, tooltips  # noqa: E402
 from nsw_sim import clock, db  # noqa: E402
 from nsw_sim.analytics import quality, queries, reconcile  # noqa: E402
 from nsw_sim.analytics.queries import Filters  # noqa: E402
-from nsw_sim.money import fmt_ngn  # noqa: E402
 from nsw_sim.supervision import audit, reviews  # noqa: E402
 
 header.page_header("Supervision", "Supervision: alerts raised by the rules engine with the evidence behind each one, a review queue with ages, role-based actions (analyst, supervisor, "
@@ -28,7 +27,7 @@ def alert_detail(a) -> None:
     det = json.loads(a["details_json"] or "{}")
     with st.container(border=True):
         st.markdown(f"{logos.chip(a['entity'])} **{a['alert_id']} · {a['rule_code']}** · severity **{a['severity']}** · status **{a['status']}**", unsafe_allow_html=True)
-        st.markdown(det.get("summary", ""))
+        st.markdown(fmt.plain(det.get("summary", "")))
         m1, m2, m3 = st.columns(3)
         metric = "n/a (no projection was possible)" if a["rule_code"] == "R-TGT-01" and not a["metric_value"] else f"{a['metric_value']:.3g}"      # 0 was a placeholder
         m1.markdown(f"**Metric** {metric} vs **threshold** {a['threshold']:.3g}")
@@ -81,7 +80,7 @@ def fee_evidence(a, drill: dict) -> None:
             hit = eps[(eps["start_day"] <= day) & (eps["end_day"] >= day)]
             e = (hit if not hit.empty else eps).iloc[0]
             st.markdown(f"**Episode {clock.fmt_wat(e['start_day'], '%d %b')} → {clock.fmt_wat(e['end_day'], '%d %b')}** ({int(e['days'])} days, {int(e['n'])} assessments): "
-                        f"assessed {fmt_ngn(e['assessed_minor'])} against an expected {fmt_ngn(e['expected_minor'])}, **{e['shortfall_pct']:.1%} below expectation** ({fmt_ngn(e['shortfall_minor'])}).")
+                        f"assessed {fmt.ngn(e['assessed_minor'])} against an expected {fmt.ngn(e['expected_minor'])}, **{e['shortfall_pct']:.1%} below expectation** ({fmt.ngn(e['shortfall_minor'])}).")
             st.caption(f"The alert's metric ({a['metric_value']:.1%}) is the shortfall over the rule's trailing window when it first fired, so it is lower than the full episode. "
                        "Over the whole period the same slice is diluted to a fraction of a percent, because the shortfall is confined to these days.")
         if not sl.empty:
@@ -89,8 +88,8 @@ def fee_evidence(a, drill: dict) -> None:
             fig.add_hline(y=a["threshold"] * 100, line_dash="dot", annotation_text="alert threshold")
             fig.update_yaxes(title="below expectation (%)")
             charts.show(fig, f"alert_evidence_{a['alert_id']}", 260, legend=False)
-            st.dataframe(pd.DataFrame({"day": sl["day"], "assessments": sl["n"], "expected": [fmt_ngn(v) for v in sl["expected"]], "assessed": [fmt_ngn(v) for v in sl["assessed"]],
-                                       "shortfall": [fmt_ngn(v) for v in sl["shortfall_minor"]], "below expectation": sl["shortfall_pct"]}), hide_index=True, width="stretch",
+            st.dataframe(pd.DataFrame({"day": sl["day"], "assessments": sl["n"], "expected": [fmt.ngn(v) for v in sl["expected"]], "assessed": [fmt.ngn(v) for v in sl["assessed"]],
+                                       "shortfall": [fmt.ngn(v) for v in sl["shortfall_minor"]], "below expectation": sl["shortfall_pct"]}), hide_index=True, width="stretch",
                          column_config={"below expectation": st.column_config.NumberColumn(format="percent", help="Expected minus assessed, divided by expected, for the day.")})
 
 
@@ -159,10 +158,10 @@ with tab_rem:
         late = rm[(rm["days_late"].fillna(0) > 3) | (rm["days_overdue"].fillna(0) > 3)]
         c = st.columns(3)
         cards.kpi(c[0], "remittance_lateness", str(len(late)), label="Remittances more than 3 days late")
-        cards.kpi(c[1], "remitted", fmt_ngn(rm[rm["status"] == "paid"]["amount_ngn_minor"].sum()), label="Paid to date")
-        cards.kpi(c[2], "remittance_payable", fmt_ngn(rm[rm["status"] != "paid"]["amount_ngn_minor"].sum()), label="Due, not yet paid")
+        cards.kpi(c[1], "remitted", fmt.ngn(rm[rm["status"] == "paid"]["amount_ngn_minor"].sum()), label="Paid to date")
+        cards.kpi(c[2], "remittance_payable", fmt.ngn(rm[rm["status"] != "paid"]["amount_ngn_minor"].sum()), label="Due, not yet paid")
         st.dataframe(pd.DataFrame({"entity": rm["entity"], "period": rm["period"], "due": [clock.fmt_wat(d, "%d %b") for d in rm["due_date"]], "paid": [clock.fmt_wat(d, "%d %b") if isinstance(d, str) else "–" for d in rm["paid_at"]],
-                                   "amount": [fmt_ngn(v) for v in rm["amount_ngn_minor"]], "status": rm["status"], "days late": rm["days_late"].fillna(rm["days_overdue"])}), hide_index=True, width="stretch")
+                                   "amount": [fmt.ngn(v) for v in rm["amount_ngn_minor"]], "status": rm["status"], "days late": rm["days_late"].fillna(rm["days_overdue"])}), hide_index=True, width="stretch")
 
 with tab_audit:
     tooltips.title("audit_log")

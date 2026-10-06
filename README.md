@@ -40,17 +40,18 @@ The database (1.6 GB) stays on your machine, so there is nothing to upload or re
 ```
 make share                                         # asks for an access code (hidden), starts the app, then ngrok
 NGROK_DOMAIN=your-name.ngrok-free.app make share    # your free static dev domain, so the link never changes
-TOKEN_CAP=300000 make share                        # daily model-token cap for the Assistant (default 1,000,000)
+TOKEN_CAP=300000 make share                        # daily AI usage cap for the Assistant (default 1,000,000)
 ```
 Give reviewers the `https://...ngrok-free.app` link and the access code. On the free plan they click ngrok's one-time "Visit Site" page; the plan allows 1 GB and 20,000 requests a month.
 Shared mode is deliberately locked down: the app listens on 127.0.0.1 only (reachable only through the tunnel); an **access code** is required on every page, including direct page URLs;
-it is **view-only** (viewers cannot switch live generation on or use the Admin catch-up/speed/incident controls; you still can with `make live-on`); and the model has a **daily token cap**.
+it is **view-only** (no live-generation switch for viewers; you still have it with `make live-on`); the **technical pages** (Architecture & Integration, Admin / Generation Control) and every engine detail are hidden, and a direct address shows only a notice, because the audience is not technical and does not need the "how"; and the AI assistant has a **daily usage cap**.
 Reviewers can still use the Assistant (within the cap) and act on alerts (acknowledge, resolve), which writes to the shared demo database. Keep the terminal open and the Mac awake (the script holds it awake while running); Ctrl+C stops the tunnel and the app.
 Running `make run` for your own use is unchanged: no code, full controls. Environment switches behind this: `NSW_ACCESS_CODE`, `NSW_VIEW_ONLY=1`, `NSW_TOKEN_BUDGET_DAY`.
 
 ## Pages
 | # | Page | Need | One line |
 |---|---|---|---|
+| 0 | Home | all | the landing page: two dropdowns (agency, period), an AI chat box with a first question filled in and one-click suggestions, and a money-in versus money-out chart with three numbers |
 | 1 | Command Center | speed, trust | KPI strip with deltas, live feed, last-hour money by agency, agency tiles, origin map, situation board |
 | 2 | Clearance Journey | speed | stage waterfall, digital vs physical, percentiles, target tracker with projection, bottlenecks, cost of delay |
 | 3 | Entity Explorer | trust | logo grid; overview; four statements with trace buttons; processes; ledger; funding and expenses; scorecard |
@@ -58,10 +59,10 @@ Running `make run` for your own use is unchanged: no code, full controls. Enviro
 | 5 | Reconciliation | trust | four-way funnel, exceptions, leakage heatmap, ageing, duplicates, in-transit, variance bridge |
 | 6 | Supervision | supervision | alerts with "why was this raised", review queue, roles, scorecards, remittance monitor, audit |
 | 7 | Reports | speed, trust | compute any period (hour to year), narrative with verifier, fingerprint, PDF/Excel/CSV/HTML exports, sign-off |
-| 8 | Assistant | all | tool-using chat with a Verified badge and "How I computed this" (also a drawer on every page) |
+| 8 | Assistant | all | the full-page chat: answers carry an answer-check badge (Checked / Partly checked / Not checked) and "How this was worked out"; the same conversation is behind the **Ask AI** button on every other page |
 | 9 | Data Quality & Onboarding | trust | confidence score components, trends, field completeness |
-| 10 | Architecture & Integration | trust | read-only integration diagram, hosting toggle, phase roadmap |
-| 11 | Admin / Generation Control | supervision | status, model vs fallback share, cost ledger, presenter controls, incident injection, story-beat viewer |
+| 10 | Architecture & Integration | trust | presenter only: read-only integration diagram, hosting toggle, phase roadmap |
+| 11 | Admin / Generation Control | supervision | presenter only: status, AI vs backup share, AI usage, presenter controls, incident injection, story-beat viewer |
 | 12 | Methodology & Glossary | trust | definitions, simulated-ness, benchmarks, searchable glossary |
 
 ## 8-minute demo flow (each step tied to a need)
@@ -72,9 +73,9 @@ Running `make run` for your own use is unchanged: no code, full controls. Enviro
 5. **Reconciliation (trust):** four-way match; open the under-assessment cluster (Electronics from China, early Sep): "this is revenue assurance".
 6. **Supervision (supervision):** alert > review > assign > resolve; remittance monitor shows the late remittance (SON, September); scorecards.
 7. **Reports (speed, trust):** "Since 1 July", compute in seconds, show the fingerprint, export PDF.
-8. **Assistant (all):** ask three questions, open "How I computed this", note the Verified badge. Finish on **Architecture**: "read-only, no disruption".
+8. **Assistant (all):** ask three questions, open "How I computed this", note the Verified badge. Presenter only: finish on **Architecture** ("read-only, no disruption") if the room is technical; it is not in the review link.
 
-Before the meeting (30 minutes ahead): `make probe` > `make seed` > `make logos` > `make test` > `make run`; header should show LLM `live`, "Data frozen at …" (generation is off by default) and logos present. Use the top-bar toggle or `make live-on` if you want the data time advancing live, and switch it off again to keep the numbers still while presenting. Keep `data/demo_snapshot.db` (`make snapshot`) for emergencies.
+Before the meeting (30 minutes ahead): `make probe` > `make seed` > `make logos` > `make test` > `make run`; header should show "AI assistant ready", "Data frozen at …" (generation is off by default) and logos present. Use the top-bar toggle or `make live-on` if you want the data time advancing live, and switch it off again to keep the numbers still while presenting. Keep `data/demo_snapshot.db` (`make snapshot`) for emergencies.
 
 ## Story beats (the engine guarantees these exist and detectors fire)
 B1 dwell 15 to about 10.5 days, digital share 38% to 18% · B2 Apapa scanner outage 12-15 Aug (R-PHYS-01) · B3 NAFDAC permit backlog 24-31 Aug (R-SLA-01) · B4 FX +6% over 5 days early Sep (R-FX-01) ·

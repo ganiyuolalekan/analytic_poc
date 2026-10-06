@@ -7,16 +7,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pandas as pd  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from app.components import cards, header, state, tooltips  # noqa: E402
+from app.components import cards, fmt, header, state, tooltips  # noqa: E402
 from nsw_sim import clock, db  # noqa: E402
 from nsw_sim.analytics import reports  # noqa: E402
 from nsw_sim.config import REPORTS_DIR  # noqa: E402
-from nsw_sim.money import fmt_ngn, fmt_pct  # noqa: E402
+from nsw_sim.money import fmt_pct  # noqa: E402
 from nsw_sim.sim.reference import entity_codes  # noqa: E402
 from nsw_sim.supervision import reviews  # noqa: E402
 
 header.page_header("Reports", "Compute a period report for any time range (a single hour, a day, the open current day, since 1 July, or custom): executive KPIs, statements per agency and "
-                   "consolidated, reconciliation, clearance, alerts and exceptions. The numbers come from SQL only; the optional narrative is written by the model and checked number by number.",
+                   "consolidated, reconciliation, clearance, alerts and exceptions. The numbers are calculated directly from the data; the optional summary is written by the AI and checked number by number.",
                    ("(parameters below replace the global period)",))
 as_of = state.as_of()
 f = state.filters()
@@ -37,7 +37,7 @@ ents = st.multiselect("Entities (empty = consolidated and per agency)", entity_c
 secs = st.multiselect("Sections", reports.SECTIONS, default=reports.SECTIONS, format_func=lambda s: reports.SECTION_LABELS[s], key="rep_secs")
 c1, c2, c3 = st.columns(3)
 compare = c1.toggle("Compare with previous period", value=True, key="rep_cmp", help=tooltips.tip("compare_previous_period"))
-narr = c2.toggle("Narrative (model-written, verified)", key="rep_narr", help=tooltips.tip("report_narrative"))
+narr = c2.toggle("AI-written summary (checked)", key="rep_narr", help=tooltips.tip("report_narrative"))
 ccy = c3.radio("Currency view", ["NGN", "USD"], horizontal=True, key="rep_ccy", help=tooltips.tip("currency_view"))
 
 if st.button("Compute report", type="primary", key="rep_go"):
@@ -78,15 +78,15 @@ if rep:
         with st.expander(label, expanded=key in ("consolidated", "reconciliation")):
             if key == "consolidated":
                 perf, pos = rep[key]["performance"], rep[key]["position"]
-                st.markdown(f"Revenue {fmt_ngn(perf['total_revenue'])} · expenses {fmt_ngn(perf['total_expenses'])} · surplus {fmt_ngn(perf['surplus'])} · assets {fmt_ngn(pos['total_assets'])} · "
+                st.markdown(f"Revenue {fmt.ngn(perf['total_revenue'])} · expenses {fmt.ngn(perf['total_expenses'])} · surplus {fmt.ngn(perf['surplus'])} · assets {fmt.ngn(pos['total_assets'])} · "
                             + ("<span class='tie-ok'>✓ balance sheet balances</span>" if pos["balances"] else "<span class='tie-bad'>✗ does not balance</span>"), unsafe_allow_html=True)
                 st.dataframe(reports._lines_df(perf["revenue"] + perf["expenses"]), hide_index=True, width="stretch")
             elif key == "statements":
                 for e, s in rep[key].items():
-                    st.markdown(f"**{e}**: revenue {fmt_ngn(s['performance']['total_revenue'])}, surplus {fmt_ngn(s['performance']['surplus'])}, assets {fmt_ngn(s['position']['total_assets'])}, closing cash {fmt_ngn(s['cash_flow']['closing'])}")
+                    st.markdown(f"**{e}**: revenue {fmt.ngn(s['performance']['total_revenue'])}, surplus {fmt.ngn(s['performance']['surplus'])}, assets {fmt.ngn(s['position']['total_assets'])}, closing cash {fmt.ngn(s['cash_flow']['closing'])}")
             elif key == "reconciliation":
                 fw = rep[key]["four_way"]
-                st.markdown(f"Assessed {fmt_ngn(fw['assessed']['amount'])} → paid {fmt_ngn(fw['paid']['amount'])} → settled {fmt_ngn(fw['settled']['amount'])} → remitted {fmt_ngn(fw['remitted']['amount'])}")
+                st.markdown(f"Assessed {fmt.ngn(fw['assessed']['amount'])} → paid {fmt.ngn(fw['paid']['amount'])} → settled {fmt.ngn(fw['settled']['amount'])} → remitted {fmt.ngn(fw['remitted']['amount'])}")
                 st.dataframe(rep[key]["summary"], hide_index=True, width="stretch")
             elif key == "clearance":
                 c = rep[key]
@@ -142,7 +142,7 @@ else:
                 st.error(str(e))
             finally:
                 w.close()
-header.methodology_footer([("Compute", "ReportEngine.compute runs deterministic SQL over the as-of views; no model is involved. Short ranges and the open current day use journal lines directly."),
+header.methodology_footer([("Compute", "Report figures are calculated directly from the data at the data time; the AI is not involved in any figure. Short ranges and the open current day use journal lines directly."),
                            ("Fingerprint", "SHA-256 of parameters, as-of time, row counts and totals: re-running with the same as-of reproduces it exactly."),
                            ("Exports", "PDF, Excel, CSV bundle and HTML carry the synthetic-data watermark; Excel and CSV include a metadata sheet/file repeating the disclaimer.")])
 cards.disclaimer_footer()

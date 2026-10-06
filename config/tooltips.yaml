@@ -377,21 +377,21 @@ assessment_mismatch:
   sources:
   - fee_assessments
 assistant_basis:
-  label: How I computed this
-  long: '**What it is.** The tools and arguments used for an answer.
+  label: How this was worked out
+  long: '**What it is.** The steps the AI assistant took to answer.
 
-    **How it is calculated.** Each tool call with arguments, rows returned, duration and formula.
+    **How it is calculated.** Each step with what it looked at, rows returned and the formula used (shown in the technical view).
 
     **Where it comes from.** `assistant`.
 
-    **How to read it.** Open to audit an answer.
+    **How to read it.** Open to see how an answer was reached.
 
     **Why the NSW cares.** Transparency of conversational answers.
 
     **Caveats.** Row counts are capped.'
   needs:
   - trust
-  short: The tools and arguments used for an answer.
+  short: The steps the AI assistant took to answer.
   sources:
   - assistant
 audit_log:
@@ -467,21 +467,21 @@ clearance_time:
   sources:
   - consignments
 collection_cost_per_100:
-  label: Cost of collection per ₦100
-  long: '**What it is.** Collection costs for every ₦100 collected.
+  label: Cost of collection per 100 collected
+  long: '**What it is.** Collection costs for every 100 collected.
 
     **How it is calculated.** 100 x collection cost divided by gross settled amount.
 
     **Where it comes from.** `settlements`.
 
-    **How to read it.** Typically well below ₦1; compare agencies.
+    **How to read it.** Typically well below 1; compare agencies.
 
     **Why the NSW cares.** Efficiency of the collection channel in one number.
 
     **Caveats.** Simulated.'
   needs:
   - trust
-  short: Collection costs for every ₦100 collected.
+  short: Collection costs for every 100 collected.
   sources:
   - settlements
 collection_efficiency:
@@ -540,21 +540,21 @@ compare_previous_period:
   sources:
   - filters
 cost_ledger:
-  label: Cost ledger
-  long: '**What it is.** Model usage by role, model and day.
+  label: AI usage
+  long: '**What it is.** AI usage by purpose and day.
 
-    **How it is calculated.** Tokens aggregated from every call; dollars shown only if prices are set.
+    **How it is calculated.** Usage counted from every call; dollars shown only if prices are set.
 
     **Where it comes from.** `llm_calls`.
 
-    **How to read it.** Cached calls cost nothing.
+    **How to read it.** Repeated questions are answered from memory at no cost.
 
     **Why the NSW cares.** Keeps spend visible.
 
     **Caveats.** Prices are not assumed.'
   needs:
   - trust
-  short: Model usage by role, model and day.
+  short: AI usage by purpose and day.
   sources:
   - llm_calls
 cost_of_collection:
@@ -669,12 +669,12 @@ data_confidence_score:
   - fee_assessments
   - remittances
 degraded_mode:
-  label: Degraded mode
-  long: '**What it is.** The language model is unavailable or over budget; deterministic fallback keeps running.
+  label: AI limited mode
+  long: '**What it is.** The AI assistant is unavailable or over its daily limit; the built-in backup keeps everything else running.
 
-    **How it is calculated.** Status set after repeated model failures or when the token budget is reached.
+    **How it is calculated.** Set after repeated AI failures or when the daily usage limit is reached.
 
-    **Where it comes from.** `llm status`.
+    **Where it comes from.** `AI status`.
 
     **How to read it.** Banner shows the reason.
 
@@ -683,9 +683,9 @@ degraded_mode:
     **Caveats.** Content falls back to templates.'
   needs:
   - trust
-  short: The language model is unavailable or over budget; deterministic fallback keeps running.
+  short: The AI assistant is unavailable or over its daily limit; the built-in backup keeps everything else running.
   sources:
-  - llm status
+  - AI status
 digital_vs_physical:
   label: Digital vs physical time
   long: '**What it is.** Splits delay into stages the NSW platform controls (digital) and stages it does not (scanners, terminals, trucks).
@@ -716,7 +716,7 @@ directive:
 
     **How to read it.** Small changes unless an incident is active.
 
-    **Why the NSW cares.** Shows how the model shapes live conditions.
+    **Why the NSW cares.** Shows how the AI shapes live conditions.
 
     **Caveats.** Engine enforces bounds.'
   needs:
@@ -1331,7 +1331,7 @@ live_feed:
   label: Live feed
   long: '**What it is.** Real-time operational events from the Single Window.
 
-    **How it is calculated.** Events written by the engine, rules and the model; newest first.
+    **How it is calculated.** Events written by the engine, rules and the AI; newest first.
 
     **Where it comes from.** `live_events`.
 
@@ -1349,13 +1349,13 @@ live_generation:
   label: Live generation
   long: '**What it is.** Whether the simulation is producing new activity in real time; off by default, and when off the data stays frozen at the data time shown.
 
-    **How it is calculated.** A switch shared by the top bar and the terminal commands `make live-on` and `make live-off`. Switching on first catches the history up to the current time, then adds new activity every few seconds; switching off stops the engine, the live director and every model call made for generation.
+    **How it is calculated.** A switch shared by the top bar and the terminal commands `make live-on` and `make live-off`. Switching on first catches the history up to the current time, then adds new activity every few seconds; switching off stops the engine, the live director and every AI call made for generation.
 
     **Where it comes from.** `service`.
 
     **How to read it.** Off: nothing changes and every figure stays at the data time in the top bar. On: the green pulse beats and the feed streams.
 
-    **Why the NSW cares.** A frozen data set makes a demo repeatable and spends no model tokens.
+    **Why the NSW cares.** A frozen data set makes a demo repeatable and uses no AI.
 
     **Caveats.** Switching on after a long pause spends a short while catching up first. The assistant still works while generation is off.'
   needs:
@@ -1382,28 +1382,28 @@ live_speed:
   sources:
   - service
 llm_vs_fallback:
-  label: Model vs fallback
-  long: '**What it is.** Share of generated rows that came from the language model versus deterministic fallback.
+  label: AI vs backup
+  long: '**What it is.** Share of generated rows that came from the AI versus the built-in backup.
 
     **How it is calculated.** Counts of plans and rows by source.
 
     **Where it comes from.** `generation_runs`.
 
-    **How to read it.** Higher model share means more variation.
+    **How to read it.** A higher AI share means more variation.
 
     **Why the NSW cares.** Shows resilience and provenance.
 
-    **Caveats.** Warm-up weeks use fallback.'
+    **Caveats.** Warm-up weeks use the backup.'
   needs:
   - trust
-  short: Share of generated rows that came from the language model versus deterministic fallback.
+  short: Share of generated rows that came from the AI versus the built-in backup.
   sources:
   - generation_runs
 methodology:
   label: Methodology
   long: '**What it is.** How the numbers are produced and what is simulated.
 
-    **How it is calculated.** Deterministic simulation guided by language-model plans, validated by code.
+    **How it is calculated.** Rule-based simulation guided by AI plans, validated by code.
 
     **Where it comes from.** `design`.
 
@@ -1799,21 +1799,21 @@ report_fingerprint:
   sources:
   - report
 report_narrative:
-  label: Narrative
-  long: '**What it is.** Optional executive summary written by the language model.
+  label: AI-written summary
+  long: '**What it is.** Optional executive summary written by the AI.
 
-    **How it is calculated.** The model receives computed facts only; a verifier removes any sentence with unmatched numbers.
+    **How it is calculated.** The AI receives calculated facts only; any sentence with a number that does not match is removed.
 
     **Where it comes from.** `report`.
 
-    **How to read it.** Check the verified status.
+    **How to read it.** Check the answer-check status.
 
     **Why the NSW cares.** Plain-language summary without numeric risk.
 
-    **Caveats.** Needs the model to be available.'
+    **Caveats.** Needs the AI to be available.'
   needs:
   - trust
-  short: Optional executive summary written by the language model.
+  short: Optional executive summary written by the AI.
   sources:
   - report
 report_params:
@@ -2115,7 +2115,7 @@ synthetic_data:
   label: Synthetic data
   long: '**What it is.** All data in this demo is invented.
 
-    **How it is calculated.** Generated by a simulation guided by a language model and checked by code.
+    **How it is calculated.** Generated by a simulation guided by AI and checked by code.
 
     **Where it comes from.** `simulation`.
 
@@ -2239,23 +2239,23 @@ variance_bridge:
   sources:
   - reconciliation
 verified_answer_badge:
-  label: Verified badge
-  long: '**What it is.** Shows whether every number in an assistant answer came from a tool.
+  label: Answer check
+  long: '**What it is.** Shows whether every number in an AI answer was checked against the data.
 
-    **How it is calculated.** Numbers in the answer are matched to tool outputs within 0.5%.
+    **How it is calculated.** Each number in the answer is matched to the figures looked up from the data, within 0.5%.
 
-    **Where it comes from.** `assistant tool results`.
+    **Where it comes from.** `assistant lookups`.
 
-    **How to read it.** Verified means all numbers matched; partial lists the unmatched ones.
+    **How to read it.** Checked means every number matched; partly checked lists the ones that could not be matched.
 
-    **Why the NSW cares.** Builds trust in conversational answers.
+    **Why the NSW cares.** Builds trust in AI answers.
 
-    **Caveats.** Rounded values are matched within tolerance.'
+    **Caveats.** Rounded values are matched within a small tolerance.'
   needs:
   - trust
-  short: Shows whether every number in an assistant answer came from a tool.
+  short: Shows whether every number in an AI answer was checked against the data.
   sources:
-  - assistant tool results
+  - assistant lookups
 why_raised:
   label: Why was this raised?
   long: '**What it is.** The supporting rows and numbers behind an alert.

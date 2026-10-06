@@ -8,10 +8,9 @@ import pandas as pd  # noqa: E402
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from app.components import cards, charts, header, logos, state, tooltips  # noqa: E402
+from app.components import cards, charts, fmt, header, logos, state, tooltips  # noqa: E402
 from nsw_sim import clock  # noqa: E402
 from nsw_sim.analytics import trace  # noqa: E402
-from nsw_sim.money import fmt_ngn  # noqa: E402
 
 header.page_header("Trace Workbench", "Trust: search any reference (NSW reference, declaration, payment reference, container, permit number, journal entry, alert) and see the consignment's "
                    "timeline across agencies, where every naira went, and every ledger posting. Statement lines trace here from the Entity Explorer.", ("All filters (a trace is about one reference)",))
@@ -61,7 +60,7 @@ c[0].markdown(f"**{h['mode'].title()}** · {h['port']}<br>from {h['origin_countr
 c[1].markdown(f"**Importer**<br>{h.get('importer_name') or h['importer_id']}<br>**Agent** {h.get('agent_name') or h['agent_id']}", unsafe_allow_html=True)
 c[2].markdown(f"**IDs**<br>Rotation {h['rotation_no']}<br>Form M {h['form_m']} · PAAR {h['paar']}<br>Declaration {h['declaration_no'] or '–'}", unsafe_allow_html=True)
 c[3].markdown(f"**Transport**<br>B/L {h['bl_no']}<br>Container {h['container_no'] or 'air cargo'}<br>IMO {h['vessel_imo'] or '–'}", unsafe_allow_html=True)
-c[4].markdown(f"**Risk lane** {h['risk_lane']}<br>CIF {fmt_ngn(h['cif_value_ngn_minor'])}<br>Status **{h['status']}**" if 'status' in h else f"**Risk lane** {h['risk_lane']}<br>CIF {fmt_ngn(h['cif_value_ngn_minor'])}", unsafe_allow_html=True)
+c[4].markdown(f"**Risk lane** {h['risk_lane']}<br>CIF {fmt.ngn(h['cif_value_ngn_minor'])}<br>Status **{h['status']}**" if 'status' in h else f"**Risk lane** {h['risk_lane']}<br>CIF {fmt.ngn(h['cif_value_ngn_minor'])}", unsafe_allow_html=True)
 
 tabs = st.tabs(["Timeline", "Money trace", "Ledger trace", "Documents & alerts"])
 with tabs[0]:
@@ -92,16 +91,16 @@ with tabs[1]:
         cols = {"paid": "rgba(47,93,155,.45)", "settled": "rgba(11,93,59,.45)", "in transit": "rgba(183,121,31,.55)", "per remittance rule": "rgba(93,64,55,.45)"}
         fig = go.Figure(go.Sankey(node=dict(label=sk["labels"], pad=18, thickness=16, color=[logos.colour(l.split(" ")[0]) if l.split(" ")[0] in logos.ENT else "#9aa8a1" for l in sk["labels"]]),
                                   link=dict(source=sk["source"], target=sk["target"], value=[v / 100 for v in sk["value"]], color=[cols.get(s, "rgba(150,150,150,.4)") for s in sk["status"]],
-                                            customdata=[f"{fmt_ngn(v, exact=True)} · {s}" for v, s in zip(sk["value"], sk["status"])], hovertemplate="%{customdata}<extra></extra>")))
+                                            customdata=[f"{fmt.ngn(v, exact=True)} · {s}" for v, s in zip(sk["value"], sk["status"])], hovertemplate="%{customdata}<extra></extra>")))
         charts.show(fig, "sankey", 420, legend=False)
     rs = t["recon"]
     if not rs.empty:
-        st.dataframe(rs.assign(assessed=[fmt_ngn(v) for v in rs["assessed"]], paid=[fmt_ngn(v) for v in rs["paid"]], settled=[fmt_ngn(v) for v in rs["settled"]], cost=[fmt_ngn(v) for v in rs["cost"]]),
+        st.dataframe(rs.assign(assessed=[fmt.ngn(v) for v in rs["assessed"]], paid=[fmt.ngn(v) for v in rs["paid"]], settled=[fmt.ngn(v) for v in rs["settled"]], cost=[fmt.ngn(v) for v in rs["cost"]]),
                      hide_index=True, width="stretch")
     st.markdown("**Fees by agency**")
     fe = t["fees"]
-    st.dataframe(fe.assign(assessed=[fmt_ngn(v, exact=True) for v in fe["assessed_ngn_minor"]], expected=[fmt_ngn(v, exact=True) for v in fe["expected_amount_ngn_minor"]],
-                           paid=[fmt_ngn(v, exact=True) for v in fe["paid_ngn_minor"]], settled=[fmt_ngn(v, exact=True) for v in fe["settled_ngn_minor"]])[["entity_id", "fee_code", "assessed", "expected", "paid", "settled", "currency"]],
+    st.dataframe(fe.assign(assessed=[fmt.ngn(v, exact=True) for v in fe["assessed_ngn_minor"]], expected=[fmt.ngn(v, exact=True) for v in fe["expected_amount_ngn_minor"]],
+                           paid=[fmt.ngn(v, exact=True) for v in fe["paid_ngn_minor"]], settled=[fmt.ngn(v, exact=True) for v in fe["settled_ngn_minor"]])[["entity_id", "fee_code", "assessed", "expected", "paid", "settled", "currency"]],
                  hide_index=True, width="stretch")
     st.markdown("**Payments and settlements**")
     st.dataframe(t["payments"], hide_index=True, width="stretch")
@@ -117,7 +116,7 @@ with tabs[2]:
             for r in g.itertuples():
                 ls = jl[jl["entry_id"] == r.entry_id]
                 st.markdown(f"`{r.entry_id}` · {clock.fmt_wat(r.occurred_at)} · {r.ref_type}")
-                st.dataframe(ls.assign(debit=[fmt_ngn(v, exact=True) if v else "" for v in ls["debit_minor"]], credit=[fmt_ngn(v, exact=True) if v else "" for v in ls["credit_minor"]])[["account_code", "account_name", "debit", "credit"]],
+                st.dataframe(ls.assign(debit=[fmt.ngn(v, exact=True) if v else "" for v in ls["debit_minor"]], credit=[fmt.ngn(v, exact=True) if v else "" for v in ls["credit_minor"]])[["account_code", "account_name", "debit", "credit"]],
                              hide_index=True, width="stretch")
 with tabs[3]:
     docs = t["stages"][t["stages"]["doc_no"].notna()][["stage", "owner_entity", "doc_no"]]

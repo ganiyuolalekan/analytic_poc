@@ -7,10 +7,10 @@ import pandas as pd  # noqa: E402
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from app.components import cards, charts, feed, header, logos, state, tooltips  # noqa: E402
+from app.components import cards, charts, feed, fmt, header, logos, state, tooltips  # noqa: E402
 from nsw_sim import clock  # noqa: E402
 from nsw_sim.analytics import quality, queries, reports  # noqa: E402
-from nsw_sim.money import fmt_days, fmt_ngn, fmt_pct  # noqa: E402
+from nsw_sim.money import fmt_days, fmt_pct  # noqa: E402
 
 ISO3 = {"CN": "CHN", "IN": "IND", "NL": "NLD", "US": "USA", "GB": "GBR", "DE": "DEU", "AE": "ARE", "TR": "TUR", "BR": "BRA", "ZA": "ZAF", "BE": "BEL", "FR": "FRA",
         "IT": "ITA", "ES": "ESP", "JP": "JPN", "KR": "KOR", "GH": "GHA", "BJ": "BEN", "CI": "CIV", "SA": "SAU"}
@@ -32,10 +32,10 @@ for c, (key, _label) in zip(r1, [("assessed", None), ("paid", None), ("settled",
 r2 = st.columns(5)
 cards.kpi(r2[0], "dwell_time", fmt_days(cur["median_dwell_days"]), cards.delta_str(cur["median_dwell_days"], pv.get("median_dwell_days")), delta_color="inverse", label="Median dwell (days)")
 cards.kpi(r2[1], "sla_breach_rate", fmt_pct(cur["sla_breach_rate"]), cards.delta_str(cur["sla_breach_rate"], pv.get("sla_breach_rate")), delta_color="inverse")
-cards.kpi(r2[2], "collection_cost_per_100", f"₦{cur['cost_per_100']:.2f}" if cur["cost_per_100"] is not None else "–", label="Cost of collection per ₦100")
+cards.kpi(r2[2], "collection_cost_per_100", f"{cur['cost_per_100']:.2f}" if cur["cost_per_100"] is not None else "–", label="Cost of collection per 100 collected")
 cards.kpi(r2[3], "kpi_open_alerts", str(cur["open_high_alerts"]), None)
 cards.kpi(r2[4], "data_confidence_score", f"{cur['confidence_score']:.0f}/100" if cur["confidence_score"] is not None else "–")
-st.caption("Naira amounts are NSW-channel collections only (synthetic). In-transit: " + fmt_ngn(cur["in_transit"]) + " · " + tooltips.tip("in_transit"))
+st.caption("Amounts are NSW-channel collections only (synthetic). In transit: " + fmt.ngn(cur["in_transit"]) + " · " + tooltips.tip("in_transit"))
 
 # ---------------------------------------------------------------- live feed + live money
 left, right = st.columns([0.58, 0.42])
@@ -48,12 +48,12 @@ with right:
     m = queries.minute_series(60, live_t, "paid")
     if not m.empty:
         m = m.assign(entity=m["entity_id"])
-        fig = charts.entity_area(m, "minute", "value", "entity", 1e8, "₦m")
+        fig = charts.entity_area(m, "minute", "value", "entity", 1e8, "m")
         charts.show(fig, "live_money", 250)
     rt = queries.todays_running_total(live_t)
     c1, c2 = st.columns(2)
-    cards.kpi(c1, "paid", fmt_ngn(rt["today"]), cards.delta_str(rt["today"], rt["yesterday_same_time"]), label="Today so far")
-    cards.kpi(c2, "paid", fmt_ngn(rt["yesterday_same_time"]), label="Yesterday, same time")
+    cards.kpi(c1, "paid", fmt.ngn(rt["today"]), cards.delta_str(rt["today"], rt["yesterday_same_time"]), label="Today so far")
+    cards.kpi(c2, "paid", fmt.ngn(rt["yesterday_same_time"]), label="Yesterday, same time")
 
 # ---------------------------------------------------------------- entity tiles
 tooltips.title("entity_tile")
@@ -70,7 +70,7 @@ for i in range(0, len(ents), 5):
         with c:
             with st.container(border=True):
                 st.markdown(f"{logos.img(e, 36)} **{e}** {charts.rag_dot(rag)}", unsafe_allow_html=True)
-                st.markdown(f"<span style='font-size:1.25em;font-weight:700'>{fmt_ngn(assessed)}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='font-size:1.25em;font-weight:700'>{fmt.ngn(assessed)}</span>", unsafe_allow_html=True)
                 s = spark[spark["entity"] == e].sort_values("day")
                 if len(s) > 2:
                     st.plotly_chart(charts.sparkline(list(s["value"]), logos.colour(e)), width="stretch", key=f"sp_{e}", config={"displayModeBar": False})
@@ -86,7 +86,7 @@ with c1:
     tooltips.title("country_map")
     cdf = state.cc(queries.country_collections, f, metric)
     fig = go.Figure(go.Choropleth(locations=[ISO3.get(c, c) for c in cdf["origin_country"]], z=cdf["value"] / 1e11, colorscale="Greens", marker_line_color="#fff",
-                                  text=cdf["origin_country"], hovertemplate="%{text}: ₦%{z:,.2f}bn<extra></extra>", colorbar_title="₦bn"))
+                                  text=cdf["origin_country"], hovertemplate="%{text}: %{z:,.2f}bn<extra></extra>", colorbar_title="bn"))
     fig.update_geos(showframe=False, showcoastlines=False, projection_type="natural earth", lataxis_range=[-35, 65], lonaxis_range=[-30, 150])
     charts.show(fig, "origin_map", 330, legend=False)
 with c2:
@@ -94,7 +94,7 @@ with c2:
     totals = top.groupby("origin_country")["value"].sum().sort_values(ascending=False).head(10).index
     top = top[top["origin_country"].isin(totals)]
     if by == "none":
-        fig = go.Figure(go.Bar(x=top["value"] / 1e11, y=top["origin_country"], orientation="h", marker_color=charts.GREEN, hovertemplate="%{y}: ₦%{x:,.2f}bn<extra></extra>"))
+        fig = go.Figure(go.Bar(x=top["value"] / 1e11, y=top["origin_country"], orientation="h", marker_color=charts.GREEN, hovertemplate="%{y}: %{x:,.2f}bn<extra></extra>"))
     else:
         fig = go.Figure()
         for g, d in top.groupby(by):

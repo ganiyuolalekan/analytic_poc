@@ -35,12 +35,13 @@ def test_without_an_access_code_there_is_no_prompt(conn, monkeypatch):
     assert not at.exception and not at.text_input
 
 
-def test_view_only_mode_locks_the_live_generation_switch(conn, monkeypatch):
+def test_view_only_mode_has_no_live_generation_switch_and_a_forged_callback_cannot_flip_it(conn, monkeypatch):
     from streamlit.testing.v1 import AppTest
     monkeypatch.setenv("NSW_VIEW_ONLY", "1")
     at = AppTest.from_string("from app.components import header\nheader.clock_strip()", default_timeout=60).run()
     assert not at.exception, [e.value for e in at.exception]
-    assert at.toggle[0].disabled is True
+    assert not at.toggle                                                                      # reviewers get a plain top bar: no engine controls at all
+    assert any("Data as of" in m.value for m in at.markdown)
     import streamlit as st
 
     from app.components import header
@@ -75,7 +76,7 @@ def test_launcher_refuses_to_share_without_an_access_code_and_is_valid_bash():
 
 
 @pytest.mark.slow
-def test_admin_engine_controls_are_locked_in_view_only_mode_even_in_presenter_mode(monkeypatch):
+def test_admin_page_is_not_shown_in_view_only_mode_even_in_presenter_mode(monkeypatch):
     if not REAL.exists():
         pytest.skip("run `make seed` first")
     from streamlit.testing.v1 import AppTest
@@ -86,7 +87,22 @@ def test_admin_engine_controls_are_locked_in_view_only_mode_even_in_presenter_mo
     at.session_state["presenter"] = True
     at.run()
     assert not at.exception, [e.value[:200] for e in at.exception]
-    assert any("view-only" in i.value for i in at.info)
+    assert any("for the presenter" in i.value for i in at.info)                                # a review link never shows the engine room, even by direct address
+    assert not [b for b in at.button if str(b.key or "").startswith("inj_")] and not at.dataframe
+
+
+@pytest.mark.slow
+def test_admin_engine_controls_are_disabled_while_generation_is_off_on_the_presenters_machine(monkeypatch):
+    if not REAL.exists():
+        pytest.skip("run `make seed` first")
+    from streamlit.testing.v1 import AppTest
+    monkeypatch.setenv("NSW_DB_PATH", str(REAL))
+    monkeypatch.delenv("NSW_VIEW_ONLY", raising=False)
+    db.close_reader()
+    at = AppTest.from_file(str(ROOT / "app" / "pages" / "11_admin.py"), default_timeout=180)
+    at.session_state["presenter"] = True
+    at.run()
+    assert not at.exception, [e.value[:200] for e in at.exception]
     inject = [b for b in at.button if str(b.key or "").startswith("inj_")]
     assert len(inject) == 6 and all(b.disabled for b in inject)
 

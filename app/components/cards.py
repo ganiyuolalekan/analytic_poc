@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from app.components import logos, tooltips
-from nsw_sim.money import fmt_ngn
+from app.components import fmt, logos, tooltips
 
 
 def kpi(container, key: str, value: str, delta: str | None = None, delta_color: str = "normal", label: str | None = None) -> None:
@@ -19,7 +18,7 @@ def delta_str(cur: float | None, prev: float | None, kind: str = "pct") -> str |
 
 
 def money_kpi(container, key: str, cur: float, prev: float | None, label: str | None = None) -> None:
-    kpi(container, key, fmt_ngn(cur), delta_str(cur, prev), label=label)
+    kpi(container, key, fmt.ngn(cur), delta_str(cur, prev), label=label)
 
 
 def disclaimer_footer() -> None:

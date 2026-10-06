@@ -12,8 +12,9 @@ from nsw_sim import clock, db  # noqa: E402
 from nsw_sim.config import db_path, yaml_config  # noqa: E402
 from nsw_sim.llm import ledger  # noqa: E402
 
-header.page_header("Admin / Generation Control", "Presenter controls and the engine room: simulation status, language-model status and cost, how much generated content came from the model "
-                   "versus the deterministic fallback, the scripted story beats and whether each detector fired.", ("All filters",))
+header.page_header("Admin / Generation Control", "Presenter controls and the engine room: simulation status, AI status and usage, how much generated content came from the AI "
+                   "versus the built-in backup, the scripted story beats and whether each detector fired.", ("All filters",), legend=False)
+header.technical_only()
 svc = state.service()
 stt = svc.status()
 if not state.presenter():
@@ -33,8 +34,8 @@ c = st.columns(5)
 c[0].markdown(f"**Service**<br>{stt['mode']}", unsafe_allow_html=True)
 c[1].markdown(f"**Watermark**<br>{clock.fmt_wat(stt['watermark']) if stt['watermark'] else '–'}", unsafe_allow_html=True)
 c[2].markdown(f"**Events / min**<br>{stt['events_per_min']}", unsafe_allow_html=True)
-c[3].markdown(f"**LLM**<br>{'offline' if stt['offline'] else stt['llm']['state']} · {stt['llm']['avg_latency_ms']} ms", unsafe_allow_html=True)
-c[4].markdown(f"**Model**<br>{stt['model_data']}", unsafe_allow_html=True)
+c[3].markdown(f"**AI**<br>{'offline' if stt['offline'] else stt['llm']['state']} · {stt['llm']['avg_latency_ms']} ms", unsafe_allow_html=True)
+c[4].markdown(f"**Data model**<br>{stt['model_data']}", unsafe_allow_html=True)
 if stt["errors"]:
     st.warning("Recent service errors: " + " | ".join(stt["errors"]))
 locked = not state.presenter() or state.view_only()
@@ -46,7 +47,7 @@ if a.button("Re-run catch-up", disabled=engine_locked, help="Advance the simulat
 sp = b.selectbox("LIVE_SPEED", [1, 5, 20], index=[1, 5, 20].index(int(stt["speed"])) if int(stt["speed"]) in (1, 5, 20) else 0, disabled=engine_locked, help=tooltips.tip("live_speed"))
 if sp != stt["speed"] and not engine_locked:
     svc.set_speed(sp)
-off = c3.toggle("Offline mode (fallback only)", value=stt["offline"], disabled=locked, help=tooltips.tip("degraded_mode"))
+off = c3.toggle("AI offline mode (built-in backup only)", value=stt["offline"], disabled=locked, help=tooltips.tip("degraded_mode"))
 if off != stt["offline"] and not locked:
     svc.set_offline(off)
     st.rerun()
@@ -75,7 +76,7 @@ with col1:
     st.markdown("**Generated rows by source**")
     if not rows.empty:
         pv = rows.pivot_table(index="content", columns="source", values="n", aggfunc="sum").fillna(0)
-        pv["% model (llm)"] = 100 * pv.get("llm", 0) / pv.sum(axis=1)
+        pv["% by AI"] = 100 * pv.get("llm", 0) / pv.sum(axis=1)
         st.dataframe(pv, width="stretch")
 with col2:
     st.markdown("**Plans and profiles by source**")

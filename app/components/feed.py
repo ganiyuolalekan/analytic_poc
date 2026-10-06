@@ -4,11 +4,11 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from app.components import logos, state, tooltips
+from app.components import fmt, logos, state, tooltips
 from nsw_sim import clock
 from nsw_sim.analytics import queries
 
-ICON = {"nsw.payment": "₦", "nsw.settlement": "⇄", "nsw.remittance": "↦", "nsw.exam": "◎", "nsw.release": "✓", "nsw.gate": "→", "nsw.permit": "▤",
+ICON = {"nsw.payment": "◆", "nsw.settlement": "⇄", "nsw.remittance": "↦", "nsw.exam": "◎", "nsw.release": "✓", "nsw.gate": "→", "nsw.permit": "▤",
         "nsw.declaration": "▣", "nsw.manifest": "▤", "nsw.arrival": "▼", "ops.": "▲", "supervision": "!", "system": "●"}
 SEV = {"high": "▲", "medium": "▲", "low": "●", "info": "·"}
 
@@ -36,7 +36,7 @@ def live_feed(height: int = 430, key: str = "feed") -> None:
         st.info("No events yet.")
         return
     d = pd.DataFrame({"logo": [logos.uri(e, 32) for e in df["entity_id"]], "when (WAT)": [clock.fmt_wat(t, "%d %b %H:%M:%S") for t in df["occurred_at"]],
-                      "": [f"{SEV.get(s, '·')} {_icon(t)}" for s, t in zip(df["severity"], df["type"])], "event": df["headline"], "detail": df["description"], "reference": df["subject"]})
+                      "": [f"{SEV.get(s, '·')} {_icon(t)}" for s, t in zip(df["severity"], df["type"])], "event": [fmt.plain(t) for t in df["headline"]], "detail": [fmt.plain(t) for t in df["description"]], "reference": df["subject"]})
     sel = st.dataframe(d, hide_index=True, width="stretch", height=height, on_select="rerun", selection_mode="single-row", key=f"{key}_df",
                        column_config={"logo": st.column_config.ImageColumn("Entity", width="small"), "event": st.column_config.TextColumn("Event", width="medium"),
                                       "detail": st.column_config.TextColumn("Detail", width="large"), "reference": st.column_config.TextColumn("Reference", help="Select the row and open it in the Trace Workbench.")})
@@ -52,7 +52,6 @@ def live_counters() -> None:
     last60 = float(m["value"].sum()) if not m.empty else 0.0
     ev = queries.events_per_minute(state.live_as_of(), 30)
     from app.components import cards
-    from nsw_sim.money import fmt_ngn
     c1, c2 = st.columns(2)
     cards.kpi(c1, "events_per_minute", f"{(ev['n'].tail(5).mean() if not ev.empty else 0):.1f}")
-    cards.kpi(c2, "paid", fmt_ngn(last60), label="Payments confirmed, last 60 min")
+    cards.kpi(c2, "paid", fmt.ngn(last60), label="Payments confirmed, last 60 min")

@@ -29,3 +29,8 @@ Live service verified headless (watermark advances, director writes llm feed ite
 ## Sharing and R-TGT-01 (2026-10-06)
 - `make share` serves the app from this machine through ngrok (access code, view-only, token cap; ASSUMPTIONS 26). The ngrok leg itself has not been started or tested end to end.
 - R-TGT-01 no longer fires without a real projection and its metric is the fitted dwell days; the spurious ALT-20261005-00001 was dismissed with an audit entry (ASSUMPTIONS 25). The share report (`make report`, uses the model) still says 16 alerts and B1 detected 02 Jul; regenerate it if those figures must match the corrected history.
+
+## Review round 2 (2026-10-06): landing page, plain language, no naira sign
+- New landing page `00_home.py`: agency and period dropdowns, AI chat (default question filled in, six one-click suggestions scoped by the dropdowns), money in vs money out chart (complete weeks only) and three numbers. The old Command Center is unchanged apart from the sign.
+- `app/components/qa.py` is the one assistant component (landing page, floating **Ask AI** button on every other page, Assistant page). `fmt.py`: figures without the sign, legend, `plain()` for displayed text.
+- Plain language for a non-technical audience: AI wording everywhere, technical pages (Architecture, Admin) and engine detail only on the presenter's machine, nothing technical in a shared link. Tests: `tests/test_landing_and_plain_language.py`.

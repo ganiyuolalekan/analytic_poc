@@ -38,6 +38,12 @@ def view_only() -> bool:
     return os.environ.get("NSW_VIEW_ONLY") == "1"
 
 
+def technical() -> bool:
+    """Technical pages and detail (engine status, AI usage, architecture, step-by-step traces) are for the presenter and engineers. A shared review link never shows
+    them (the audience is not technical and does not need the 'how'); the presenter's own machine shows them unless 'Show technical pages' is switched off."""
+    return not view_only() and bool(st.session_state.get("show_tech", True))
+
+
 def presenter() -> bool:
     return bool(st.session_state.get("presenter", False))
 

@@ -11,6 +11,10 @@ REQUIRED_FIELDS = ("label", "short", "long", "needs", "sources")
 PAGES = sorted((APP / "pages").glob("*.py"))
 
 
+def page(name: str) -> Path:
+    return next(p for p in PAGES if p.name == name)
+
+
 @pytest.fixture(scope="module")
 def tips():
     return yaml.safe_load((ROOT / "config" / "tooltips.yaml").read_text(encoding="utf-8"))
@@ -121,18 +125,18 @@ def test_filters_change_outputs_and_pages_work_without_logos(monkeypatch, tmp_pa
     from nsw_sim import db, logos
     monkeypatch.setenv("NSW_DB_PATH", str(real))
     db.close_reader()
-    at = AppTest.from_file(str(PAGES[0]), default_timeout=180)
+    at = AppTest.from_file(str(page("01_command_center.py")), default_timeout=180)
     at.session_state["f_entities"] = ["NPA"]
     at.run()
     assert not at.exception
     v_npa = [m.value for m in at.metric if m.label == "Assessed"][0]
-    at2 = AppTest.from_file(str(PAGES[0]), default_timeout=180)
+    at2 = AppTest.from_file(str(page("01_command_center.py")), default_timeout=180)
     at2.session_state["f_entities"] = ["NCS"]
     at2.run()
     v_ncs = [m.value for m in at2.metric if m.label == "Assessed"][0]
     assert v_npa != v_ncs
     monkeypatch.setattr(logos, "LOGO_DIR", tmp_path)
     logos.refresh()
-    at3 = AppTest.from_file(str(PAGES[2]), default_timeout=180).run()          # Entity Explorer without any logo files
+    at3 = AppTest.from_file(str(page("03_entities.py")), default_timeout=180).run()          # Entity Explorer without any logo files
     assert not at3.exception
     logos.refresh()
