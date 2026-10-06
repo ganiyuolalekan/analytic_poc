@@ -2,7 +2,7 @@ PY ?= .venv/bin/python
 PYTEST ?= .venv/bin/python -m pytest
 STREAMLIT ?= .venv/bin/streamlit
 
-.PHONY: db-package db-publish db-status db-unindexed db-index run-local cost setup probe estimate-cost seed run run-live live-on live-off live-status share unshare test test-all eval snapshot restore-demo reset logos lint report variants
+.PHONY: streamlit-secrets db-package db-publish db-status db-unindexed db-index run-local cost setup probe estimate-cost seed run run-live live-on live-off live-status share unshare test test-all eval snapshot restore-demo reset logos lint report variants
 
 setup:
 	uv venv --python 3.12 .venv
@@ -44,6 +44,10 @@ db-package:
 
 db-publish:
 	$(PY) scripts/publish_db.py upload
+
+# Print the whole Streamlit Secrets box from .env, ready to paste (real values: your terminal only). ARGS=--mask previews it with secrets hidden; ARGS=--copy puts it on the clipboard.
+streamlit-secrets:
+	@$(PY) scripts/streamlit_secrets.py $(ARGS)
 
 run-local:
 	NSW_DB_PATH=data/nsw_unindexed.db $(STREAMLIT) run app/main.py --server.port 8599

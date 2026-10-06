@@ -29,7 +29,7 @@ The upload refuses to go to a public dataset. The package includes the AI answer
 ## 3. Deploy on Streamlit Community Cloud
 1. Open https://share.streamlit.io and sign in with the GitHub account that owns the repo.
 2. **Create app**: repository `analytic_poc`, branch `main`, main file `app/main.py`.
-3. **Advanced settings**: Python 3.12. Paste the filled-in contents of `.streamlit/secrets.toml.example` into **Secrets** (the AI key, the access code, `NSW_VIEW_ONLY`, the token cap, `NSW_DB_REPO` and the READ token).
+3. **Advanced settings**: Python 3.12. Paste the Secrets box into **Secrets** (the AI key, the access code, `NSW_VIEW_ONLY`, the token cap, `NSW_DB_REPO` and the READ token). Fill in the commented block at the bottom of your `.env`, then run `make streamlit-secrets` to print the box ready to paste (`ARGS=--mask` previews it with secrets hidden, `ARGS=--copy` puts it on the clipboard); it refuses while anything is missing or still a placeholder. `.streamlit/secrets.toml.example` shows the same layout.
 4. Deploy. The first start shows "Getting the data ready" for a minute or two, then the access-code prompt and the landing page.
 5. Check: enter the access code, ask one of the suggestions on the landing page, open the three sections.
 

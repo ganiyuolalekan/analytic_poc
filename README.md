@@ -49,7 +49,7 @@ Indexes can be rebuilt on any unindexed copy at any time, so nothing is lost by 
 
 ## Deploying on Streamlit Community Cloud
 The code is public on GitHub; the data goes in a **private Hugging Face dataset** that the app downloads on first start. `make db-package` and `make db-publish` prepare and upload it; `DEPLOY.md` has the
-full steps (tokens, secrets, Streamlit settings, looking after it) and `.streamlit/secrets.toml.example` is the template for Streamlit's Secrets box.
+full steps (tokens, secrets, Streamlit settings, looking after it; `make streamlit-secrets` prints the Secrets box from your `.env`) and `.streamlit/secrets.toml.example` is the template for Streamlit's Secrets box.
 
 ## Sharing the app for review (free, from your own machine)
 The database (1.6 GB) stays on your machine, so there is nothing to upload or rebuild. `make share` starts the app and an ngrok tunnel together:
