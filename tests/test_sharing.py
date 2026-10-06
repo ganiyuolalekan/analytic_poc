@@ -83,7 +83,7 @@ def test_admin_page_is_not_shown_in_view_only_mode_even_in_presenter_mode(monkey
     monkeypatch.setenv("NSW_DB_PATH", str(REAL))
     monkeypatch.setenv("NSW_VIEW_ONLY", "1")
     db.close_reader()
-    at = AppTest.from_file(str(ROOT / "app" / "pages" / "11_admin.py"), default_timeout=180)
+    at = AppTest.from_file(str(ROOT / "app" / "screens" / "11_admin.py"), default_timeout=180)
     at.session_state["presenter"] = True
     at.run()
     assert not at.exception, [e.value[:200] for e in at.exception]
@@ -99,7 +99,7 @@ def test_admin_engine_controls_are_disabled_while_generation_is_off_on_the_prese
     monkeypatch.setenv("NSW_DB_PATH", str(REAL))
     monkeypatch.delenv("NSW_VIEW_ONLY", raising=False)
     db.close_reader()
-    at = AppTest.from_file(str(ROOT / "app" / "pages" / "11_admin.py"), default_timeout=180)
+    at = AppTest.from_file(str(ROOT / "app" / "screens" / "11_admin.py"), default_timeout=180)
     at.session_state["presenter"] = True
     at.run()
     assert not at.exception, [e.value[:200] for e in at.exception]
@@ -107,7 +107,7 @@ def test_admin_engine_controls_are_disabled_while_generation_is_off_on_the_prese
     assert len(inject) == 6 and all(b.disabled for b in inject)
 
 
-PAGES = sorted((ROOT / "app" / "pages").glob("*.py"))
+PAGES = sorted((ROOT / "app" / "screens").glob("*.py"))
 
 
 @pytest.mark.parametrize("page", PAGES, ids=[p.name for p in PAGES])

@@ -76,7 +76,7 @@ for i in range(0, len(ents), 5):
                     st.plotly_chart(charts.sparkline(list(s["value"]), logos.colour(e)), width="stretch", key=f"sp_{e}", config={"displayModeBar": False})
                 if st.button("Open", key=f"open_{e}", width="stretch"):
                     st.session_state["entity_sel"] = e
-                    st.switch_page("pages/03_entities.py")
+                    st.switch_page("screens/03_entities.py")
 
 # ---------------------------------------------------------------- origin map + top 10
 c1, c2 = st.columns([0.55, 0.45])

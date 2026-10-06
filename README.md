@@ -35,6 +35,18 @@ Other targets: `make snapshot` / `make restore-demo` (emergency restore of a kno
 Offline: `NSW_OFFLINE=1 make run` works end to end (deterministic fallback for every model role). Rebuild facts without re-spending model tokens:
 `.venv/bin/python scripts/seed.py --rebuild`.
 
+## Two databases: indexed to share, unindexed to test with
+`data/nsw.db` is **indexed** (44 chosen indexes plus planner statistics, about 1.6 GB): reads are fastest, so it is the one the shared link serves. `data/nsw_unindexed.db` is the same data without those indexes
+(about 0.9 GB): quicker to copy, back up and write into, and a little slower to read (measured on this data: clearance statistics 1.6 s becomes 7.4 s, Entity Explorer 3.7 s becomes 5.5 s, a Trace search 2.2 s becomes 3.5 s,
+the landing page is unchanged).
+```
+make db-status       # shows whether each file is indexed, its size and whether statistics are present
+make db-unindexed    # (re)makes data/nsw_unindexed.db from data/nsw.db: an online backup, so a running app is not disturbed (7 s)
+make db-index        # (re)builds the indexes and statistics on data/nsw.db (15 s on the unindexed copy of this data)
+make run-local       # your own copy of the app on the unindexed file (port 8599, full controls, its own live-generation switch)
+```
+Indexes can be rebuilt on any unindexed copy at any time, so nothing is lost by testing on the slim file.
+
 ## Sharing the app for review (free, from your own machine)
 The database (1.6 GB) stays on your machine, so there is nothing to upload or rebuild. `make share` starts the app and an ngrok tunnel together:
 ```
@@ -49,9 +61,11 @@ Reviewers can still use the Assistant (within the cap) and act on alerts (acknow
 Running `make run` for your own use is unchanged: no code, full controls. Environment switches behind this: `NSW_ACCESS_CODE`, `NSW_VIEW_ONLY=1`, `NSW_TOKEN_BUDGET_DAY`.
 
 ## Pages
+A reviewer's sidebar shows **Home, Entity Explorer, Trace Workbench and Supervision** only, and the AI chat is on every page (inline on Home, an **Ask AI** button elsewhere). On the presenter's own machine the other pages sit under "More pages (presenter)" (switch them off with *Show all pages*). The sidebar filters are in one collapsed *Filters* panel.
+
 | # | Page | Need | One line |
 |---|---|---|---|
-| 0 | Home | all | the landing page: two dropdowns (agency, period), an AI chat box with a first question filled in and one-click suggestions, and a money-in versus money-out chart with three numbers |
+| 0 | Home | all | the landing page: a hero with the AI chat (two dropdowns for agency and period, a first question filled in, one-click suggestions), three number cards (coming in, going out, still to come in), a money-in versus money-out chart, who collects what, agency tiles and links to the three sections |
 | 1 | Command Center | speed, trust | KPI strip with deltas, live feed, last-hour money by agency, agency tiles, origin map, situation board |
 | 2 | Clearance Journey | speed | stage waterfall, digital vs physical, percentiles, target tracker with projection, bottlenecks, cost of delay |
 | 3 | Entity Explorer | trust | logo grid; overview; four statements with trace buttons; processes; ledger; funding and expenses; scorecard |
@@ -83,7 +97,7 @@ B5 SON remits 9 days late (R-REM-01) · B6 Electronics from China under-assessed
 B8 14 duplicate payments 2 Oct (R-DUP-01) · B9 FAAN timestamps missing 28-29 Sep (R-DQ-01) · B10 Independence Day volume dip. Admin > *Story beats* shows whether each detector fired.
 
 ## Layout
-`nsw_sim/` backend (llm, sim, analytics, supervision, assistant) · `app/` Streamlit (components, 12 pages) · `config/` settings, scenario, alert rules, entities, reference data, tooltips ·
+`nsw_sim/` backend (llm, sim, analytics, supervision, assistant) · `app/` Streamlit (components, 13 screens) · `config/` settings, scenario, alert rules, entities, reference data, tooltips ·
 `scripts/` probe, seed, calibrate, eval, snapshot, report · `tests/` unit/integration tests and the independent oracle · `reports/` evaluation, tests, acceptance, share report.
 
 ## Honesty and limits

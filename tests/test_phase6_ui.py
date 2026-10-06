@@ -8,7 +8,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 APP = ROOT / "app"
 REQUIRED_FIELDS = ("label", "short", "long", "needs", "sources")
-PAGES = sorted((APP / "pages").glob("*.py"))
+PAGES = sorted((APP / "screens").glob("*.py"))
 
 
 def page(name: str) -> Path:
@@ -59,7 +59,7 @@ def test_every_helper_key_used_in_the_app_exists_in_the_catalogue(tips):
 def test_every_dataframe_column_config_uses_help_or_catalogue():
     """Columns that show metrics should carry help= text: scan for column_config entries with neither help= nor a catalogue helper."""
     offenders = []
-    for f in (APP / "pages").glob("*.py"):
+    for f in (APP / "screens").glob("*.py"):
         for m in re.finditer(r"st\.column_config\.(?:Number|Progress)Column\(([^)]*)\)", f.read_text(encoding="utf-8")):
             args = m.group(1)
             if "help=" not in args and "format=" in args and "min_value" in args:
@@ -84,7 +84,7 @@ def test_no_raw_base_table_access_in_app_or_assistant():
                 line = f.read_text(encoding="utf-8")[: m.start()].count("\n") + 1
                 offenders.append((f.relative_to(ROOT).as_posix(), line, m.group(0)))
     # writes (reviews, saved reports, audit) are allowed where they go through supervision/ or analytics.reports; reads of base tables are not
-    allowed = {("app/pages/07_reports.py", "saved_reports"), ("app/pages/11_admin.py", "generation_runs")}
+    allowed = {("app/screens/07_reports.py", "saved_reports"), ("app/screens/11_admin.py", "generation_runs")}
     offenders = [o for o in offenders if (o[0], o[2].split()[-1]) not in allowed]
     assert not offenders, offenders
 

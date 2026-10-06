@@ -306,6 +306,11 @@ def top_n(metric: str, dimension: str, n: int = 5, period: dict | str | None = N
                 x["change"] = round(x["value"] - p, 2)
                 x["change_pct"] = round((x["value"] - p) / abs(p) * 100, 4) if p else None
         r["data"].pop("compare_rows", None)
+    total = sum(x["value"] for x in rows if "naira" in x)          # money rows only: a share of the total is code's job, not the model's
+    if total:
+        for x in rows:
+            if "naira" in x:
+                x["share_pct"] = round(x["value"] / total * 100, 2)
     key = rank_by if rank_by in ("value", "change", "change_pct") else "value"
     rows = [x for x in rows if x.get(key) is not None]
     rows.sort(key=lambda x: x[key], reverse=True)

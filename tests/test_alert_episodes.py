@@ -183,7 +183,7 @@ def test_supervision_page_finds_a_resolved_alert_by_id_and_by_link(monkeypatch):
     from streamlit.testing.v1 import AppTest
     monkeypatch.setenv("NSW_DB_PATH", str(REAL))
     db.close_reader()
-    page = str(ROOT / "app" / "pages" / "06_supervision.py")
+    page = str(ROOT / "app" / "screens" / "06_supervision.py")
     base = AppTest.from_file(page, default_timeout=180).run()
     assert not base.exception and not any("ALT-20260910-00001 · R-FEE-01" in m.value for m in base.markdown)       # resolved alerts are hidden on the default board
     typed = AppTest.from_file(page, default_timeout=180).run()

@@ -45,20 +45,20 @@ def _mirror_to_url() -> None:
 def sidebar() -> None:
     _load_from_url()
     opts = _options()
-    st.sidebar.markdown("### Filters")
+    box = st.sidebar.expander("Filters", expanded=False)          # one collapsed panel keeps the sidebar to the page links
     periods = list(state.periods())
-    st.sidebar.selectbox("Period", periods, index=periods.index("Since 1 July"), key="f_period", help=tooltips.tip("filter_period"))
+    box.selectbox("Period", periods, index=periods.index("Since 1 July"), key="f_period", help=tooltips.tip("filter_period"))
     if st.session_state.get("f_period") == "Custom range":
         today = clock.wat(state.as_of()).date()
-        st.sidebar.date_input("Custom range (WAT)", value=(clock.wat(clock.sim_start()).date(), today), key="f_custom")
-    st.sidebar.toggle("Compare to previous period", key="f_compare", help=tooltips.tip("compare_previous_period"))
-    st.sidebar.multiselect("Entities", entity_codes(), key="f_entities", help=tooltips.tip("filter_entities"), format_func=lambda c: f"{c} · {logos.name(c)}")
-    st.sidebar.multiselect("Origin country", list(opts["countries"]), key="f_origin", help=tooltips.tip("filter_origin"), format_func=lambda c: opts["countries"][c])
-    st.sidebar.multiselect("Mode", ["sea", "air"], key="f_mode", help=tooltips.tip("filter_mode"))
-    st.sidebar.multiselect("Port / airport", opts["ports"], key="f_port", help=tooltips.tip("filter_port"))
-    st.sidebar.multiselect("Commodity group", opts["commodities"], key="f_commodity", help=tooltips.tip("filter_commodity"))
-    st.sidebar.multiselect("Process / fee type", opts["processes"], key="f_process", help=tooltips.tip("filter_process"))
-    st.sidebar.radio("Currency view", ["NGN", "USD"], horizontal=True, key="f_ccy", help=tooltips.tip("currency_view"))
+        box.date_input("Custom range (WAT)", value=(clock.wat(clock.sim_start()).date(), today), key="f_custom")
+    box.toggle("Compare to previous period", key="f_compare", help=tooltips.tip("compare_previous_period"))
+    box.multiselect("Entities", entity_codes(), key="f_entities", help=tooltips.tip("filter_entities"), format_func=lambda c: f"{c} · {logos.name(c)}")
+    box.multiselect("Origin country", list(opts["countries"]), key="f_origin", help=tooltips.tip("filter_origin"), format_func=lambda c: opts["countries"][c])
+    box.multiselect("Mode", ["sea", "air"], key="f_mode", help=tooltips.tip("filter_mode"))
+    box.multiselect("Port / airport", opts["ports"], key="f_port", help=tooltips.tip("filter_port"))
+    box.multiselect("Commodity group", opts["commodities"], key="f_commodity", help=tooltips.tip("filter_commodity"))
+    box.multiselect("Process / fee type", opts["processes"], key="f_process", help=tooltips.tip("filter_process"))
+    box.radio("Currency view", ["NGN", "USD"], horizontal=True, key="f_ccy", help=tooltips.tip("currency_view"))
     _mirror_to_url()
 
 

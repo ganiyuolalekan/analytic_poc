@@ -11,7 +11,19 @@ from nsw_sim.sim import control
 CSS = """
 <style>
 html, body, [class*="css"] { font-size: 17px; }
-.block-container { padding-top: 3.2rem; }
+.block-container, [data-testid="stMainBlockContainer"] { padding: 3.2rem 1.6rem 4rem 1.6rem !important; max-width: 100% !important; }
+.st-key-home_hero { background: linear-gradient(135deg, #DDF0E4 0%, #F1F8F3 55%, #FFFFFF 100%); border: 1px solid #CFE3D6; border-radius: 22px; padding: 1.5rem 2rem 1.3rem; }
+.hero-kicker { color: #0B5D3B; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; font-size: .78rem; }
+.hero-title { font-size: 2.7rem; font-weight: 800; line-height: 1.12; margin: .15rem 0 .35rem; color: #10261B; }
+.hero-sub { color: #44574D; font-size: 1.12rem; margin: 0 0 .7rem; }
+.st-key-home_hero input { font-size: 1.15rem; padding-top: .7rem; padding-bottom: .7rem; }
+.st-key-flow_in, .st-key-flow_out, .st-key-flow_due { background: #fff; border-radius: 16px; padding: .9rem 1.3rem .7rem; box-shadow: 0 2px 12px rgba(16,38,27,.09); border-left: 7px solid #0B5D3B; }
+.st-key-flow_out { border-left-color: #2F5D9B; } .st-key-flow_due { border-left-color: #B7791F; }
+.st-key-flow_in [data-testid="stMetricValue"], .st-key-flow_out [data-testid="stMetricValue"], .st-key-flow_due [data-testid="stMetricValue"] { font-size: 2.4rem; font-weight: 800; }
+.st-key-home_agencies [data-testid="stImage"] img, .st-key-home_agencies img { max-height: 44px; width: auto; object-fit: contain; }
+[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li { font-size: 1.04rem; line-height: 1.6; }
+[data-testid="stChatMessage"] ul { margin: .15rem 0 .7rem; padding-left: 1.2rem; } [data-testid="stChatMessage"] li { margin-bottom: .3rem; }
+[data-testid="stChatMessage"] strong { color: #10261B; }
 .ribbon { position: fixed; top: 0; left: 0; right: 0; z-index: 999990; background: #B03A2E; color: #fff; text-align: center; font-weight: 700; letter-spacing: .04em; padding: 6px 10px; font-size: 14px; }
 [data-testid="stMetricValue"] { font-size: 1.8rem; }
 [data-testid="stMetricValue"], [data-testid="stMetricValue"] > div { overflow: visible !important; text-overflow: clip !important; }
@@ -19,7 +31,8 @@ html, body, [class*="css"] { font-size: 17px; }
 .st-key-ai_fab button { border-radius: 28px; background: #0B5D3B; color: #fff; font-weight: 700; padding: .5rem 1.3rem; box-shadow: 0 4px 14px rgba(0,0,0,.28); border: 0; }
 .st-key-ai_fab button:hover { background: #0E7A4E; color: #fff; }
 [data-testid="stFormSubmitButton"] button { min-width: 4.6rem; }
-@media (max-width: 1280px) { .st-key-home_cards > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] { flex-wrap: wrap; } .st-key-home_cards > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { flex: 1 1 100% !important; width: 100% !important; min-width: 100% !important; } }
+@media (max-width: 1100px) { .st-key-home_charts > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"], .st-key-home_flow > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
+  .st-key-home_charts > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"], .st-key-home_flow > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { flex: 1 1 100% !important; width: 100% !important; min-width: 100% !important; } }
 .card { background: var(--secondary-background-color, #F2F5F3); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
 .chip { display: inline-block; background: var(--secondary-background-color, #F2F5F3); border: 1px solid #d7dfda; border-radius: 14px; padding: 1px 9px 1px 4px; margin: 1px 2px; font-size: 13px; }
 .pulse { display:inline-block; width:10px; height:10px; border-radius:50%; background:#2E7D32; margin-right:6px; animation: pulse 1.6s infinite; }
@@ -114,7 +127,7 @@ def top_bar() -> None:
         st.toggle("Presenter mode", key="presenter", help=tooltips.tip("admin_controls"))
 
 
-def page_header(title: str, explain: str, ignores: tuple[str, ...] = (), legend: bool = True, chips: bool = True) -> None:
+def page_header(title: str, explain: str, ignores: tuple[str, ...] = (), legend: bool = True, chips: bool = True, show_title: bool = True) -> None:
     if gate.required() and not st.session_state.get("_access_ok"):
         # Streamlit lets a browser open a page script directly (/supervision) without going through main.py, so the access code is enforced here too:
         # every page calls this before it touches any data (tests/test_sharing.py checks both facts).
@@ -122,7 +135,8 @@ def page_header(title: str, explain: str, ignores: tuple[str, ...] = (), legend:
         gate.passed()
         st.stop()
     c1, c2 = st.columns([0.9, 0.1])
-    c1.title(title)
+    if show_title:
+        c1.title(title)
     if legend:
         c1.caption(fmt.legend())
     with c2:

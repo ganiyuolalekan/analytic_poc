@@ -16,11 +16,11 @@ from app.components import filters, gate, header, qa, state  # noqa: E402
 from nsw_sim import db  # noqa: E402
 from nsw_sim.config import db_path  # noqa: E402
 
-PAGES = [("pages/00_home.py", "Home"), ("pages/01_command_center.py", "Command Center"), ("pages/02_clearance.py", "Clearance Journey"), ("pages/03_entities.py", "Entity Explorer"),
-         ("pages/04_trace.py", "Trace Workbench"), ("pages/05_reconciliation.py", "Reconciliation"), ("pages/06_supervision.py", "Supervision"),
-         ("pages/07_reports.py", "Reports"), ("pages/08_assistant.py", "Assistant"), ("pages/09_data_quality.py", "Data Quality & Onboarding"),
-         ("pages/10_architecture.py", "Architecture & Integration"), ("pages/11_admin.py", "Admin / Generation Control"), ("pages/12_methodology.py", "Methodology & Glossary")]
-TECHNICAL = {"pages/10_architecture.py", "pages/11_admin.py"}          # for the presenter and engineers: hidden from a shared review link until 'Show technical pages' is switched on
+PAGES = [("screens/00_home.py", "Home"), ("screens/01_command_center.py", "Command Center"), ("screens/02_clearance.py", "Clearance Journey"), ("screens/03_entities.py", "Entity Explorer"),
+         ("screens/04_trace.py", "Trace Workbench"), ("screens/05_reconciliation.py", "Reconciliation"), ("screens/06_supervision.py", "Supervision"),
+         ("screens/07_reports.py", "Reports"), ("screens/08_assistant.py", "Assistant"), ("screens/09_data_quality.py", "Data Quality & Onboarding"),
+         ("screens/10_architecture.py", "Architecture & Integration"), ("screens/11_admin.py", "Admin / Generation Control"), ("screens/12_methodology.py", "Methodology & Glossary")]
+SECTIONS = {"screens/00_home.py", "screens/03_entities.py", "screens/04_trace.py", "screens/06_supervision.py"}          # all a reviewer sees in the sidebar; the other pages are for the presenter ("More pages")
 
 
 def _bootstrap_screen() -> bool:
@@ -59,8 +59,10 @@ if _bootstrap_screen():
     filters.sidebar()
     header.top_bar()
     if not state.view_only():          # the presenter's own machine only: a shared review link has no way to reveal the technical pages
-        st.sidebar.toggle("Show technical pages", value=True, key="show_tech", help="Engine status, AI usage and integration details, for the presenter and engineers.")
-    nav = st.navigation([st.Page(p, title=t, default=(i == 0)) for i, (p, t) in enumerate(PAGES) if p not in TECHNICAL or state.technical()], position="sidebar")
+        st.sidebar.toggle("Show all pages", value=True, key="show_tech", help="The other pages, engine status and integration details, for the presenter and engineers.")
+    main_pages = [st.Page(p, title=t, default=(p == "screens/00_home.py")) for p, t in PAGES if p in SECTIONS]
+    more_pages = [st.Page(p, title=t) for p, t in PAGES if p not in SECTIONS] if state.technical() else []
+    nav = st.navigation({"": main_pages, "More pages (presenter)": more_pages} if more_pages else main_pages, position="sidebar")
     if nav.url_path:          # the landing page stays simple: the 'since your last session' card appears on the other pages
         from app.components import digest
         digest.since_last_session()

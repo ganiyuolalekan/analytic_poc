@@ -34,3 +34,9 @@ Live service verified headless (watermark advances, director writes llm feed ite
 - New landing page `00_home.py`: agency and period dropdowns, AI chat (default question filled in, six one-click suggestions scoped by the dropdowns), money in vs money out chart (complete weeks only) and three numbers. The old Command Center is unchanged apart from the sign.
 - `app/components/qa.py` is the one assistant component (landing page, floating **Ask AI** button on every other page, Assistant page). `fmt.py`: figures without the sign, legend, `plain()` for displayed text.
 - Plain language for a non-technical audience: AI wording everywhere, technical pages (Architecture, Admin) and engine detail only on the presenter's machine, nothing technical in a shared link. Tests: `tests/test_landing_and_plain_language.py`.
+
+## Review round 3 (2026-10-06, evening): three sections, full width, livelier home, fuller answers
+- Sidebar: Home, Entity Explorer, Trace Workbench, Supervision (others under "More pages (presenter)"); filters in one collapsed panel; Ask AI button on every page except Home, where the chat is the hero.
+- Page margin cut from 85 px to about 27 px so content fills the width; Home redesigned (hero chat, three number cards, two charts, agency tiles).
+- Answers: structured (answer, what is behind it, what it means, a quiet "Based on" line), more thorough, with small charts from the data; the prompt avoids comparing with periods before the data starts.
+- Two databases: indexed `data/nsw.db` (shared) and unindexed `data/nsw_unindexed.db` (local testing, `make run-local`); `scripts/db_index.py` and the `db-*` make targets; one-click homepage answers are pre-computed into the live answer cache.

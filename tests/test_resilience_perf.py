@@ -67,7 +67,7 @@ def test_cached_page_loads_meet_the_two_second_budget(monkeypatch):
     db.close_reader()
     slow = {}
     for page in ("01_command_center", "02_clearance", "03_entities", "06_supervision"):
-        path = str(ROOT / "app" / "pages" / f"{page}.py")
+        path = str(ROOT / "app" / "screens" / f"{page}.py")
         AppTest.from_file(path, default_timeout=180).run()          # warm the data cache
         dt = 1e9
         for _ in range(2):                                              # best of two: the 30 s data-time bucket may roll over between runs

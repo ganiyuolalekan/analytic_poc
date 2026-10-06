@@ -2,7 +2,7 @@ PY ?= .venv/bin/python
 PYTEST ?= .venv/bin/python -m pytest
 STREAMLIT ?= .venv/bin/streamlit
 
-.PHONY: cost setup probe estimate-cost seed run run-live live-on live-off live-status share unshare test test-all eval snapshot restore-demo reset logos lint report variants
+.PHONY: db-status db-unindexed db-index run-local cost setup probe estimate-cost seed run run-live live-on live-off live-status share unshare test test-all eval snapshot restore-demo reset logos lint report variants
 
 setup:
 	uv venv --python 3.12 .venv
@@ -27,6 +27,19 @@ run:
 # Live generation is OFF whenever the app starts; run-live starts it ON. Flip it any time from the top bar or with the targets below.
 run-live:
 	NSW_LIVE_ON_START=1 $(STREAMLIT) run app/main.py
+
+# Two databases: data/nsw.db is INDEXED (what you share); data/nsw_unindexed.db is about half the size and quick to copy, restore and write into (what you test with).
+db-status:
+	$(PY) scripts/db_index.py status
+
+db-unindexed:
+	$(PY) scripts/db_index.py slim
+
+db-index:
+	$(PY) scripts/db_index.py index
+
+run-local:
+	NSW_DB_PATH=data/nsw_unindexed.db $(STREAMLIT) run app/main.py --server.port 8599
 
 live-on:
 	@$(PY) scripts/live.py on

@@ -104,5 +104,6 @@ for bid, b_ in beats.items():
                  "detector": ", ".join(b_["detected_by"]) or "none (visible in volume chart)", "detector fired": ("● yes" if len(fired) else "–") if b_["detected_by"] else "n/a",
                  "first detection": clock.fmt_wat(fired["detected_at"].min(), "%d %b %H:%M") if len(fired) else "–"})
 st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
-st.caption(f"Database: {db_path().name} · {db_path().stat().st_size / 1e9:.2f} GB · schema v{db.SCHEMA_VERSION}")
+st.caption(f"Database: {db_path().name} · {db_path().stat().st_size / 1e9:.2f} GB · schema v{db.SCHEMA_VERSION} · {db.index_count(conn)} of {len(db.INDEXES)} chosen indexes "
+           f"({'indexed' if db.index_count(conn) == len(db.INDEXES) else 'unindexed: smaller and quicker to copy, a little slower to read'})")
 cards.disclaimer_footer()

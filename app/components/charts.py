@@ -57,6 +57,24 @@ def money_in_out(coming_in: pd.DataFrame, going_out: pd.DataFrame, x: str = "whe
     return fig
 
 
+def answer_chart(v: dict) -> go.Figure:
+    """A small chart for an answer (``agent.visuals_from``). Values are naira, days, percent or counts, scaled to bn or m so the axis reads easily."""
+    vals = [float(x) for x in v["values"]]
+    peak = max((abs(x) for x in vals), default=1.0)
+    div, unit = ((1e9, "bn") if peak >= 1e9 else (1e6, "m") if peak >= 1e6 else (1.0, "")) if v.get("money") else (1.0, {"days": "days", "percent": "%"}.get(v.get("unit"), ""))
+    ys = [x / div for x in vals]
+    if v["kind"] == "line":
+        fig = go.Figure(go.Scatter(x=v["labels"], y=ys, mode="lines", line=dict(color=GREEN, width=3, shape="spline", smoothing=0.5), fill="tozeroy", fillcolor="rgba(11,93,59,0.10)",
+                                   hovertemplate="%{x}<br>%{y:,.2f} " + unit + "<extra></extra>"))
+        fig.update_yaxes(title=unit or None)
+    else:
+        colours = [logos.colour(label) if v.get("dim") == "entity" else GREEN for label in v["labels"]]
+        fig = go.Figure(go.Bar(x=ys, y=v["labels"], orientation="h", marker_color=colours, text=[f"{y:,.2f}" for y in ys], textposition="auto", hovertemplate="%{y}: %{x:,.2f} " + unit + "<extra></extra>"))
+        fig.update_yaxes(autorange="reversed", automargin=True)
+        fig.update_xaxes(title=unit or None)
+    return fig
+
+
 def rag_dot(rag: str) -> str:
     return f'<span style="color:{RAG.get(rag, GREY)};font-size:1.1em">{GLYPH.get(rag, "●")}</span>'
 

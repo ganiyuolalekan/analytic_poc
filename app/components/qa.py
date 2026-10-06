@@ -2,9 +2,11 @@
 Wording is for a non-technical audience ('AI', never 'model', 'tool' or 'token'); the technical detail appears only when technical pages are switched on."""
 from __future__ import annotations
 
+import re
+
 import streamlit as st
 
-from app.components import fmt, state
+from app.components import charts, fmt, state
 from nsw_sim import CHAT_FOOTER, clock
 from nsw_sim.assistant.agent import Agent
 
@@ -31,9 +33,11 @@ PAGE_STARTERS = {
     "reconciliation": [("Money in transit", "How much was paid but not yet settled as at now?"),
                        ("Biggest shortfall", "Which commodity and origin pair shows the biggest assessment shortfall in September 2026, and how large is it?"),
                        ("Duplicate payments", "How many duplicate payments were detected on 2 October 2026 and what value?")],
+    "trace": [("What is moving now", "What happened in the last 15 minutes?"), ("Largest payment yesterday", "What was the largest payment yesterday, and which consignment was it for?"),
+              ("Money in transit", "How much was paid but not yet settled as at now, and which bank holds the most?")],
     "supervision": [("Serious alerts", "List high-severity open alerts."), ("Late remittance", "Which entity has the latest remittance and by how many days?")]}
 
-PAGE_SCOPES = {"command_center": "command", "clearance": "clearance", "entities": "entities", "reconciliation": "reconciliation", "supervision": "supervision"}
+PAGE_SCOPES = {"command_center": "command", "clearance": "clearance", "entities": "entities", "trace": "trace", "reconciliation": "reconciliation", "supervision": "supervision"}
 GENERAL = [("How are we doing?", "How are we doing?"), ("Top agencies", "Rank the entities by collections since 1 July."), ("Serious alerts", "List high-severity open alerts.")]
 
 # The landing page's period dropdown: label -> how the period reads inside a question
@@ -58,6 +62,29 @@ def context(hint: str = "") -> dict:
     f = state.filters()
     return {"period_label": f"{clock.fmt_wat(f.start, '%d %b %Y')} → {clock.fmt_wat(f.end, '%d %b %Y %H:%M')}" if f.start else None,
             "filters_desc": f.describe() + (f"; the viewer is looking at the {hint} page" if hint else "")}
+
+
+BASIS = re.compile(r"\n+\s*\**Basis:\**\s*(.+?)\s*$", re.S | re.I)
+
+
+def split_basis(text: str) -> tuple[str, str]:
+    """An answer's body and its closing 'Basis:' line, which is shown as a quiet 'Based on' note rather than as part of the answer."""
+    m = BASIS.search(text)
+    return (text[:m.start()].rstrip(), " ".join(m.group(1).split())) if m else (text, "")
+
+
+def render_answer(text: str, meta: dict | None = None) -> None:
+    """The answer, then any charts built from the data, a one-line 'Based on', and the answer-check badge with its details."""
+    body, basis = split_basis(shown(text))
+    st.markdown(body)
+    for v in (meta or {}).get("visuals") or []:
+        st.markdown(f"**{v['title']}**")
+        n = st.session_state["_chart_n"] = st.session_state.get("_chart_n", 0) + 1          # unique even when the same question is asked twice and two identical answers are on screen
+        charts.show(charts.answer_chart(v), f"ans_{n}", 230 if v["kind"] == "line" else 38 * len(v["labels"]) + 60, legend=False)
+    if basis:
+        st.caption("Based on: " + basis)
+    if meta:
+        _footer(meta)
 
 
 def _footer(meta: dict) -> None:
@@ -85,13 +112,15 @@ def shown(text: str) -> str:
 
 def show_turn(m: dict) -> None:
     with st.chat_message(m["role"]):
-        st.markdown(shown(m["content"]))
-        if m["role"] == "assistant" and m.get("meta"):
-            _footer(m["meta"])
+        if m["role"] == "assistant":
+            render_answer(m["content"], m.get("meta"))
+        else:
+            st.markdown(shown(m["content"]))
 
 
-def ask(question: str, defaults: dict | None = None) -> None:
-    """Run the assistant for one question, streaming the answer into the page, and add both turns to the shared conversation."""
+def ask(question: str, defaults: dict | None = None, standalone: bool = False) -> None:
+    """Run the assistant for one question, streaming the answer into the page, and add both turns to the shared conversation. A ``standalone`` question (a one-click
+    suggestion) is asked without the earlier turns: it does not depend on them, and the same question then always gets the same, reusable answer."""
     ss = st.session_state
     ss.setdefault("chat", [])
     ss["chat"].append({"role": "user", "content": question})
@@ -101,7 +130,7 @@ def ask(question: str, defaults: dict | None = None) -> None:
         box, text, steps = st.empty(), "", st.empty()
         box.caption("Looking at the data…")
         final = None
-        hist = [{"role": m["role"], "content": m["content"]} for m in ss["chat"][:-1]]
+        hist = [] if standalone else [{"role": m["role"], "content": m["content"]} for m in ss["chat"][:-1]]
         for kind, payload in Agent(svc.llm, as_of=state.as_of()).run(question, hist, defaults or context()):
             if kind == "delta":
                 text += payload
@@ -111,9 +140,10 @@ def ask(question: str, defaults: dict | None = None) -> None:
             else:
                 final = payload
         steps.empty()
-        box.markdown(shown(final.text))
-        meta = {"status": final.status, "unmatched": final.unmatched, "tool_trace": final.tool_trace, "period": final.period, "latency_ms": final.latency_ms, "unreconciled": final.unreconciled}
-        _footer(meta)
+        box.empty()
+        meta = {"status": final.status, "unmatched": final.unmatched, "tool_trace": final.tool_trace, "period": final.period, "latency_ms": final.latency_ms, "unreconciled": final.unreconciled,
+                "visuals": final.visuals}
+        render_answer(final.text, meta)
     ss["chat"].append({"role": "assistant", "content": final.text, "meta": meta})
 
 
@@ -141,7 +171,7 @@ def panel(scope: str, starters: list[tuple[str, str]], hint: str = "", defaults:
     chat = ss.setdefault("chat", [])
     with latest:
         if question:
-            ask(question, defaults or context(hint))
+            ask(question, defaults or context(hint), standalone=question in {q for _, q in starters} | {default})
             chat = ss["chat"]
         elif chat:
             for m in chat[-2:]:

@@ -120,4 +120,4 @@ def compare_on() -> bool:
 
 def goto_trace(ref: str) -> None:
     st.session_state["trace_query"] = ref
-    st.switch_page("pages/04_trace.py")
+    st.switch_page("screens/04_trace.py")

@@ -98,6 +98,12 @@ def create_indexes(conn: sqlite3.Connection, names: Iterable[str] | None = None)
         conn.execute(f"CREATE INDEX IF NOT EXISTS {n} ON {t}({cols})")
 
 
+def index_count(conn: sqlite3.Connection) -> int:
+    """How many of the chosen indexes this database has (all of them: indexed; none: the unindexed copy used for fast local work)."""
+    present = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='index' AND sql IS NOT NULL")}
+    return len(present & set(INDEXES))
+
+
 def drop_indexes(conn: sqlite3.Connection, names: Iterable[str] | None = None) -> None:
     for n in (names or INDEXES):
         conn.execute(f"DROP INDEX IF EXISTS {n}")

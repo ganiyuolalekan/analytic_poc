@@ -71,7 +71,7 @@ def test_supervision_panel_shows_na_not_zero_for_the_placeholder_metric(monkeypa
     from nsw_sim import db
     monkeypatch.setenv("NSW_DB_PATH", str(REAL))
     db.close_reader()
-    at = AppTest.from_file(str(REAL.parent.parent / "app" / "pages" / "06_supervision.py"), default_timeout=180)
+    at = AppTest.from_file(str(REAL.parent.parent / "app" / "screens" / "06_supervision.py"), default_timeout=180)
     at.query_params["alert"] = "ALT-20261005-00001"
     at.run()
     assert not at.exception, [e.value[:200] for e in at.exception]
