@@ -20,6 +20,7 @@ cloud.secrets_to_env()          # on Streamlit Community Cloud the settings arri
 from app.components import filters, gate, header, qa, state  # noqa: E402
 from nsw_sim import db, dbfetch  # noqa: E402
 from nsw_sim.config import db_path  # noqa: E402
+from nsw_sim.llm import selfcheck  # noqa: E402
 
 PAGES = [("screens/00_home.py", "Home"), ("screens/01_command_center.py", "Command Center"), ("screens/02_clearance.py", "Clearance Journey"), ("screens/03_entities.py", "Entity Explorer"),
          ("screens/04_trace.py", "Trace Workbench"), ("screens/05_reconciliation.py", "Reconciliation"), ("screens/06_supervision.py", "Supervision"),
@@ -80,6 +81,7 @@ if not gate.passed():
 if dbfetch.needed():
     _fetch_screen()
 elif _bootstrap_screen():
+    selfcheck.start(state.service().llm)          # once per start, in the background: the AI connection and the host, written to the logs only
     filters.sidebar()
     header.top_bar()
     if not state.view_only():          # the presenter's own machine only: a shared review link has no way to reveal the technical pages

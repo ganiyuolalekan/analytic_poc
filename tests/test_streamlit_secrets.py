@@ -62,7 +62,7 @@ def test_awkward_characters_survive_the_round_trip(tool):
 
 def test_an_unfinished_box_is_refused_naming_what_is_missing_but_never_showing_values(tool):
     for bad, expect in ((ENV.replace("someone/nsw-demo-db", "your-hf-name/nsw-demo-db"), "NSW_DB_REPO"), (ENV.replace("hf_realreadtoken123", "hf_paste-the-read-only-token"), "HF_TOKEN"),
-                        (ENV.replace("# NSW_ACCESS_CODE=abc123-code\n", ""), "NSW_ACCESS_CODE"), (ENV.replace("# NSW_ACCESS_CODE=abc123-code", "# NSW_ACCESS_CODE=choose-a-long-random-code"), "NSW_ACCESS_CODE")):
+                        (ENV.replace("# NSW_ACCESS_CODE=abc123-code", "# NSW_ACCESS_CODE=choose-a-long-random-code"), "NSW_ACCESS_CODE")):
         with pytest.raises(tool.SecretsError) as e:
             tool.collect(bad)
         assert expect in str(e.value) and not any(v in str(e.value) for v in SECRET_VALUES) and "Fill them in" in str(e.value)
@@ -114,3 +114,12 @@ def test_copy_goes_to_the_clipboard_and_prints_no_secrets(tool, tmp_path, capsys
 
 def test_the_make_target_and_the_docs_mention_it():
     assert "streamlit-secrets:" in (ROOT / "Makefile").read_text() and "make streamlit-secrets" in (ROOT / "DEPLOY.md").read_text()
+
+
+def test_the_access_code_is_optional_and_without_it_the_box_has_none(tool):
+    for text in (ENV.replace("# NSW_ACCESS_CODE=abc123-code\n", ""), ENV.replace("# NSW_ACCESS_CODE=abc123-code", "# NSW_ACCESS_CODE=")):
+        rendered = tool.render(tool.collect(text))
+        box = tomllib.loads(rendered)
+        assert "NSW_ACCESS_CODE" not in box and box["NSW_VIEW_ONLY"] == "1" and box["NSW_DB_REPO"] == "someone/nsw-demo-db"
+        assert "abc123-code" not in rendered and "How the app is shared" in rendered
+    assert tomllib.loads(tool.render(tool.collect(ENV)))["NSW_ACCESS_CODE"] == "abc123-code"          # still passed on when there is one

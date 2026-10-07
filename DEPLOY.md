@@ -7,7 +7,7 @@ On first start the app downloads a compressed copy (about 140 MB), checks its ch
 your Mac:   make db-package  ->  make db-publish  ->  private Hugging Face dataset  <-  the app fetches it on first start (READ token)  <-  Streamlit Community Cloud
 ```
 
-Nothing secret is ever committed: the tokens, the AI key and the access code go into Streamlit's **Secrets** box (`.streamlit/secrets.toml.example` is the template; the real `secrets.toml` is git-ignored).
+Nothing secret is ever committed: the tokens and the AI key (and the access code, if you use one) go into Streamlit's **Secrets** box (`.streamlit/secrets.toml.example` is the template; the real `secrets.toml` is git-ignored).
 
 ## 1. One-time setup on Hugging Face (you)
 1. Create a free account at huggingface.co. Your username below is `<hf-name>`.
@@ -29,9 +29,9 @@ The upload refuses to go to a public dataset. The package includes the AI answer
 ## 3. Deploy on Streamlit Community Cloud
 1. Open https://share.streamlit.io and sign in with the GitHub account that owns the repo.
 2. **Create app**: repository `analytic_poc`, branch `main`, main file `app/main.py`.
-3. **Advanced settings**: Python 3.12. Paste the Secrets box into **Secrets** (the AI key, the access code, `NSW_VIEW_ONLY`, the token cap, `NSW_DB_REPO` and the READ token). Fill in the commented block at the bottom of your `.env`, then run `make streamlit-secrets` to print the box ready to paste (`ARGS=--mask` previews it with secrets hidden, `ARGS=--copy` puts it on the clipboard); it refuses while anything is missing or still a placeholder. `.streamlit/secrets.toml.example` shows the same layout.
-4. Deploy. The first start shows "Getting the data ready" for a minute or two, then the access-code prompt and the landing page.
-5. Check: enter the access code, ask one of the suggestions on the landing page, open the three sections.
+3. **Advanced settings**: Python 3.12. Paste the Secrets box into **Secrets** (the AI key, `NSW_VIEW_ONLY`, the token cap, `NSW_DB_REPO` and the READ token; the access code is optional). Fill in the commented block at the bottom of your `.env`, then run `make streamlit-secrets` to print the box ready to paste (`ARGS=--mask` previews it with secrets hidden, `ARGS=--copy` puts it on the clipboard); it refuses while anything is missing or still a placeholder. `.streamlit/secrets.toml.example` shows the same layout.
+4. Deploy. The first start shows "Getting the data ready" for a minute or two, then the landing page (or the access-code prompt, if you set a code).
+5. Check: ask one of the suggestions on the landing page, open the three sections.
 
 ## 4. Looking after it
 - **New data:** publish again (step 2), then in the app's Secrets add `NSW_DB_FORCE = "1"`, reboot the app, and remove the line afterwards. Without it a host that still has an older copy keeps using it.
@@ -45,10 +45,10 @@ The upload refuses to go to a public dataset. The package includes the AI answer
 | Public (GitHub) | Private (Hugging Face, Streamlit Secrets, your Mac) |
 |---|---|
 | the code, docs and tests | the database and the AI answer cache (private dataset) |
-| the secrets template (no values) | the READ token, the AI key and the access code (Secrets box) |
+| the secrets template (no values) | the READ token, the AI key and the optional access code (Secrets box) |
 | | the WRITE token (your Mac only) |
 
-The Streamlit app's address is reachable by anyone who has it; the access code is what protects the data, and view-only mode plus the daily token cap limit what a visitor can do.
+The Streamlit app's address is reachable by anyone who has it. **Without an access code (leave `NSW_ACCESS_CODE` out of the Secrets box) there is no prompt at all**: anyone with the address can read the demo data and use the AI, and view-only mode plus the daily token cap are what limit them. To take the prompt away on a deployed app, delete the `NSW_ACCESS_CODE` line in the Secrets box on Streamlit (App settings > Secrets) and save: the app restarts without it. To ask for a code again, add the line back.
 
 ## If the free tier is not enough
 The data package works on any host that can run Streamlit and set environment variables: set `NSW_DB_REPO`, `HF_TOKEN` and the other settings from the template as environment variables and start `streamlit run app/main.py`.

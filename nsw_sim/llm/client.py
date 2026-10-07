@@ -509,8 +509,15 @@ class LLM:
             yield ("final", ChatResult(content, calls, tokens_in=tin, tokens_out=tout, latency_ms=ms, call_id=call_id))
         except Exception as e:  # noqa: BLE001
             err = redact(f"{type(e).__name__}: {e}")[:300]
-            STATUS.fail(err)
             self._log(call_id, role, model, 0, 0, int((time.monotonic() - t0) * 1000), "error", False)
+            if not content and not tcs:          # nothing was shown yet: some hosts and proxies break streaming, so ask for the whole answer in one piece (which also adapts to settings the endpoint rejects)
+                log.warning("LLM stream failed (%s); retrying without streaming", err)
+                res = self.chat(messages, tools, role=role, max_tokens=max_tokens)
+                if res.content:
+                    yield ("delta", res.content)
+                yield ("final", res)
+                return
+            STATUS.fail(err)
             yield ("final", ChatResult(content, [], ok=False, error=err, call_id=call_id))
 
 

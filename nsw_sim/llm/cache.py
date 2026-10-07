@@ -8,9 +8,11 @@ import threading
 from typing import Any
 
 from nsw_sim import clock
-from nsw_sim.config import cache_path
+from nsw_sim.config import cache_path, get_logger
 
+log = get_logger("nsw.llm.cache")
 _lock = threading.Lock()
+_warned = False
 _conn: sqlite3.Connection | None = None
 _conn_path: str | None = None
 
@@ -36,19 +38,42 @@ def make_key(role: str, model: str, system: str, user: str, version: str, extra:
     return h.hexdigest()
 
 
+def _unusable(e: Exception) -> None:
+    """The cache is a convenience: a disk that is full or read-only must cost a replay, never an answer."""
+    global _warned
+    if not _warned:
+        _warned = True
+        log.warning("AI answer cache unusable (%s: %s): answers are not saved or replayed on this host", type(e).__name__, e)
+
+
 def get(key: str) -> dict | None:
-    with _lock:
-        row = _get().execute("SELECT response, tokens_in, tokens_out FROM llm_cache WHERE key=?", (key,)).fetchone()
+    try:
+        with _lock:
+            row = _get().execute("SELECT response, tokens_in, tokens_out FROM llm_cache WHERE key=?", (key,)).fetchone()
+    except sqlite3.Error as e:
+        _unusable(e)
+        return None
     if not row:
         return None
     return {"response": row[0], "tokens_in": row[1] or 0, "tokens_out": row[2] or 0}
 
 
 def put(key: str, role: str, model: str, response: str, tokens_in: int, tokens_out: int) -> None:
-    with _lock:
-        _get().execute("INSERT OR REPLACE INTO llm_cache(key,role,model,response,tokens_in,tokens_out,created_at) "
-                       "VALUES(?,?,?,?,?,?,?)",
-                       (key, role, model, response, tokens_in, tokens_out, clock.iso(clock.utcnow())))
+    try:
+        with _lock:
+            _get().execute("INSERT OR REPLACE INTO llm_cache(key,role,model,response,tokens_in,tokens_out,created_at) "
+                           "VALUES(?,?,?,?,?,?,?)",
+                           (key, role, model, response, tokens_in, tokens_out, clock.iso(clock.utcnow())))
+    except sqlite3.Error as e:
+        _unusable(e)
+
+
+def discard(key: str) -> None:
+    try:
+        with _lock:
+            _get().execute("DELETE FROM llm_cache WHERE key=?", (key,))
+    except sqlite3.Error as e:
+        _unusable(e)
 
 
 def stats() -> dict:

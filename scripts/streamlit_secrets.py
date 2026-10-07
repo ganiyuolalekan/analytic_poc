@@ -5,6 +5,7 @@
   make streamlit-secrets ARGS=--copy          put it on the clipboard instead of printing it (macOS)
 It reads the AI key and project from the active lines of .env and the sharing and data settings from the commented "FOR STREAMLIT COMMUNITY CLOUD" block at the bottom
 (uncomment nothing: fill in the values there). It refuses while a value is missing or still a placeholder, so a half-finished box is never pasted.
+NSW_ACCESS_CODE is optional: leave it empty and the box has no code, so the app opens without a prompt.
 Options: --env PATH, --force-refresh (adds NSW_DB_FORCE = "1" for one boot after publishing new data), --allow-placeholders."""
 import argparse
 import json
@@ -18,10 +19,10 @@ ROOT = Path(__file__).resolve().parent.parent
 MARKER = "FOR STREAMLIT COMMUNITY CLOUD"
 # (key, where its value comes from, secret?) in the order they appear in the box
 FIELDS = [("OPENAI_API_KEY", "active", True), ("OPENAI_PROJECT_ID", "active", True), ("OPENAI_BASE_URL", "block", False),
-          ("NSW_ACCESS_CODE", "block", True), ("NSW_VIEW_ONLY", "block", False), ("NSW_TOKEN_BUDGET_DAY", "block", False),
+          ("NSW_VIEW_ONLY", "block", False), ("NSW_ACCESS_CODE", "block", True), ("NSW_TOKEN_BUDGET_DAY", "block", False),
           ("NSW_DB_REPO", "block", False), ("HF_TOKEN", "block", True)]
-OPTIONAL = {"OPENAI_PROJECT_ID"}
-GROUPS = {"OPENAI_API_KEY": "The AI assistant", "NSW_ACCESS_CODE": "How the app is shared", "NSW_DB_REPO": "Where the data comes from (a PRIVATE Hugging Face dataset and a READ-ONLY token)"}
+OPTIONAL = {"OPENAI_PROJECT_ID", "NSW_ACCESS_CODE"}          # no access code = the app opens without a prompt for anyone who has its address
+GROUPS = {"OPENAI_API_KEY": "The AI assistant", "NSW_VIEW_ONLY": "How the app is shared", "NSW_DB_REPO": "Where the data comes from (a PRIVATE Hugging Face dataset and a READ-ONLY token)"}
 PLACEHOLDER = re.compile(r"your-hf-name|hf_paste|paste-|choose-a-|changeme|xxxx", re.I)
 
 
